@@ -1,0 +1,2 @@
+{"id": "ex_001", "input": "What is 2 + 2?", "gold": "4"}
+{"id": "ex_002", "input": "If there are 3 bags with 5 apples each, how many apples are there?", "gold": "15"}
