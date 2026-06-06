@@ -1,4 +1,4 @@
-"""Phase 2 smoke test for PonderNet adaptive halting (Option C).
+"""Phase 2+3 smoke test for PonderNet adaptive halting (Option C).
 
 Self-contained: builds a tiny GPT-2 CODI with --pondernet on a SYNTHETIC batch
 (no dependency on the cluster-hardcoded GSM8K-Aug paths) and overfits it for a
@@ -6,7 +6,9 @@ few steps. Verifies:
   (1) the original CODI objective still optimizes (loss decreases on a fixed batch),
   (2) the halting head produces lambda_k in (0,1) with shape (B, K),
   (3) per-prefix answer losses have shape (B, K) and are finite,
-  (4) with --pondernet OFF the forward path is unchanged (no pondernet_* keys).
+  (4) with --pondernet OFF the forward path is unchanged (no pondernet_* keys),
+  (5) halting distribution p_k has shape (B, K), non-negative, sums to 1,
+  (6) p_k is in-graph (gradients flow from it to the halt head).
 
 Run from SIM-CoT/CODI/:
     python smoke_pondernet.py                 # uses HF "gpt2"
@@ -136,14 +138,28 @@ def main():
     print(f"[{'PASS' if c4 else 'FAIL'}] step_losses shape ({B},{K}) & finite: got {tuple(sl.shape)}")
     ok &= c4
 
+    p = last["pondernet_p"]  # (B, K) — in-graph
+
+    c5 = tuple(p.shape) == (B, K)
+    print(f"[{'PASS' if c5 else 'FAIL'}] p_k shape == ({B},{K}): got {tuple(p.shape)}")
+    ok &= c5
+
+    row_sums = p.sum(dim=1)
+    c6 = bool((p >= 0).all()) and bool(((row_sums - 1.0).abs() < 1e-5).all())
+    print(f"[{'PASS' if c6 else 'FAIL'}] p_k >= 0 and sums to 1: min={p.min().item():.6f} row_sums={row_sums.tolist()}")
+    ok &= c6
+
+    c7 = p.requires_grad
+    print(f"[{'PASS' if c7 else 'FAIL'}] p_k requires_grad (in-graph for Phase 4)")
+    ok &= c7
+
     # ---- 2) PonderNet OFF: original path must not expose pondernet_* keys ----
     model_off = build_model(args.model, pondernet=False, device=device)
     model_off.train()
     out_off = model_off(**make_batch(model_off, device))
-    c5 = ("pondernet_lambdas" not in out_off) and (not hasattr(model_off, "halt_head"))
-    print(f"[{'PASS' if c5 else 'FAIL'}] pondernet OFF: no halting head / diagnostics")
-    ok &= c5
-
+    c8 = ("pondernet_lambdas" not in out_off) and ("pondernet_p" not in out_off) and (not hasattr(model_off, "halt_head"))
+    print(f"[{'PASS' if c8 else 'FAIL'}] pondernet OFF: no halting head / diagnostics")
+    ok &= c8
     print("\nRESULT:", "ALL PASS ✅" if ok else "FAILURES ABOVE ❌")
     raise SystemExit(0 if ok else 1)
 
