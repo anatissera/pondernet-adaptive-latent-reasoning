@@ -130,6 +130,7 @@ class TrainingArguments(transformers.TrainingArguments):
     pondernet_beta: float = field(default=1.0, metadata={"help": "Weight of auxiliary decoder loss L_step in PonderNet mode."})
     pondernet_gamma: float = field(default=0.01, metadata={"help": "Weight of KL-geometric regularizer in PonderNet mode."})
     pondernet_geom_mean: float = field(default=3.0, metadata={"help": "Mean number of steps for the geometric prior used in KL_geom (controls compute pressure)."})
+    pondernet_inf_threshold: float = field(default=0.5, metadata={"help": "Cumulative halting probability threshold for inference early-stopping. Stop when sum_k p_k > threshold."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -413,6 +414,7 @@ class CODI(torch.nn.Module):
             self.pondernet_beta = training_args.pondernet_beta
             self.pondernet_gamma = training_args.pondernet_gamma
             self.pondernet_geom_mean = training_args.pondernet_geom_mean
+            self.pondernet_inf_threshold = training_args.pondernet_inf_threshold
 
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
