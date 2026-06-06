@@ -19,6 +19,9 @@ GPT2_PATH="${GPT2_PATH:-gpt2}"   # HF model ID or local path
 
 mkdir -p "$SAVE_DIR"
 
+# Avoids CUDA allocator fragmentation (important with K separate answer-decode forwards)
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
 python train.py \
     --output_dir "$SAVE_DIR" \
     --expt_name gsm8k_gpt2_pondernet \
@@ -27,9 +30,11 @@ python train.py \
     --model_name_or_path "$GPT2_PATH" \
     --data_name icot \
     --seed 42 \
-    --model_max_length 512 \
-    --per_device_train_batch_size 32 \
-    --gradient_accumulation_steps 4 \
+    --model_max_length 384 \
+    --max_token_num 700 \
+    --per_device_train_batch_size 4 \
+    --gradient_accumulation_steps 32 \
+    --gradient_checkpointing True \
     --bf16 \
     --num_train_epochs 40 \
     --learning_rate 3e-3 \
