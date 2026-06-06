@@ -1,156 +1,125 @@
-# Option-A: K Sweep Multi-Backend
+# Option-A: Predictor de pasos latentes
 
-This stage builds the exploratory pipeline for measuring how outputs and scores
-change when the latent reasoning budget `k` changes. It does not train a
-classifier, add soft labels, add RL, add ACT/PonderNet, or implement dynamic
-halting.
+La Option-A propone entrenar un clasificador liviano que, dada una tarea o consigna, prediga cuántos pasos de razonamiento latente k debería usar el modelo principal antes de responder.
 
-## What `k` Means
+La idea final es:
 
-The pipeline supports two backends:
+text input de la tarea -> clasificador -> k estimado -> modelo razona con ese k -> respuesta 
 
-- `coconut`: `k` is the number of latent stages. The runner inserts
-  `k * c_thought` `<|latent|>` tokens between `<|start-latent|>` and
-  `<|end-latent|>`, then calls `model.generate(...)`.
-- `codi`: `k` is the number of latent iterations. The runner encodes the
-  prompt, appends CODI's `bot_id`, runs `k` hidden-state latent iterations,
-  appends `eot_id`, and decodes the answer.
+Esta carpeta contiene la primera etapa experimental de esa opción. Todavía no entrenamos el clasificador. Por ahora estamos barriendo distintos valores de k para ver si cambiar la cantidad de razonamiento latente realmente afecta las respuestas y la accuracy.
 
-The tokenizer is required for both backends.
+---
 
-## Input Format
+## Qué estamos probando ahora
 
-`data/examples.jsonl` expects one JSON object per line:
+En esta etapa corremos el mismo modelo varias veces sobre los mismos ejemplos, cambiando k.
 
-```json
-{"id": "ex_001", "input": "question text", "gold": "answer"}
-```
+Por ejemplo:
 
+text mismo problema -> k=1 -> respuesta mismo problema -> k=2 -> respuesta mismo problema -> k=3 -> respuesta ... 
 
-## Environment Setup
+Después guardamos las predicciones y medimos si cada k acertó o no. Esto sirve para saber si existe una señal útil antes de entrenar el clasificador.
 
-Create a dedicated environment before running real model loads or sweeps:
+Si todos los valores de k dieran siempre lo mismo, no tendría mucho sentido aprender a predecir k. En cambio, si distintos ejemplos mejoran con distintos valores de k, entonces la Option-A tiene más sentido.
 
-```bash
-python3 -m venv .venv-option-a
-source .venv-option-a/bin/activate
-pip install -r k-classifier/requirements.txt
-```
+---
 
-The loaders require local checkpoints under `k-classifier/models/` and the runtime
-dependencies listed in `k-classifier/requirements.txt`. Recommended versions are pinned there, including `transformers==4.46.2`, to match the SIM-CoT/Coconut runtime more closely. If you do not activate the venv in your shell, run the same commands with `.venv-option-a/bin/python`.
+## Qué significa k
 
-Loader notes:
+k representa la cantidad de razonamiento latente que dejamos hacer al modelo.
 
-- CODI is loaded through a minimal Option-A inference wrapper that reconstructs the GPT-2 + PEFT LoRA + projection modules needed by the local checkpoint. This avoids importing the original CODI training module, which pulls in unrelated Transformers vision modules in some environments.
-- Coconut loads the checkpoint against the original GPT-2-sized auxiliary model and only initializes the added latent-token embeddings after the checkpoint load, preserving a faithful `missing=0`, `unexpected=0` load.
+En CODI, k es la cantidad de iteraciones latentes internas antes de generar la respuesta.
 
-## Smoke Tests
+En Coconut, k es la cantidad de etapas latentes agregadas al prompt mediante tokens especiales.
 
-Before running any sweep, verify each backend can load and generate one `k=1`
-response without writing result files:
+---
 
-```bash
-python k-classifier/scripts/smoke_model_load.py --backend codi
-python k-classifier/scripts/smoke_model_load.py --backend coconut
-```
+## Estructura de archivos
 
-If a smoke test fails, inspect the labelled stage in the error: loader import,
-prompt load, model load, or `k=1` inference. Do not run large sweeps until these
-smoke tests pass.
+text k-classifier/ ├── data/              # datasets en formato jsonl ├── models/            # checkpoints locales ignorados por git ├── results/           # resultados de los sweeps ├── scripts/           # scripts para correr experimentos ├── src/               # lógica principal de carga, inferencia y métricas ├── requirements.txt   # dependencias del entorno └── README.md 
 
-## Running
+Archivos principales:
 
-Provide a model loader callable that returns `(model, tokenizer)` or an object
-with `.model` and `.tokenizer`.
+text src/model_runner.py    # corre el modelo con un valor dado de k src/k_sweep.py         # barre k=1...k_max sobre un dataset src/metrics.py         # calcula exact match / accuracy src/model_loaders.py   # carga CODI y Coconut desde checkpoints locales 
 
-```bash
-python k-classifier/scripts/run_k_sweep.py \
-  --backend coconut \
-  --k-max 6 \
-  --n-examples 50 \
-  --data k-classifier/data/examples.jsonl \
-  --output k-classifier/results/k_sweep_results.jsonl \
-  --model-loader your_package.loaders:load_coconut \
-  --c-thought 2
-```
+Scripts principales:
 
-With the local checkpoints downloaded under `k-classifier/models/`, use:
+text scripts/run_k_sweep.py       # corre el experimento principal scripts/smoke_model_load.py  # verifica que los modelos carguen y generen scripts/prepare_gsm8k.py     # convierte GSM8K al formato esperado 
 
-```bash
-python k-classifier/scripts/run_k_sweep.py \
-  --backend coconut \
-  --k-max 6 \
-  --n-examples 50 \
-  --data k-classifier/data/examples.jsonl \
-  --output k-classifier/results/k_sweep_results.jsonl \
-  --model-loader src.model_loaders:load_coconut \
-  --c-thought 2
-```
+---
 
-For CODI:
+## Formato del dataset
 
-```bash
-python k-classifier/scripts/run_k_sweep.py \
-  --backend codi \
-  --k-max 6 \
-  --n-examples 50 \
-  --data k-classifier/data/examples.jsonl \
-  --output k-classifier/results/k_sweep_results.jsonl \
-  --model-loader your_package.loaders:load_codi
-```
+Cada ejemplo del dataset debe estar en una línea JSON:
 
-With the local CODI checkpoint:
+json {"id": "ex_001", "input": "What is 2 + 2?", "gold": "4"} 
 
-```bash
-python k-classifier/scripts/run_k_sweep.py \
-  --backend codi \
-  --k-max 6 \
-  --n-examples 50 \
-  --data k-classifier/data/examples.jsonl \
-  --output k-classifier/results/k_sweep_results.jsonl \
-  --model-loader src.model_loaders:load_codi
-```
+Donde:
 
-The loaders in `src/model_loaders.py` reconstruct the original project wrappers
-around a local GPT-2 base model and then load the downloaded SIM-CoT weights.
-They require PyTorch, Transformers, and for CODI also PEFT and Safetensors.
+- id: identificador del ejemplo;
+- input: consigna o problema;
+- gold: respuesta correcta.
 
-## Outputs
+---
 
-`results/k_sweep_results.jsonl` stores one row per example:
+## Cómo correr
 
-```json
-{
-  "example_id": "ex_001",
-  "input": "question text",
-  "gold_answer": "answer",
-  "predictions": {"1": "...", "2": "...", "3": "..."},
-  "scores": {"1": 0.0, "2": 0.0, "3": 1.0},
-  "prediction_k1": "...",
-  "prediction_k2": "...",
-  "prediction_k3": "...",
-  "score_k1": 0.0,
-  "score_k2": 0.0,
-  "score_k3": 1.0,
-  "k_star": 3
-}
-```
+Activar el entorno:
 
-`k_star` is the smallest `k` that reaches the maximum observed score for that
-example. For scores `[0, 0, 1, 1, 1, 1]`, `k_star = 3`.
+bash source .venv-option-a/bin/activate 
 
-`results/k_sweep_summary.csv` includes accuracy by `k`, average score by `k`,
-the distribution of `k_star`, and the percentage of examples where outputs
-change across `k`.
+Correr un smoke test:
 
-## What To Inspect
+bash python k-classifier/scripts/smoke_model_load.py --backend codi python k-classifier/scripts/smoke_model_load.py --backend coconut 
 
-- Do answers change when `k` changes?
-- Does average score improve as `k` increases?
-- Is there variation in `k_star` across examples?
-- Do most examples collapse to the same `k_star`?
+Correr un sweep con CODI:
 
-Local Coconut/SIM-CoT and CODI checkpoints are stored under `k-classifier/models/`
-when downloaded, but they are ignored by git. Treat smoke-test output and debug
-sweeps as diagnostics, not experimental results.
+bash python k-classifier/scripts/run_k_sweep.py \   --backend codi \   --k-max 8 \   --n-examples 100 \   --data k-classifier/data/gsm8k_test_100.jsonl \   --output k-classifier/results/gsm8k_codi_k8_n100_results.jsonl \   --model-loader src.model_loaders:load_codi 
+
+Correr un sweep con Coconut:
+
+bash python k-classifier/scripts/run_k_sweep.py \   --backend coconut \   --k-max 6 \   --n-examples 100 \   --data k-classifier/data/gsm8k_test_100.jsonl \   --output k-classifier/results/gsm8k_coconut_k6_n100_results.jsonl \   --model-loader src.model_loaders:load_coconut \   --c-thought 2 
+
+---
+
+## Resultados que se guardan
+
+Cada sweep genera un archivo .jsonl con una fila por ejemplo. Para cada ejemplo se guardan:
+
+- la consigna;
+- la respuesta correcta;
+- la predicción para cada k;
+- el score para cada k;
+- el k_star.
+
+k_star es el menor valor de k que logra el mejor resultado para un ejemplo, es decir, la mínima cantidad de razonamiento latente necesaria para alcanzar su mejor respuesta. Por ejemplo, si k=1 falla pero k=2 y k=3 aciertan, entonces k_star = 2.
+
+---
+
+## Experimento actual
+
+Corrimos CODI sobre 100 ejemplos de GSM8K con k_max=8.
+
+Resultado:
+
+text Accuracy by k: k=1: 0.3100 k=2: 0.3000 k=3: 0.2900 k=4: 0.3500 k=5: 0.3300 k=6: 0.3600 k=7: 0.3700 k=8: 0.3700  k_star distribution: k=1: 79 k=2: 10 k=3: 4 k=4: 5 k=5: 0 k=6: 1 k=7: 1 k=8: 0  Outputs changed across k: 96.00% 
+
+Interpretación breve:
+
+- La accuracy absoluta es modesta, pero esta etapa no busca maximizar performance final.
+- Lo importante es que cambiar k cambia las respuestas en el 96% de los ejemplos.
+- La accuracy sube de 31% con k=1 a 37% con k=7/8.
+- En 21 de 100 ejemplos, el mejor resultado no se obtiene con k=1.
+
+Esto sugiere que la cantidad de razonamiento latente sí afecta el resultado, por lo que tiene sentido avanzar hacia el objetivo real de la Option-A: entrenar un clasificador que prediga k para cada tarea.
+
+---
+
+## Qué falta hacer
+
+Todavía falta la parte principal de Option-A:
+
+- construir labels a partir de los sweeps, por ejemplo usando k_star;
+- entrenar un clasificador liviano que reciba el input y prediga k;
+- comparar ese clasificador contra baselines de k fijo;
+- medir no solo accuracy, sino también costo promedio de razonamiento.
