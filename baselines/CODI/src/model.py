@@ -127,6 +127,9 @@ class TrainingArguments(transformers.TrainingArguments):
     # --- PonderNet adaptive halting (Option C) ---
     pondernet: bool = field(default=False, metadata={"help": "Enable PonderNet-style adaptive latent halting. Off = original SIM-CoT path."})
     pondernet_halt_bias_init: float = field(default=-2.0, metadata={"help": "Initial bias of the halting head so early lambda_k is small (model uses more steps early in training)."})
+    pondernet_beta: float = field(default=1.0, metadata={"help": "Weight of auxiliary decoder loss L_step in PonderNet mode."})
+    pondernet_gamma: float = field(default=0.01, metadata={"help": "Weight of KL-geometric regularizer in PonderNet mode."})
+    pondernet_geom_mean: float = field(default=3.0, metadata={"help": "Mean number of steps for the geometric prior used in KL_geom (controls compute pressure)."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -407,6 +410,9 @@ class CODI(torch.nn.Module):
             self.halt_head = nn.Linear(self.dim, 1)
             nn.init.zeros_(self.halt_head.weight)
             nn.init.constant_(self.halt_head.bias, training_args.pondernet_halt_bias_init)
+            self.pondernet_beta = training_args.pondernet_beta
+            self.pondernet_gamma = training_args.pondernet_gamma
+            self.pondernet_geom_mean = training_args.pondernet_geom_mean
 
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
@@ -471,6 +477,27 @@ class CODI(torch.nn.Module):
         p = p.clamp_min(0.0)
         p = p / p.sum(dim=1, keepdim=True).clamp_min(1e-8)
         return p  # (B, K)
+
+    def _kl_geom(self, p_k):
+        """KL(p_k || q_k) where q_k is Geometric(g) truncated to K steps.
+
+        p_k: (B, K) halting distribution (rows sum to 1).
+        g = 1 / geom_mean; q_k = (1-g)^{k-1} * g for k<K, q_K = (1-g)^{K-1}.
+        Returns scalar — mean over batch.
+        """
+        K = p_k.size(1)
+        g = 1.0 / self.pondernet_geom_mean
+        # Build geometric prior q: shape (K,)
+        k_idx = torch.arange(K, dtype=p_k.dtype, device=p_k.device)
+        q = (1.0 - g) ** k_idx * g
+        q[-1] = (1.0 - g) ** (K - 1)   # absorbing boundary matches p_k convention
+        q = q / q.sum()                 # renorm so q sums to 1 exactly
+
+        # KL = sum_k p_k * (log p_k - log q_k); use clamp for log stability
+        log_p = torch.log(p_k.clamp_min(1e-8))
+        log_q = torch.log(q.clamp_min(1e-8)).unsqueeze(0)  # (1, K) broadcast
+        kl = (p_k * (log_p - log_q)).sum(dim=1)            # (B,)
+        return kl.mean()
 
     def _halting_lambda(self, hidden):
         """hidden: (B, 1, dim) latent state h_k -> lambda_k: (B,) in (0,1). fp32 for stable sigmoid."""
@@ -826,15 +853,42 @@ class CODI(torch.nn.Module):
                 explain_loss_total = explain_loss_total.detach()
         # print(f"{ce_loss_total=}, {distill_loss_total=}, {ref_ce_loss=}, {explain_loss_total}")
 
-        ret = {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss}
-        if self.model_args.use_decoder:
-            ret['explain_loss'] = explain_loss_total
         if self.pondernet and len(pondernet_lambdas) > 0:
-            # Phase 3: halting distribution p_k — kept in-graph for Phase 4 loss.
-            pondernet_p = self._halting_distribution(pondernet_lambdas)                      # (B, K)
+            # --- Phase 4: PonderNet objective ---
+            pondernet_p = self._halting_distribution(pondernet_lambdas)  # (B, K) in-graph
+
+            # L_pondernet = E_p[L_ans^(k)] = sum_k p_k * L_ans^(k), averaged over batch
+            step_losses_tensor = torch.stack(pondernet_step_losses, dim=1)  # (B, K) in-graph
+            l_pondernet = (pondernet_p * step_losses_tensor).sum(dim=1).mean()
+
+            # KL_geom regularizer — penalises distributions far from geometric prior
+            kl_geom = self._kl_geom(pondernet_p)
+
+            # Assemble total loss:
+            #   L_pondernet  replaces ce_loss_total (the fixed-K answer CE)
+            #   beta * L_step keeps the aux-decoder reconstruction loss
+            #   gamma * KL_geom adds the compute-efficiency pressure
+            #   distill and ref_ce are preserved from original CODI
+            loss = l_pondernet + distill_loss_total + ref_ce_loss
+            if self.model_args.use_decoder:
+                loss = loss + self.pondernet_beta * explain_loss_total
+            loss = loss + self.pondernet_gamma * kl_geom
+
+            if self.print_loss:
+                print(f"l_pondernet={l_pondernet.item():.4f}  kl_geom={kl_geom.item():.4f}  "
+                      f"p_mean_step={(pondernet_p * torch.arange(1, pondernet_p.size(1)+1, dtype=pondernet_p.dtype, device=pondernet_p.device)).sum(dim=1).mean().item():.2f}")
+
+            ret = {"loss": loss, "logits": logits,
+                   "ce_loss": l_pondernet.detach(), "distill_loss": distill_loss_total,
+                   "ref_ce_loss": ref_ce_loss, "kl_geom": kl_geom.detach()}
+            if self.model_args.use_decoder:
+                ret['explain_loss'] = explain_loss_total
             ret['pondernet_p'] = pondernet_p
-            # Diagnostics (detached).
-            ret['pondernet_lambdas'] = torch.stack(pondernet_lambdas, dim=1).detach()        # (B, K)
-            ret['pondernet_step_losses'] = torch.stack(pondernet_step_losses, dim=1).detach()  # (B, K)
+            ret['pondernet_lambdas'] = torch.stack(pondernet_lambdas, dim=1).detach()
+            ret['pondernet_step_losses'] = step_losses_tensor.detach()
+        else:
+            ret = {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss}
+            if self.model_args.use_decoder:
+                ret['explain_loss'] = explain_loss_total
         return ret
 

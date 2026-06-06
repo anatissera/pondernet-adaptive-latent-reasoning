@@ -1,4 +1,4 @@
-"""Phase 2+3 smoke test for PonderNet adaptive halting (Option C).
+"""Phase 2+3+4 smoke test for PonderNet adaptive halting (Option C).
 
 Self-contained: builds a tiny GPT-2 CODI with --pondernet on a SYNTHETIC batch
 (no dependency on the cluster-hardcoded GSM8K-Aug paths) and overfits it for a
@@ -8,7 +8,10 @@ few steps. Verifies:
   (3) per-prefix answer losses have shape (B, K) and are finite,
   (4) with --pondernet OFF the forward path is unchanged (no pondernet_* keys),
   (5) halting distribution p_k has shape (B, K), non-negative, sums to 1,
-  (6) p_k is in-graph (gradients flow from it to the halt head).
+  (6) p_k is in-graph (gradients flow from it to the halt head),
+  (7) L_pondernet (ce_loss key) is finite,
+  (8) kl_geom is non-negative and finite,
+  (9) halt_head.weight receives non-zero gradients after backward.
 
 Run from SIM-CoT/CODI/:
     python smoke_pondernet.py                 # uses HF "gpt2"
@@ -152,6 +155,25 @@ def main():
     c7 = p.requires_grad
     print(f"[{'PASS' if c7 else 'FAIL'}] p_k requires_grad (in-graph for Phase 4)")
     ok &= c7
+
+    l_pond = last["ce_loss"]  # L_pondernet stored under ce_loss key in pondernet mode
+    c8 = bool(torch.isfinite(torch.as_tensor(l_pond)))
+    print(f"[{'PASS' if c8 else 'FAIL'}] L_pondernet finite: {float(l_pond):.4f}")
+    ok &= c8
+
+    kl = last["kl_geom"]
+    c9 = bool(torch.isfinite(torch.as_tensor(kl))) and float(kl) >= 0.0
+    print(f"[{'PASS' if c9 else 'FAIL'}] kl_geom >= 0 and finite: {float(kl):.6f}")
+    ok &= c9
+
+    # Check halt_head gets gradient after backward on the last step
+    opt.zero_grad()
+    out_grad = model(**batch)
+    out_grad["loss"].backward()
+    halt_grad = model.halt_head.weight.grad
+    c10 = halt_grad is not None and bool((halt_grad.abs() > 0).any())
+    print(f"[{'PASS' if c10 else 'FAIL'}] halt_head.weight has non-zero grad (L_pondernet backprops through p_k)")
+    ok &= c10
 
     # ---- 2) PonderNet OFF: original path must not expose pondernet_* keys ----
     model_off = build_model(args.model, pondernet=False, device=device)
