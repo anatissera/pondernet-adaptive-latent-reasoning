@@ -102,8 +102,12 @@ def run_coconut(
         _set_eval(model)
         output_ids = model.generate(**generate_kwargs)
 
-    decoded = tokenizer.decode(output_ids[0], skip_special_tokens=True)
-    return _strip_prompt_prefix(decoded, prompt).strip()
+    generated_ids = output_ids[0][input_tensor.shape[-1] :]
+    decoded = tokenizer.decode(generated_ids, skip_special_tokens=True)
+    return _clean_coconut_prediction(
+        decoded,
+        latent_tokens=[start_token, latent_token, end_token],
+    )
 
 
 def build_coconut_latent_input_ids(
@@ -124,6 +128,14 @@ def build_coconut_latent_input_ids(
 
     n_latent_tokens = k * c_thought
     return question_ids + [start_id] + [latent_id] * n_latent_tokens + [end_id]
+
+
+def _clean_coconut_prediction(text: str, latent_tokens: list[str]) -> str:
+    """Remove latent markers if the model emits them in the generated suffix."""
+
+    for token in latent_tokens:
+        text = text.replace(token, "")
+    return " ".join(text.split()).strip()
 
 
 def run_codi(
