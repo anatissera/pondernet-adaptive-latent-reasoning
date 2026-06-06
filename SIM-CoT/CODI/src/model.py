@@ -447,6 +447,31 @@ class CODI(torch.nn.Module):
             self.load_state_dict(state_dict)
             print(f"Finished loading from {self.training_args.restore_from}")
 
+    def _halting_distribution(self, lambdas_list):
+        """Compute PonderNet halting distribution from per-step conditional lambdas.
+
+        lambdas_list: list of K tensors each (B,) - conditional halt prob at step k.
+        Returns p: (B, K) - probability of halting exactly at step k.
+          For k < K: p_k = lambda_k * prod_{j<k}(1 - lambda_j)
+          For k = K: p_K = prod_{j<K}(1 - lambda_j)  [absorbing boundary, lambda_K = 1]
+        Rows sum to 1 by construction (no renormalization needed beyond fp precision).
+        """
+        lambdas = torch.stack(lambdas_list, dim=1)  # (B, K)
+        one_minus = 1.0 - lambdas
+
+        # exclusive cumprod of (1-lambda): p_prior[k] = prod_{j<k}(1-lambda_j)
+        ones_col = torch.ones(lambdas.size(0), 1, dtype=lambdas.dtype, device=lambdas.device)
+        p_prior = torch.cat([ones_col, torch.cumprod(one_minus[:, :-1], dim=1)], dim=1)  # (B, K)
+
+        # p_k = lambda_k * p_prior_k for k < K; p_K = p_prior_K (absorbing)
+        p = lambdas * p_prior                       # (B, K) — first K-1 entries correct
+        p = torch.cat([p[:, :-1], p_prior[:, -1:]], dim=1)  # last entry = p_prior_K
+
+        # clamp negatives from fp error, renorm for exact sum-1
+        p = p.clamp_min(0.0)
+        p = p / p.sum(dim=1, keepdim=True).clamp_min(1e-8)
+        return p  # (B, K)
+
     def _halting_lambda(self, hidden):
         """hidden: (B, 1, dim) latent state h_k -> lambda_k: (B,) in (0,1). fp32 for stable sigmoid."""
         logit = self.halt_head(hidden.squeeze(1).float())
@@ -805,7 +830,10 @@ class CODI(torch.nn.Module):
         if self.model_args.use_decoder:
             ret['explain_loss'] = explain_loss_total
         if self.pondernet and len(pondernet_lambdas) > 0:
-            # Phase 2: diagnostics only (objective unchanged). detach to avoid holding graphs.
+            # Phase 3: halting distribution p_k — kept in-graph for Phase 4 loss.
+            pondernet_p = self._halting_distribution(pondernet_lambdas)                      # (B, K)
+            ret['pondernet_p'] = pondernet_p
+            # Diagnostics (detached).
             ret['pondernet_lambdas'] = torch.stack(pondernet_lambdas, dim=1).detach()        # (B, K)
             ret['pondernet_step_losses'] = torch.stack(pondernet_step_losses, dim=1).detach()  # (B, K)
         return ret
