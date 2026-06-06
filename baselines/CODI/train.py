@@ -267,7 +267,10 @@ def train():
 
             token_nums = []
             # import pdb; pdb.set_trace()
-            raw_data = read_json('/mnt/shared-storage-user/weixilin/MLLM/coconut/data/gsm_train_clean.json')            
+            if data_args.data_path:
+                raw_data = read_json(data_args.data_path)
+            elif raw_data is None:
+                raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
             for num_iter, example in tqdm(enumerate(raw_data)):
                 if 'cot' not in example: 
                     example['cot'] = example['steps']
@@ -398,8 +401,7 @@ def train():
         """Make dataset and collator for supervised fine-tuning."""
         logging.warning("Downloading Data")
         if "icot" in data_args.data_name:
-            # dataset = load_dataset("zen-E/GSM8k-Aug")["train"]
-            dataset = None
+            dataset = None  # SupervisedDataset will load from HF if data_args.data_path is empty
             train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)

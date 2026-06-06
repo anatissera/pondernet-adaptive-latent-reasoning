@@ -168,11 +168,10 @@ def evaluation(model_args, data_args, training_args):
         dataset = load_dataset("zen-E/CommonsenseQA-GPT4omini")
         test_set = dataset['validation']
     elif "gsm8k" == data_args.data_name:
-        # dataset = load_dataset("gsm8k", "main")
-        # test_set = dataset['test']
-        test_set = read_json('/mnt/shared-storage-user/weixilin/MLLM/coconut/data/gsm_test_clean.json')
-        # import pdb; pdb.set_trace()
-        # print()
+        if data_args.data_path:
+            test_set = read_json(data_args.data_path)
+        else:
+            test_set = list(load_dataset("gsm8k", "main")["test"])
     else:
         raise NotImplementedError
 
@@ -409,7 +408,10 @@ def evaluation(model_args, data_args, training_args):
                     print(f"Prediction={extract_answer_number(decoded_pred)}; Groundtruth={answer[q_idx]}")
                     print("")
                 ans_pred_list.append(extract_answer_number(decoded_pred))
-    write_json({"ans": ans_pred_list}, f"/mnt/shared-storage-user/weixilin/MLLM/coconut/codi/results/{data_args.data_name}.json")
+    import os
+    os.makedirs(data_args.results_dir, exist_ok=True)
+    results_path = os.path.join(data_args.results_dir, f"{data_args.data_name}.json")
+    write_json({"ans": ans_pred_list}, results_path)
     accuracy = compute_accuracy(answer, ans_pred_list)
 
     print(f"adapter: {model_args.adapter_name_or_path} | GSM8K test accuracy: {100*accuracy:.2f}% | ")
@@ -418,9 +420,25 @@ def evaluation(model_args, data_args, training_args):
         avg_steps = sum(steps_used_list) / len(steps_used_list)
         print(f"[PonderNet] average latent steps used: {avg_steps:.2f} / {model.num_latent}  "
               f"(threshold={model.pondernet_inf_threshold})")
-    # import pdb; pdb.set_trace()
+        # Accuracy-vs-budget table
+        from collections import defaultdict
+        step_correct = defaultdict(list)
+        for pred, gold, su in zip(ans_pred_list, answer, steps_used_list):
+            step_correct[su].append(pred == gold)
+        print("\n[PonderNet] Accuracy vs latent budget:")
+        print(f"{'Steps':>6} | {'N':>6} | {'Acc (%)':>8}")
+        print("-" * 26)
+        for k in sorted(step_correct):
+            n = len(step_correct[k])
+            acc_k = 100.0 * sum(step_correct[k]) / n
+            print(f"{k:>6} | {n:>6} | {acc_k:>7.1f}%")
+        # Save full per-instance results for offline plotting
+        detailed_path = os.path.join(data_args.results_dir, f"{data_args.data_name}_pondernet_detail.json")
+        write_json({"steps_used": steps_used_list, "correct": [p == g for p, g in zip(ans_pred_list, answer)]}, detailed_path)
+        print(f"[PonderNet] Per-instance detail saved to {detailed_path}")
     if model_args.save_ablation:
-        save_jsonl_line(f"/mnt/shared-storage-user/weixilin/MLLM/coconut/codi/results/{data_args.data_name}.jsonl", {'model_name': '-'.join(model_args.ckpt_dir.split('/')[5:]), 'data_name': data_args.data_name, 'soft_weight': model_args.soft_weight, 'acc.': accuracy})
+        ablation_path = os.path.join(data_args.results_dir, f"{data_args.data_name}.jsonl")
+        save_jsonl_line(ablation_path, {'model_name': model_args.ckpt_dir, 'data_name': data_args.data_name, 'soft_weight': model_args.soft_weight, 'acc.': accuracy})
     return 100*accuracy
 
 def extract_answer_number(sentence: str) -> float:
