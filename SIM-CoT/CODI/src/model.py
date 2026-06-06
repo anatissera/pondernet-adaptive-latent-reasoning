@@ -124,6 +124,9 @@ class TrainingArguments(transformers.TrainingArguments):
     log_full: bool = field(default=False, metadata={"help": "Log all losses."})
     print_loss: bool = field(default=True)
     max_token_num: int = field(default=1000, metadata={"help": "Limit the longest data to avoid OOM."})
+    # --- PonderNet adaptive halting (Option C) ---
+    pondernet: bool = field(default=False, metadata={"help": "Enable PonderNet-style adaptive latent halting. Off = original SIM-CoT path."})
+    pondernet_halt_bias_init: float = field(default=-2.0, metadata={"help": "Initial bias of the halting head so early lambda_k is small (model uses more steps early in training)."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -397,6 +400,14 @@ class CODI(torch.nn.Module):
         # general 
         self.fix_attn_mask = training_args.fix_attn_mask
 
+        # --- PonderNet adaptive halting (Option C) ---
+        self.pondernet = getattr(training_args, "pondernet", False)
+        if self.pondernet:
+            # Halting head: latent hidden state h_k -> scalar logit -> lambda_k in [0,1]
+            self.halt_head = nn.Linear(self.dim, 1)
+            nn.init.zeros_(self.halt_head.weight)
+            nn.init.constant_(self.halt_head.bias, training_args.pondernet_halt_bias_init)
+
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
             self.tokenizer.pad_token_id = self.pad_token_id
@@ -435,6 +446,30 @@ class CODI(torch.nn.Module):
             state_dict = load_file(self.training_args.restore_from)
             self.load_state_dict(state_dict)
             print(f"Finished loading from {self.training_args.restore_from}")
+
+    def _halting_lambda(self, hidden):
+        """hidden: (B, 1, dim) latent state h_k -> lambda_k: (B,) in (0,1). fp32 for stable sigmoid."""
+        logit = self.halt_head(hidden.squeeze(1).float())
+        return torch.sigmoid(logit).squeeze(-1)
+
+    def _answer_logits_and_loss(self, decoder_input_ids, labels, past_key_values, attention_mask=None):
+        """Decode the answer after the CURRENT latent prefix.
+        Returns (outputs, logits, per_example_ce[(B,)]). Does NOT mutate past_key_values
+        (GPT-2 legacy tuple cache returns a fresh cache; input tuple is left intact)."""
+        embds = self.get_embd(self.codi, self.model_name)(decoder_input_ids)
+        with autocast(dtype=torch.bfloat16):
+            outputs = self.codi(inputs_embeds=embds, use_cache=True, output_hidden_states=True,
+                                past_key_values=past_key_values, attention_mask=attention_mask)
+        logits = outputs.logits
+        shift_logits = logits[:, :-1, :]
+        shift_labels = labels[:, 1:]
+        tok_loss = F.cross_entropy(
+            shift_logits.reshape(-1, shift_logits.size(-1)).float(),
+            shift_labels.reshape(-1), ignore_index=-100, reduction="none",
+        ).view(shift_labels.size(0), -1)
+        valid = (shift_labels != -100).float()
+        per_example_ce = (tok_loss * valid).sum(dim=1) / valid.sum(dim=1).clamp_min(1.0)
+        return outputs, logits, per_example_ce
 
     def forward(
         self,
@@ -594,6 +629,7 @@ class CODI(torch.nn.Module):
         ref_answer_position = ref_answer_position -1
       
         num_latent = self.num_latent
+        pondernet_lambdas, pondernet_step_losses = [], []
         if self.num_latent != 0:
             for i in range(num_latent):
                 # Implicit CoT generation
@@ -607,6 +643,13 @@ class CODI(torch.nn.Module):
                     with autocast(dtype=torch.bfloat16, enabled=True):
                         latent_embd = self.prj(latent_embd)
                     # latent_embd = self.prj(latent_embd)
+
+                if self.pondernet:
+                    # lambda_k from this latent state; candidate answer after k = i+1 steps
+                    pondernet_lambdas.append(self._halting_lambda(latent_embd))           # (B,)
+                    _, _, ans_ce_k = self._answer_logits_and_loss(
+                        decoder_input_ids, labels, past_key_values, attention_mask=None)  # (B,)
+                    pondernet_step_losses.append(ans_ce_k)
 
                 if self.model_args.use_decoder:
                     bz = len(steps_pad_list)
@@ -758,8 +801,12 @@ class CODI(torch.nn.Module):
                 explain_loss_total = explain_loss_total.detach()
         # print(f"{ce_loss_total=}, {distill_loss_total=}, {ref_ce_loss=}, {explain_loss_total}")
 
+        ret = {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss}
         if self.model_args.use_decoder:
-            return {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss, 'explain_loss': explain_loss_total}
-        else:
-            return {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss}
+            ret['explain_loss'] = explain_loss_total
+        if self.pondernet and len(pondernet_lambdas) > 0:
+            # Phase 2: diagnostics only (objective unchanged). detach to avoid holding graphs.
+            ret['pondernet_lambdas'] = torch.stack(pondernet_lambdas, dim=1).detach()        # (B, K)
+            ret['pondernet_step_losses'] = torch.stack(pondernet_step_losses, dim=1).detach()  # (B, K)
+        return ret
 
