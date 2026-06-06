@@ -1,0 +1,18 @@
+# Datasets / modelos / outputs
+data/
+datasets/
+checkpoints/
+outputs/
+runs/
+wandb/
+
+# Entornos virtuales
+.venv/
+SIM-CoT/.venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Secrets
+.env
