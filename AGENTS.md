@@ -7,9 +7,8 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 - `baselines/` — upstream reference implementations; treat as read-only unless actively extending
   - `Coconut/` — Coconut latent CoT (GSM8K, ProntoQA tasks)
   - `CODI/` — CODI implicit CoT; Subgroup 1's active working area (PonderNet extensions)
-- `k-classifier/` — Subgroup 2's k-sweep multi-backend pipeline (Coconut + CODI backends)
-- `docs/papers/` — paper summaries; read the relevant one before touching related code
-- `docs/exploration.md` — team research notes, hypotheses, and experiment log
+- `docs/methods-comparison.md` — cross-paper comparison table and chain-of-influence narrative; read this for method context
+- `docs/papers/` — full paper content (raw); only read if you need deeper detail beyond the comparison doc
 
 ## Two Subgroups
 
@@ -17,15 +16,6 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 |--------|----------|---------------------|
 | `develop-c` | PonderNet-style adaptive halting (phases 1–6 complete) | `baselines/CODI/` |
 | `option-a` | Fixed-k sweep, multi-backend evaluation | `k-classifier/` |
-
-## Key Papers
-
-Read the summary in `docs/papers/` before touching related code:
-
-- `coconut.md` — Coconut latent CoT (basis for Option-A backend)
-- `codi.md` — CODI implicit CoT (basis for Subgroup 1's work)
-- `sim-cot.md` — SIM-CoT, the upstream this project forks; understand this first
-- `pondernet.md` — PonderNet adaptive halting (Subgroup 1's core extension)
 
 ## Running Baselines
 
