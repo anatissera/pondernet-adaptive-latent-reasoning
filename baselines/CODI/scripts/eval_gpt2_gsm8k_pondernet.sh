@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Evaluate a PonderNet-trained GPT-2 checkpoint on GSM8K test set.
-# Run from SIM-CoT/CODI/:
+# Run from baselines/CODI/:
 #   CKPT=/path/to/checkpoint bash scripts/eval_gpt2_gsm8k_pondernet.sh
 #
 # Prints: accuracy, average latent steps used, accuracy-vs-budget table.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Train GPT-2 with PonderNet adaptive halting on GSM8K-Aug.
-# Run from SIM-CoT/CODI/:  bash scripts/train_gpt2_gsm8k_pondernet.sh
+# Run from baselines/CODI/:  bash scripts/train_gpt2_gsm8k_pondernet.sh
 #
 # Key PonderNet flags:
 #   --pondernet True               enable adaptive halting
