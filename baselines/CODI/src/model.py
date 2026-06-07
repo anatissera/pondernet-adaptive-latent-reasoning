@@ -426,10 +426,9 @@ class CODI(torch.nn.Module):
             self.init()
 
     def gradient_checkpointing_enable(self, gradient_checkpointing_kwargs=None):
-        kwargs = gradient_checkpointing_kwargs or {}
-        self.codi.gradient_checkpointing_enable(**kwargs)
+        self.codi.gradient_checkpointing_enable(gradient_checkpointing_kwargs=gradient_checkpointing_kwargs)
         if self.model_args.use_decoder:
-            self.decoder.gradient_checkpointing_enable(**kwargs)
+            self.decoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs=gradient_checkpointing_kwargs)
 
     def gradient_checkpointing_disable(self):
         self.codi.gradient_checkpointing_disable()
