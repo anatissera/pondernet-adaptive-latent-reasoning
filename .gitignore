@@ -16,3 +16,6 @@ __pycache__/
 
 # Secrets
 .env
+
+# macOS
+.DS_Store
