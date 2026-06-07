@@ -2,6 +2,7 @@
 # Versions are aligned with the SIM-CoT/Coconut requirements where possible.
 torch==2.5.1
 transformers==4.46.2
+huggingface-hub==0.34.4
 safetensors==0.5.3
 peft==0.15.2
 accelerate==1.7.0

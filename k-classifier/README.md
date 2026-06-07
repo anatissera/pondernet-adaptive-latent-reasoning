@@ -44,7 +44,7 @@ text src/model_runner.py    # corre el modelo con un valor dado de k src/k_sweep
 
 Scripts principales:
 
-text scripts/run_k_sweep.py       # corre el experimento principal scripts/smoke_model_load.py  # verifica que los modelos carguen y generen scripts/prepare_gsm8k.py     # convierte GSM8K al formato esperado 
+text scripts/run_k_sweep.py        # corre el experimento principal scripts/smoke_model_load.py   # verifica que los modelos carguen y generen scripts/prepare_gsm8k.py      # convierte GSM8K al formato esperado scripts/download_models.py  # descarga los pesos locales necesarios 
 
 ---
 
@@ -62,11 +62,39 @@ Donde:
 
 ---
 
+## Recursos externos
+
+Pesos de los modelos:
+
+- [SIM-CoT GPT-2 Coconut](https://huggingface.co/internlm/SIM_COT-GPT2-Coconut/tree/main)
+- [SIM-CoT GPT-2 CODI](https://huggingface.co/internlm/SIM_COT-GPT2-CODI/tree/main)
+- [GPT-2 base](https://huggingface.co/openai-community/gpt2)
+
+Dataset:
+
+- [GSM8K](https://huggingface.co/datasets/openai/gsm8k)
+
+Los loaders esperan encontrar los modelos descargados localmente en estas rutas:
+
+- `k-classifier/models/gpt2`
+- `k-classifier/models/SIM_COT-GPT2-Coconut`
+- `k-classifier/models/SIM_COT-GPT2-CODI`
+
+Para descargarlos:
+
+bash python k-classifier/scripts/download_models.py
+
+---
+
 ## Cómo correr
 
 Activar el entorno:
 
 bash source .venv-option-a/bin/activate 
+
+Descargar los modelos:
+
+bash python k-classifier/scripts/download_models.py
 
 Correr un smoke test:
 
