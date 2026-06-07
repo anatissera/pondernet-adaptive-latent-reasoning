@@ -11,6 +11,7 @@ import json
 import transformers
 from torch.utils.data import Dataset
 from transformers import Trainer
+from transformers.trainer_utils import get_last_checkpoint
 from safetensors.torch import load_file
 from tqdm import tqdm
 from math import ceil
@@ -435,7 +436,13 @@ def train():
 
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
     trainer = CustomTrainer(model=model, tokenizer=tokenizer, args=training_args, **data_module)
-    trainer.train()
+
+    last_checkpoint = None
+    if os.path.isdir(training_args.output_dir):
+        last_checkpoint = get_last_checkpoint(training_args.output_dir)
+        if last_checkpoint is not None:
+            logging.warning(f"Resuming training from checkpoint: {last_checkpoint}")
+    trainer.train(resume_from_checkpoint=last_checkpoint)
 
     # to avoid the error of saving the model
     #if "llama" in model_args.model_name_or_path:
