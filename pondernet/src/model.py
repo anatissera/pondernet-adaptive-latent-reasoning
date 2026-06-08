@@ -73,6 +73,8 @@ class DataArguments:
         },
     )
     batch_size: int = field(default=1, metadata={"help": "batch size during inference"})
+    data_path: str = field(default="", metadata={"help": "Local path to training/eval data JSON. If empty, loads from HuggingFace."})
+    results_dir: str = field(default="./results", metadata={"help": "Directory for evaluation output JSON files."})
 
 @dataclass
 class TrainingArguments(transformers.TrainingArguments):
@@ -124,6 +126,13 @@ class TrainingArguments(transformers.TrainingArguments):
     log_full: bool = field(default=False, metadata={"help": "Log all losses."})
     print_loss: bool = field(default=True)
     max_token_num: int = field(default=1000, metadata={"help": "Limit the longest data to avoid OOM."})
+    # --- PonderNet adaptive halting (Option C) ---
+    pondernet: bool = field(default=False, metadata={"help": "Enable PonderNet-style adaptive latent halting. Off = original SIM-CoT path."})
+    pondernet_halt_bias_init: float = field(default=-2.0, metadata={"help": "Initial bias of the halting head so early lambda_k is small (model uses more steps early in training)."})
+    pondernet_beta: float = field(default=1.0, metadata={"help": "Weight of auxiliary decoder loss L_step in PonderNet mode."})
+    pondernet_gamma: float = field(default=0.01, metadata={"help": "Weight of KL-geometric regularizer in PonderNet mode."})
+    pondernet_geom_mean: float = field(default=3.0, metadata={"help": "Mean number of steps for the geometric prior used in KL_geom (controls compute pressure)."})
+    pondernet_inf_threshold: float = field(default=0.5, metadata={"help": "Cumulative halting probability threshold for inference early-stopping. Stop when sum_k p_k > threshold."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -397,12 +406,34 @@ class CODI(torch.nn.Module):
         # general 
         self.fix_attn_mask = training_args.fix_attn_mask
 
+        # --- PonderNet adaptive halting (Option C) ---
+        self.pondernet = getattr(training_args, "pondernet", False)
+        if self.pondernet:
+            # Halting head: latent hidden state h_k -> scalar logit -> lambda_k in [0,1]
+            self.halt_head = nn.Linear(self.dim, 1)
+            nn.init.zeros_(self.halt_head.weight)
+            nn.init.constant_(self.halt_head.bias, training_args.pondernet_halt_bias_init)
+            self.pondernet_beta = training_args.pondernet_beta
+            self.pondernet_gamma = training_args.pondernet_gamma
+            self.pondernet_geom_mean = training_args.pondernet_geom_mean
+            self.pondernet_inf_threshold = training_args.pondernet_inf_threshold
+
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
             self.tokenizer.pad_token_id = self.pad_token_id
 
         if self.training:
             self.init()
+
+    def gradient_checkpointing_enable(self, gradient_checkpointing_kwargs=None):
+        self.codi.gradient_checkpointing_enable(gradient_checkpointing_kwargs=gradient_checkpointing_kwargs)
+        if self.model_args.use_decoder:
+            self.decoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs=gradient_checkpointing_kwargs)
+
+    def gradient_checkpointing_disable(self):
+        self.codi.gradient_checkpointing_disable()
+        if self.model_args.use_decoder:
+            self.decoder.gradient_checkpointing_disable()
 
     def get_embd(self, model, model_name):
         try:
@@ -435,6 +466,76 @@ class CODI(torch.nn.Module):
             state_dict = load_file(self.training_args.restore_from)
             self.load_state_dict(state_dict)
             print(f"Finished loading from {self.training_args.restore_from}")
+
+    def _halting_distribution(self, lambdas_list):
+        """Compute PonderNet halting distribution from per-step conditional lambdas.
+
+        lambdas_list: list of K tensors each (B,) - conditional halt prob at step k.
+        Returns p: (B, K) - probability of halting exactly at step k.
+          For k < K: p_k = lambda_k * prod_{j<k}(1 - lambda_j)
+          For k = K: p_K = prod_{j<K}(1 - lambda_j)  [absorbing boundary, lambda_K = 1]
+        Rows sum to 1 by construction (no renormalization needed beyond fp precision).
+        """
+        lambdas = torch.stack(lambdas_list, dim=1)  # (B, K)
+        one_minus = 1.0 - lambdas
+
+        # exclusive cumprod of (1-lambda): p_prior[k] = prod_{j<k}(1-lambda_j)
+        ones_col = torch.ones(lambdas.size(0), 1, dtype=lambdas.dtype, device=lambdas.device)
+        p_prior = torch.cat([ones_col, torch.cumprod(one_minus[:, :-1], dim=1)], dim=1)  # (B, K)
+
+        # p_k = lambda_k * p_prior_k for k < K; p_K = p_prior_K (absorbing)
+        p = lambdas * p_prior                       # (B, K) — first K-1 entries correct
+        p = torch.cat([p[:, :-1], p_prior[:, -1:]], dim=1)  # last entry = p_prior_K
+
+        # clamp negatives from fp error, renorm for exact sum-1
+        p = p.clamp_min(0.0)
+        p = p / p.sum(dim=1, keepdim=True).clamp_min(1e-8)
+        return p  # (B, K)
+
+    def _kl_geom(self, p_k):
+        """KL(p_k || q_k) where q_k is Geometric(g) truncated to K steps.
+
+        p_k: (B, K) halting distribution (rows sum to 1).
+        g = 1 / geom_mean; q_k = (1-g)^{k-1} * g for k<K, q_K = (1-g)^{K-1}.
+        Returns scalar — mean over batch.
+        """
+        K = p_k.size(1)
+        g = 1.0 / self.pondernet_geom_mean
+        # Build geometric prior q: shape (K,)
+        k_idx = torch.arange(K, dtype=p_k.dtype, device=p_k.device)
+        q = (1.0 - g) ** k_idx * g
+        q[-1] = (1.0 - g) ** (K - 1)   # absorbing boundary matches p_k convention
+        q = q / q.sum()                 # renorm so q sums to 1 exactly
+
+        # KL = sum_k p_k * (log p_k - log q_k); use clamp for log stability
+        log_p = torch.log(p_k.clamp_min(1e-8))
+        log_q = torch.log(q.clamp_min(1e-8)).unsqueeze(0)  # (1, K) broadcast
+        kl = (p_k * (log_p - log_q)).sum(dim=1)            # (B,)
+        return kl.mean()
+
+    def _halting_lambda(self, hidden):
+        """hidden: (B, 1, dim) latent state h_k -> lambda_k: (B,) in (0,1). fp32 for stable sigmoid."""
+        logit = self.halt_head(hidden.squeeze(1).float())
+        return torch.sigmoid(logit).squeeze(-1)
+
+    def _answer_logits_and_loss(self, decoder_input_ids, labels, past_key_values, attention_mask=None):
+        """Decode the answer after the CURRENT latent prefix.
+        Returns (outputs, logits, per_example_ce[(B,)]). Does NOT mutate past_key_values
+        (GPT-2 legacy tuple cache returns a fresh cache; input tuple is left intact)."""
+        embds = self.get_embd(self.codi, self.model_name)(decoder_input_ids)
+        with autocast(dtype=torch.bfloat16):
+            outputs = self.codi(inputs_embeds=embds, use_cache=True, output_hidden_states=True,
+                                past_key_values=past_key_values, attention_mask=attention_mask)
+        logits = outputs.logits
+        shift_logits = logits[:, :-1, :]
+        shift_labels = labels[:, 1:]
+        tok_loss = F.cross_entropy(
+            shift_logits.reshape(-1, shift_logits.size(-1)).float(),
+            shift_labels.reshape(-1), ignore_index=-100, reduction="none",
+        ).view(shift_labels.size(0), -1)
+        valid = (shift_labels != -100).float()
+        per_example_ce = (tok_loss * valid).sum(dim=1) / valid.sum(dim=1).clamp_min(1.0)
+        return outputs, logits, per_example_ce
 
     def forward(
         self,
@@ -594,6 +695,7 @@ class CODI(torch.nn.Module):
         ref_answer_position = ref_answer_position -1
       
         num_latent = self.num_latent
+        pondernet_lambdas, pondernet_step_losses = [], []
         if self.num_latent != 0:
             for i in range(num_latent):
                 # Implicit CoT generation
@@ -607,6 +709,13 @@ class CODI(torch.nn.Module):
                     with autocast(dtype=torch.bfloat16, enabled=True):
                         latent_embd = self.prj(latent_embd)
                     # latent_embd = self.prj(latent_embd)
+
+                if self.pondernet:
+                    # lambda_k from this latent state; candidate answer after k = i+1 steps
+                    pondernet_lambdas.append(self._halting_lambda(latent_embd))           # (B,)
+                    _, _, ans_ce_k = self._answer_logits_and_loss(
+                        decoder_input_ids, labels, past_key_values, attention_mask=None)  # (B,)
+                    pondernet_step_losses.append(ans_ce_k)
 
                 if self.model_args.use_decoder:
                     bz = len(steps_pad_list)
@@ -758,8 +867,42 @@ class CODI(torch.nn.Module):
                 explain_loss_total = explain_loss_total.detach()
         # print(f"{ce_loss_total=}, {distill_loss_total=}, {ref_ce_loss=}, {explain_loss_total}")
 
-        if self.model_args.use_decoder:
-            return {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss, 'explain_loss': explain_loss_total}
+        if self.pondernet and len(pondernet_lambdas) > 0:
+            # --- Phase 4: PonderNet objective ---
+            pondernet_p = self._halting_distribution(pondernet_lambdas)  # (B, K) in-graph
+
+            # L_pondernet = E_p[L_ans^(k)] = sum_k p_k * L_ans^(k), averaged over batch
+            step_losses_tensor = torch.stack(pondernet_step_losses, dim=1)  # (B, K) in-graph
+            l_pondernet = (pondernet_p * step_losses_tensor).sum(dim=1).mean()
+
+            # KL_geom regularizer — penalises distributions far from geometric prior
+            kl_geom = self._kl_geom(pondernet_p)
+
+            # Assemble total loss:
+            #   L_pondernet  replaces ce_loss_total (the fixed-K answer CE)
+            #   beta * L_step keeps the aux-decoder reconstruction loss
+            #   gamma * KL_geom adds the compute-efficiency pressure
+            #   distill and ref_ce are preserved from original CODI
+            loss = l_pondernet + distill_loss_total + ref_ce_loss
+            if self.model_args.use_decoder:
+                loss = loss + self.pondernet_beta * explain_loss_total
+            loss = loss + self.pondernet_gamma * kl_geom
+
+            if self.print_loss:
+                print(f"l_pondernet={l_pondernet.item():.4f}  kl_geom={kl_geom.item():.4f}  "
+                      f"p_mean_step={(pondernet_p * torch.arange(1, pondernet_p.size(1)+1, dtype=pondernet_p.dtype, device=pondernet_p.device)).sum(dim=1).mean().item():.2f}")
+
+            ret = {"loss": loss, "logits": logits,
+                   "ce_loss": l_pondernet.detach(), "distill_loss": distill_loss_total,
+                   "ref_ce_loss": ref_ce_loss, "kl_geom": kl_geom.detach()}
+            if self.model_args.use_decoder:
+                ret['explain_loss'] = explain_loss_total
+            ret['pondernet_p'] = pondernet_p
+            ret['pondernet_lambdas'] = torch.stack(pondernet_lambdas, dim=1).detach()
+            ret['pondernet_step_losses'] = step_losses_tensor.detach()
         else:
-            return {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss}
+            ret = {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss}
+            if self.model_args.use_decoder:
+                ret['explain_loss'] = explain_loss_total
+        return ret
 

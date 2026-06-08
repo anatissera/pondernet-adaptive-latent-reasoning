@@ -5,11 +5,11 @@ checkpoints/
 outputs/
 runs/
 wandb/
-k-classifier/data/
+models/
+pondernet/results/
 
 # Entornos virtuales
 .venv/
-SIM-CoT/.venv/
 
 # Python
 __pycache__/

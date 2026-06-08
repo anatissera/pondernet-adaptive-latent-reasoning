@@ -4,9 +4,10 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 
 ## Repo Structure
 
-- `baselines/` — upstream reference implementations; treat as read-only unless actively extending
+- `baselines/` — upstream reference implementations; treat as read-only
   - `Coconut/` — Coconut latent CoT (GSM8K, ProntoQA tasks)
-  - `CODI/` — CODI implicit CoT; Subgroup 1's active working area (PonderNet extensions)
+  - `CODI/` — CODI implicit CoT baseline (upstream reference)
+- `pondernet/` — PonderNet adaptive halting built on CODI; Subgroup 1's active working area
 - `docs/methods-comparison.md` — cross-paper comparison table and chain-of-influence narrative; read this for method context
 - `docs/papers/` — full paper content (raw); only read if you need deeper detail beyond the comparison doc
 
@@ -14,8 +15,7 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 
 | Branch | Strategy | Active Working Area |
 |--------|----------|---------------------|
-| `develop-c` | PonderNet-style adaptive halting (phases 1–6 complete) | `baselines/CODI/` |
-| `option-a` | Fixed-k sweep, multi-backend evaluation | `k-classifier/` |
+| `develop-c` | PonderNet-style adaptive halting (phases 1–6 complete) | `pondernet/` |
 
 ## Running Baselines
 
@@ -23,12 +23,12 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 # Coconut (from baselines/Coconut/)
 python run.py args/gsm_coconut.yaml
 
-# CODI — PonderNet variant (from baselines/CODI/)
+# PonderNet — adaptive halting variant (from pondernet/)
 bash scripts/train_gpt2_gsm8k_pondernet.sh
 ```
 
 ## Setup
 
 ```bash
-uv sync   # or: pip install -r baselines/CODI/requirements.txt
+uv sync   # or: pip install -r pondernet/requirements.txt
 ```
