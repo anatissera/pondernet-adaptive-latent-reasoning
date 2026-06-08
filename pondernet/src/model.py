@@ -696,7 +696,7 @@ class CODI(torch.nn.Module):
         ref_answer_position = ref_answer_position -1
       
         num_latent = self.num_latent
-        pondernet_lambdas, pondernet_step_losses = [], []
+        pondernet_lambdas, pondernet_step_losses, pondernet_hiddens = [], [], []
         if self.num_latent != 0:
             for i in range(num_latent):
                 # Implicit CoT generation
@@ -713,6 +713,7 @@ class CODI(torch.nn.Module):
 
                 if self.pondernet:
                     # lambda_k from this latent state; candidate answer after k = i+1 steps
+                    pondernet_hiddens.append(latent_embd.squeeze(1).detach())             # (B, dim)
                     pondernet_lambdas.append(self._halting_lambda(latent_embd))           # (B,)
                     _, _, ans_ce_k = self._answer_logits_and_loss(
                         decoder_input_ids, labels, past_key_values, attention_mask=None)  # (B,)
@@ -901,6 +902,7 @@ class CODI(torch.nn.Module):
             ret['pondernet_p'] = pondernet_p
             ret['pondernet_lambdas'] = torch.stack(pondernet_lambdas, dim=1).detach()
             ret['pondernet_step_losses'] = step_losses_tensor.detach()
+            ret['pondernet_hidden_states'] = torch.stack(pondernet_hiddens, dim=1)  # (B, K, dim)
         else:
             ret = {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss}
             if self.model_args.use_decoder:
