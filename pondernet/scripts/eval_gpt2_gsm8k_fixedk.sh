@@ -3,7 +3,7 @@
 # Use different --num_latent and --inf_latent_iterations values for
 # the fixed-K baseline comparison in Phase 6.
 #
-# Run from baselines/CODI/:
+# Run from pondernet/:
 #   CKPT=/path/to/checkpoint NUM_LATENT=6 bash scripts/eval_gpt2_gsm8k_fixedk.sh
 
 set -euo pipefail

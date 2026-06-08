@@ -13,7 +13,7 @@ few steps. Verifies:
   (8) kl_geom is non-negative and finite,
   (9) halt_head.weight receives non-zero gradients after backward.
 
-Run from baselines/CODI/:
+Run from pondernet/:
     python smoke_pondernet.py                 # uses HF "gpt2"
     python smoke_pondernet.py --model /path/to/local/gpt2
 """

@@ -168,11 +168,10 @@ def evaluation(model_args, data_args, training_args):
         dataset = load_dataset("zen-E/CommonsenseQA-GPT4omini")
         test_set = dataset['validation']
     elif "gsm8k" == data_args.data_name:
-        # dataset = load_dataset("gsm8k", "main")
-        # test_set = dataset['test']
-        test_set = read_json('/mnt/shared-storage-user/weixilin/MLLM/coconut/data/gsm_test_clean.json')
-        # import pdb; pdb.set_trace()
-        # print()
+        if data_args.data_path:
+            test_set = read_json(data_args.data_path)
+        else:
+            test_set = list(load_dataset("gsm8k", "main")["test"])
     else:
         raise NotImplementedError
 
@@ -254,6 +253,7 @@ def evaluation(model_args, data_args, training_args):
     #set_seed(42)
     gating_probs_sums = None
     len_cot = []
+    steps_used_list = []   # latent steps used per instance (pondernet mode only)
     model.eval()
     attn_to_latent_list = []
     if model_args.soft_weight:
@@ -282,27 +282,52 @@ def evaluation(model_args, data_args, training_args):
                     soft_embeds = model.prj(soft_embeds)
                 latent_embd = latent_embd + model_args.soft_weight * soft_embeds
             
-            inf_latent_iterations = training_args.inf_latent_iterations
-            for i in range(inf_latent_iterations):
-                # decode the latent embeddings
-                outputs = model.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
-                past_key_values = outputs.past_key_values
-                latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
-                
-                if training_args.use_prj:
-                    latent_embd = model.prj(latent_embd)
-                
-                if model_args.soft_weight:
-                    soft_probs = F.softmax(model.codi.lm_head(latent_embd).to(model.codi.device), dim=-1)
-                    soft_embeds = (soft_probs.squeeze(dim=1).unsqueeze(dim=-1) * embedding_matrix.unsqueeze(dim=0)).sum(dim=0)
-                    
-                    soft_probs_expanded = soft_probs.squeeze(dim=1)
-                    soft_embeds = (soft_probs_expanded.unsqueeze(dim=2) * embedding_matrix).sum(dim=1)  # Shape: [128, 2048]
-                    # import pdb; pdb.set_trace()
-                    if training_args.use_prj:
-                        soft_embeds = model.prj(soft_embeds)
+            if model.pondernet:
+                # --- PonderNet adaptive halting inference ---
+                # Stop when cumulative halt probability exceeds threshold; K_max = num_latent.
+                k_max = model.num_latent
+                threshold = model.pondernet_inf_threshold
+                not_halted = torch.ones(batch_size, dtype=torch.float32, device=device)
+                steps_used = [k_max] * batch_size  # default: used all steps
 
-                    latent_embd = latent_embd + model_args.soft_weight * soft_embeds
+                for i in range(k_max):
+                    outputs = model.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
+                    past_key_values = outputs.past_key_values
+                    latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
+
+                    if training_args.use_prj:
+                        latent_embd = model.prj(latent_embd)
+
+                    lambda_k = model._halting_lambda(latent_embd)          # (B,)
+                    not_halted = not_halted * (1.0 - lambda_k.float())     # update survivor prob
+
+                    # Record halt step for examples crossing the threshold this step
+                    newly_halted = (not_halted < (1.0 - threshold))
+                    for b in range(batch_size):
+                        if newly_halted[b] and steps_used[b] == k_max:
+                            steps_used[b] = i + 1
+
+                    if newly_halted.all():
+                        break
+            else:
+                # --- Original fixed-step inference ---
+                steps_used = [training_args.inf_latent_iterations] * batch_size
+                inf_latent_iterations = training_args.inf_latent_iterations
+                for i in range(inf_latent_iterations):
+                    outputs = model.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
+                    past_key_values = outputs.past_key_values
+                    latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
+
+                    if training_args.use_prj:
+                        latent_embd = model.prj(latent_embd)
+
+                    if model_args.soft_weight:
+                        soft_probs = F.softmax(model.codi.lm_head(latent_embd).to(model.codi.device), dim=-1)
+                        soft_probs_expanded = soft_probs.squeeze(dim=1)
+                        soft_embeds = (soft_probs_expanded.unsqueeze(dim=2) * embedding_matrix).sum(dim=1)
+                        if training_args.use_prj:
+                            soft_embeds = model.prj(soft_embeds)
+                        latent_embd = latent_embd + model_args.soft_weight * soft_embeds
 
             if training_args.remove_eos:
                 eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id], dtype=torch.long, device='cuda')).unsqueeze(0).to(device)
@@ -318,7 +343,6 @@ def evaluation(model_args, data_args, training_args):
             pred_tokens = [[] for _ in range(batch_size)]
             for i in range(gen_kwargs["max_new_tokens"]):
                 seq_len += 1
-                import pdb; pdb.set_trace()
                 out = model.codi(
                         inputs_embeds=output,
                         output_hidden_states=False,
@@ -370,30 +394,51 @@ def evaluation(model_args, data_args, training_args):
                 output = model.get_embd(model.codi, model.model_name)(next_token_ids).unsqueeze(1).to(device)
 
             for mini_step, pred_token in enumerate(pred_tokens):
-                # import pdb; pdb.set_trace()
                 len_cot.append(len(pred_token))
+                steps_used_list.append(steps_used[mini_step])
                 decoded_pred = tokenizer.decode(pred_token, skip_special_tokens=True)
-                # output_dir=f'/mnt/shared-storage-user/weixilin/MLLM/coconut/codi/inference_tokens_list/{'-'.join(model_args.ckpt_dir.split('/')[5:])}/{data_args.data_name}.jsonl'
-                # os.makedirs(os.path.dirname(output_dir), exist_ok=True)
-                # save_jsonl_line(output_dir, {'list': tokenizer.encode(cot_output+answer_output, add_special_tokens=False), 'length': len(tokenizer.encode(cot_output+answer_output, add_special_tokens=False))})
-                # import pdb; pdb.set_trace()
-                # Extract the numbers in sentences 
                 if do_print:
-                    print(f"Question {step*data_args.batch_size+mini_step} Starts...")
-                    print(f"Q: {question[step*data_args.batch_size+mini_step]}")
+                    q_idx = step * data_args.batch_size + mini_step
+                    print(f"Question {q_idx} Starts...")
+                    print(f"Q: {question[q_idx]}")
                     print(decoded_pred)
-                    print(f"Question {step*data_args.batch_size+mini_step} Ends")
-                    print(f"Prediction={extract_answer_number(decoded_pred)}; Groundtruth={answer[step*data_args.batch_size+mini_step]}")
+                    print(f"Question {q_idx} Ends")
+                    if model.pondernet:
+                        print(f"Latent steps used: {steps_used[mini_step]}/{model.num_latent}")
+                    print(f"Prediction={extract_answer_number(decoded_pred)}; Groundtruth={answer[q_idx]}")
                     print("")
                 ans_pred_list.append(extract_answer_number(decoded_pred))
-    write_json({"ans": ans_pred_list}, f"/mnt/shared-storage-user/weixilin/MLLM/coconut/codi/results/{data_args.data_name}.json")
+    import os
+    os.makedirs(data_args.results_dir, exist_ok=True)
+    results_path = os.path.join(data_args.results_dir, f"{data_args.data_name}.json")
+    write_json({"ans": ans_pred_list}, results_path)
     accuracy = compute_accuracy(answer, ans_pred_list)
 
     print(f"adapter: {model_args.adapter_name_or_path} | GSM8K test accuracy: {100*accuracy:.2f}% | ")
     print(f"average length of COT: {sum(len_cot)/len(len_cot)}")
-    # import pdb; pdb.set_trace()
+    if model.pondernet and steps_used_list:
+        avg_steps = sum(steps_used_list) / len(steps_used_list)
+        print(f"[PonderNet] average latent steps used: {avg_steps:.2f} / {model.num_latent}  "
+              f"(threshold={model.pondernet_inf_threshold})")
+        # Accuracy-vs-budget table
+        from collections import defaultdict
+        step_correct = defaultdict(list)
+        for pred, gold, su in zip(ans_pred_list, answer, steps_used_list):
+            step_correct[su].append(pred == gold)
+        print("\n[PonderNet] Accuracy vs latent budget:")
+        print(f"{'Steps':>6} | {'N':>6} | {'Acc (%)':>8}")
+        print("-" * 26)
+        for k in sorted(step_correct):
+            n = len(step_correct[k])
+            acc_k = 100.0 * sum(step_correct[k]) / n
+            print(f"{k:>6} | {n:>6} | {acc_k:>7.1f}%")
+        # Save full per-instance results for offline plotting
+        detailed_path = os.path.join(data_args.results_dir, f"{data_args.data_name}_pondernet_detail.json")
+        write_json({"steps_used": steps_used_list, "correct": [p == g for p, g in zip(ans_pred_list, answer)]}, detailed_path)
+        print(f"[PonderNet] Per-instance detail saved to {detailed_path}")
     if model_args.save_ablation:
-        save_jsonl_line(f"/mnt/shared-storage-user/weixilin/MLLM/coconut/codi/results/{data_args.data_name}.jsonl", {'model_name': '-'.join(model_args.ckpt_dir.split('/')[5:]), 'data_name': data_args.data_name, 'soft_weight': model_args.soft_weight, 'acc.': accuracy})
+        ablation_path = os.path.join(data_args.results_dir, f"{data_args.data_name}.jsonl")
+        save_jsonl_line(ablation_path, {'model_name': model_args.ckpt_dir, 'data_name': data_args.data_name, 'soft_weight': model_args.soft_weight, 'acc.': accuracy})
     return 100*accuracy
 
 def extract_answer_number(sentence: str) -> float:
