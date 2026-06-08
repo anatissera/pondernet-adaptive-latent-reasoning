@@ -14,18 +14,18 @@
 
 set -euo pipefail
 
-SAVE_DIR="${SAVE_DIR:-./outputs/pondernet}"
+SAVE_DIR="${SAVE_DIR:-../models/halt_head_gpt2}"
+LOG_DIR="${LOG_DIR:-../outputs/halt_head_gpt2}"
 GPT2_PATH="${GPT2_PATH:-gpt2}"   # HF model ID or local path
 
-mkdir -p "$SAVE_DIR"
+mkdir -p "$SAVE_DIR" "$LOG_DIR"
 
 # Avoids CUDA allocator fragmentation (important with K separate answer-decode forwards)
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 python train.py \
     --output_dir "$SAVE_DIR" \
-    --expt_name gsm8k_gpt2_pondernet \
-    --logging_dir "$SAVE_DIR/logs" \
+    --logging_dir "$LOG_DIR" \
     --logging_steps 10 \
     --model_name_or_path "$GPT2_PATH" \
     --data_name icot \
