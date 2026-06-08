@@ -8,7 +8,10 @@ We extend [SIM-CoT](https://arxiv.org/pdf/2509.20317) (ICLR 2026) to make the nu
 ## Structure
 
 ```
-baselines/           # Reference implementations (Coconut, CODI, SIM-CoT)
+baselines/           # Reference implementations (Coconut, CODI, SIM-CoT) — read-only
+pondernet/           # PonderNet adaptive halting — Subgroup 1's active working area
+models/              # Pre-trained / fine-tuned model weights (gitignored)
+data/                # Evaluation datasets
 docs/papers/         # Paper summaries for context
 ```
 
@@ -17,7 +20,7 @@ docs/papers/         # Paper summaries for context
 ```bash
 uv sync
 # or
-pip install -r baselines/CODI/requirements.txt
+pip install -r pondernet/requirements.txt
 ```
 
 ## Context for contributors
