@@ -183,6 +183,11 @@ def train():
 
     # import pdb; pdb.set_trace()
     model = CODI(model_args, training_args, lora_config)
+    if training_args.pondernet:
+        freeze_model(model)
+        for p in model.halt_head.parameters():
+            p.requires_grad = True
+
     tokenizer = transformers.AutoTokenizer.from_pretrained(
             model_args.model_name_or_path,
             token=model_args.token,
