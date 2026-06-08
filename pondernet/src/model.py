@@ -514,8 +514,8 @@ class CODI(torch.nn.Module):
         return kl.mean()
 
     def _halting_lambda(self, hidden):
-        """hidden: (B, 1, dim) latent state h_k -> lambda_k: (B,) in (0,1). fp32 for stable sigmoid."""
-        logit = self.halt_head(hidden.squeeze(1).float())
+        """hidden: (B, 1, dim) latent state h_k -> lambda_k: (B,) in (0,1)."""
+        logit = self.halt_head(hidden.squeeze(1))
         return torch.sigmoid(logit).squeeze(-1)
 
     def _answer_logits_and_loss(self, decoder_input_ids, labels, past_key_values, attention_mask=None):
