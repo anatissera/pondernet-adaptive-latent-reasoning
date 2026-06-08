@@ -29,6 +29,7 @@ python train.py \
     --logging_steps 10 \
     --model_name_or_path "$GPT2_PATH" \
     --data_name icot \
+    --max_train_samples 15000 \
     --seed 42 \
     --model_max_length 384 \
     --max_token_num 700 \

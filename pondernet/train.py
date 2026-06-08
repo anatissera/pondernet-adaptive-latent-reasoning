@@ -286,6 +286,8 @@ def train():
                 raw_data = read_json(data_args.data_path)
             elif raw_data is None:
                 raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
+            if data_args.max_train_samples is not None:
+                raw_data = raw_data[:data_args.max_train_samples]
             for num_iter, example in tqdm(enumerate(raw_data)):
                 if 'cot' not in example: 
                     example['cot'] = example['steps']
