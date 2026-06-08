@@ -42,6 +42,26 @@ CUDA_VISIBLE_DEVICES=0 bash scripts/train_gpt2_gsm8k_pondernet.sh
 Training auto-resumes from the last checkpoint found in `output_dir` if the
 run is interrupted (see `train.py`) — just re-run the same command.
 
+### Warm-starting the auxiliary decoder from SIM-CoT
+
+By default `--use_decoder True` initializes the auxiliary decoder from vanilla
+GPT-2, so `L_step`/`L_pondernet` give it no real signal until it has trained
+for a while (the "cold start" problem). Instead, you can warm-start it from a
+SIM-CoT-trained checkpoint:
+
+```bash
+python scripts/fetch_simcot_decoder.py --out models/simcot_gpt2_decoder
+DECODER_PATH=./models/simcot_gpt2_decoder bash scripts/train_gpt2_gsm8k_pondernet.sh
+```
+
+`fetch_simcot_decoder.py` downloads `internlm/SIM_COT-GPT2-CODI`, extracts the
+`decoder.*` weights, and saves them as a standalone GPT-2 checkpoint
+(`models/` is gitignored — each teammate fetches their own copy). The training
+script then passes it via `--decoder_path`, which `model.py` loads as a
+drop-in replacement for the vanilla decoder (verified compatible: identical
+GPT-2 124M architecture and vocab, so `pj_in`/`pj_out` resolve to `Identity`
+with no extra untrained projector parameters).
+
 ## Evaluation
 
 ```bash

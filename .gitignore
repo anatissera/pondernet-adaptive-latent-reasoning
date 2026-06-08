@@ -6,6 +6,11 @@ outputs/
 runs/
 wandb/
 models/
+# ...except the SIM-CoT decoder checkpoint, tracked via Git LFS so the team
+# shares one warm-started copy instead of everyone re-downloading it.
+!pondernet/models/
+!pondernet/models/simcot_gpt2_decoder/
+!pondernet/models/simcot_gpt2_decoder/**
 pondernet/results/
 
 # Entornos virtuales
