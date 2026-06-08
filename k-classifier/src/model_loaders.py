@@ -48,13 +48,13 @@ def load_coconut():
     _require_path(BASE_GPT2_DIR / "config.json", "GPT-2 base model")
     checkpoint_path = _require_path(COCONUT_DIR / "checkpoint_28", "Coconut checkpoint")
 
-    _add_to_syspath(REPO_ROOT / "SIM-CoT" / "Coconut")
+    _add_to_syspath(REPO_ROOT / "baselines" / "Coconut")
     try:
         from coconut import Coconut, CoconutGPT_Same_Word_Embedding
         from utils import Config
     except Exception as exc:
         raise ModelLoadError(
-            "Could not import Coconut classes from SIM-CoT/Coconut."
+            "Could not import Coconut classes from baselines/Coconut."
         ) from exc
 
     device = _device(torch)

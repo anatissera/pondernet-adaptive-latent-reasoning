@@ -52,17 +52,44 @@ datasets 3.1.0 / safetensors 0.5.3 / numpy 2.1.3).
 - A nivel sistema NO están instalados `transformers`, `peft` ni `safetensors`
   (verificado), así que igual hace falta instalar ese stack.
 
-**Recomendación (avisar/confirmar antes de ejecutar):** crear un venv aislado
+**Cómo se crea el venv (método verificado en la VM):** un venv aislado
 **`.venv-option-a`** con `--system-site-packages` para **reutilizar el torch 2.9.1
-del sistema** e instalar el resto SIN reinstalar torch, p. ej.:
+del sistema** e instalar el resto SIN reinstalar torch.
+
+> **El venv NO se versiona, pero SÍ vive en el disco persistente** (`/dev/sda1`),
+> así que **sobrevive a un apagado/stop normal y a una preempción Spot**: al
+> reencender la VM basta `source .venv-option-a/bin/activate`, no hace falta
+> recrearlo. Solo se pierde si se **elimina/recrea la VM** (disco nuevo) — en ese
+> caso correr `scripts/setup_session.sh` (ver abajo). Ver *"Persistencia entre
+> sesiones"* más adelante.
+
+**Ojo: `python3-venv` no está instalado** en la VM, así que `python3 -m venv`
+falla por falta de `ensurepip` y pediría `sudo apt install python3.10-venv`.
+Para evitar sudo, se crea el venv **`--without-pip`** y se reutiliza el **pip del
+sistema** (visible gracias a `--system-site-packages`). pip instala igual dentro
+del venv porque lo invoca el `python3` del venv. Esto está automatizado en
+**`k-classifier/scripts/setup_session.sh`** (idempotente), pero el detalle manual es:
 
 ```bash
-python3 -m venv --system-site-packages .venv-option-a
+# 1) crear el venv sin pip, reusando torch + pip del sistema
+python3 -m venv --system-site-packages --without-pip .venv-option-a
 source .venv-option-a/bin/activate
-pip install transformers==4.46.2 peft==0.15.2 accelerate==1.7.0 \
-            datasets==3.1.0 safetensors==0.5.3 numpy==2.1.3 \
-            tqdm PyYAML Pillow
+
+# 2) instalar TODO requirements.txt MENOS la línea torch==2.5.1
+#    (NO usar `pip install -r requirements.txt`: arrastraría torch 2.5.1)
+python3 -m pip install \
+  transformers==4.46.2 safetensors==0.5.3 peft==0.15.2 accelerate==1.7.0 \
+  datasets==3.1.0 numpy==2.1.3 tqdm==4.67.0 PyYAML==6.0.2 Pillow==11.3.0
 ```
+
+Notas:
+- Durante la instalación aparecen warnings *"Can't uninstall X — outside
+  environment"* (numpy/Pillow/PyYAML/etc. del sistema). Son **benignos**: el venv
+  instala su propia versión que tapa la del sistema en el path; no se toca nada
+  fuera del venv.
+- `transformers`/`peft`/`accelerate` no pinean torch, así que aceptan el 2.9.1 ya
+  presente. Verificado: tras instalar, `torch.__version__ == 2.9.1+cu129` y
+  `torch.cuda.is_available() == True`.
 
 - **Verificar si torch 2.5.1 es realmente necesario antes de pinearlo.** El código
   de Option-A usa APIs estables entre torch 2.5 y 2.9 (`AutoModelForCausalLM`,
@@ -103,12 +130,29 @@ Ambos backends entran por la misma `run_model(...)` y se diferencian por
    (para Coconut: `--model-loader src.model_loaders:load_coconut --c-thought 2`).
 
 ## Checkpoints (NO versionados — `k-classifier/models/` está vacío en git)
-Hay que poblar a mano antes de correr nada:
-- `k-classifier/models/gpt2/`                                          (GPT-2 base HF)
-- `k-classifier/models/SIM_COT-GPT2-Coconut/checkpoint_28`             (Coconut)
-- `k-classifier/models/SIM_COT-GPT2-CODI/model-00001-of-00001.safetensors` (CODI)
+Se bajan de Hugging Face con `python3 k-classifier/scripts/download_models.py`
+(`--model all` por defecto; o `gpt2|coconut|codi` para uno solo). El script usa
+`huggingface_hub.snapshot_download` y deja cada modelo en `k-classifier/models/`:
+- `k-classifier/models/gpt2/`                 ← `openai-community/gpt2`        (GPT-2 base)
+- `k-classifier/models/SIM_COT-GPT2-Coconut/` ← `internlm/SIM_COT-GPT2-Coconut` (Coconut)
+- `k-classifier/models/SIM_COT-GPT2-CODI/`    ← `internlm/SIM_COT-GPT2-CODI`    (CODI)
 
-Sin estos, ambos loaders lanzan `ModelLoadError` al inicio.
+`k-classifier/models/` está gitignoreado pero vive en el disco persistente, así que
+los checkpoints **sobreviven a un apagado/stop normal** (no hace falta re-bajarlos
+cada sesión). Solo hay que volver a bajarlos en una **VM/disco nuevo**. Sin estos,
+ambos loaders lanzan `ModelLoadError` al inicio.
+
+## Persistencia entre sesiones (qué sobrevive al apagar la VM)
+La VM es **Spot/preemptible**, pero todo el repo (incluidos `.venv-option-a/`,
+`k-classifier/models/` y los datos generados) vive en el **disco persistente de
+arranque** (`/dev/sda1`, `PERSISTENT-BALANCED`). No hay local SSD efímero.
+- **Apagado manual / stop / preempción Spot** → la VM se detiene pero el disco se
+  conserva: **venv, checkpoints y datos siguen ahí** al reencender. Lo único
+  volátil es la RAM/procesos (por eso los sweeps largos van en `tmux`).
+- **Eliminar/recrear la VM (disco nuevo)** → se pierde todo lo no versionado
+  (venv + `models/` + datos). Recién ahí hay que re-bootstrappear:
+  `bash k-classifier/scripts/setup_session.sh` (recrea venv + instala deps) y
+  `python3 k-classifier/scripts/download_models.py` (re-baja checkpoints).
 
 ## Datos
 - Formato canónico JSONL: `{"id", "input", "gold"}`.
