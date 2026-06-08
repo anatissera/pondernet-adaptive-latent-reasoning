@@ -32,9 +32,10 @@ python train.py \
     --seed 42 \
     --model_max_length 384 \
     --max_token_num 700 \
-    --per_device_train_batch_size 16 \
-    --gradient_accumulation_steps 8 \
+    --per_device_train_batch_size 32 \
+    --gradient_accumulation_steps 4 \
     --gradient_checkpointing True \
+    --dataloader_num_workers 4 \
     --bf16 \
     --num_train_epochs 40 \
     --learning_rate 3e-3 \
