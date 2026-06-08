@@ -5,6 +5,7 @@ checkpoints/
 outputs/
 runs/
 wandb/
+k-classifier/data/
 
 # Entornos virtuales
 .venv/
