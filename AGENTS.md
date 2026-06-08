@@ -15,7 +15,7 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 
 | Branch | Strategy | Active Working Area |
 |--------|----------|---------------------|
-| `develop-c` | PonderNet-style adaptive halting (phases 1–6 complete) | `pondernet/` |
+| `pondernet` | PonderNet-style adaptive halting (phases 1–6 complete) | `pondernet/` |
 
 ## Running Baselines
 
