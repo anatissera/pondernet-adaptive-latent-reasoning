@@ -32,8 +32,8 @@ python train.py \
     --seed 42 \
     --model_max_length 384 \
     --max_token_num 700 \
-    --per_device_train_batch_size 4 \
-    --gradient_accumulation_steps 32 \
+    --per_device_train_batch_size 16 \
+    --gradient_accumulation_steps 8 \
     --gradient_checkpointing True \
     --bf16 \
     --num_train_epochs 40 \
@@ -58,7 +58,7 @@ python train.py \
     --remove_eos True \
     --print_ref_model_stats False \
     --use_decoder True \
-    --print_loss True \
+    --print_loss False \
     --pondernet True \
     --pondernet_beta 1.0 \
     --pondernet_gamma 0.01 \
