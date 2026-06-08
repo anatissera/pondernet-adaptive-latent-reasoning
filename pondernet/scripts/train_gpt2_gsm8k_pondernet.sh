@@ -33,8 +33,8 @@ python train.py \
     --seed 42 \
     --model_max_length 384 \
     --max_token_num 700 \
-    --per_device_train_batch_size 32 \
-    --gradient_accumulation_steps 4 \
+    --per_device_train_batch_size 16 \
+    --gradient_accumulation_steps 8 \
     --gradient_checkpointing True \
     --dataloader_num_workers 4 \
     --bf16 \
@@ -67,4 +67,5 @@ python train.py \
     --pondernet_geom_mean 3.0 \
     --pondernet_halt_bias_init -2.0 \
     --pondernet_inf_threshold 0.5 \
+    --max_train_samples 15000 \
     "$@"

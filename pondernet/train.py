@@ -443,8 +443,13 @@ def train():
         """Make dataset and collator for supervised fine-tuning."""
         logging.warning("Downloading Data")
         if "icot" in data_args.data_name:
-            dataset = None  # SupervisedDataset will load from HF if data_args.data_path is empty
-            train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
+            if data_args.data_path:
+                raw_data = read_json(data_args.data_path)
+            else:
+                raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
+            if data_args.max_train_samples:
+                raw_data = raw_data[:data_args.max_train_samples]
+            train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=raw_data, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
         elif "strategy" in data_args.data_name:
