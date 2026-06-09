@@ -12,6 +12,7 @@ import transformers
 from torch.utils.data import Dataset
 from transformers import Trainer, TrainerCallback
 from transformers.trainer_utils import get_last_checkpoint
+from safetensors.torch import load_file
 from tqdm import tqdm
 from math import ceil
 from peft import PeftModel, LoraConfig, TaskType, get_peft_model
@@ -181,13 +182,46 @@ def train():
         )
 
     # import pdb; pdb.set_trace()
-    # model_name_or_path is always a plain GPT-2 (the backbone scaffold). The
-    # warm-start on this branch is decoder-only, via --decoder_path inside
-    # CODI.__init__ (see pondernet/README.md "Warm-start strategy"). We deliberately
-    # do NOT full-warm-start the CODI wrapper here by auto-detecting a CODI checkpoint
-    # at model_name_or_path: that overloads model_name_or_path and random-inits the
-    # backbone before repairing it. Full-model warm-start lives separately as --simcot_ckpt.
+    # model_name_or_path is always a plain GPT-2 (the backbone scaffold) -- never the
+    # SIM-CoT CODI checkpoint, which would load as a bare GPT2LMHeadModel and random-init
+    # the backbone. Two warm-start recipes are available (see pondernet/README.md
+    # "Warm-start strategy"): decoder-only via --decoder_path (inside CODI.__init__), and
+    # full-model via --simcot_ckpt (below). With --simcot_ckpt unset the run is decoder-only
+    # (only --decoder_path warm-starts); set it to additionally warm-start the backbone +
+    # LoRA + prj. NOTE: the training script enables --simcot_ckpt by default, so its
+    # out-of-the-box default is full-model -- clear SIMCOT_CKPT there for decoder-only.
     model = CODI(model_args, training_args, lora_config)
+
+    # Optional full-model warm-start: load the full CODI state dict (backbone + LoRA +
+    # decoder + prj) from a SIM-CoT CODI checkpoint into the assembled module. This MUST be a
+    # load_state_dict into the wrapper -- NOT model_name_or_path pointed at the checkpoint
+    # (that random-inits the backbone). Skipped entirely when --simcot_ckpt is unset.
+    if model_args.simcot_ckpt:
+        sd = load_file(model_args.simcot_ckpt)
+        missing, unexpected = model.load_state_dict(sd, strict=False)
+        # Every checkpoint tensor must map onto a model param: a non-empty `unexpected` means
+        # a namespace mismatch (the exact failure mode that silently produced a random model).
+        if unexpected:
+            raise RuntimeError(
+                f"SIM-CoT warm-start: {len(unexpected)} checkpoint tensors did not map onto the "
+                f"model (namespace mismatch). First few: {unexpected[:8]}"
+            )
+        # The only params allowed to be newly-initialized are the new PonderNet halt head.
+        unexpected_missing = [k for k in missing if not k.startswith("halt_head")]
+        if unexpected_missing:
+            raise RuntimeError(
+                f"SIM-CoT warm-start: {len(unexpected_missing)} model params were NOT loaded from "
+                f"the checkpoint (expected only halt_head.*). First few: {unexpected_missing[:8]}"
+            )
+        # Sentinel check: the SIM-CoT latent-reasoning weights actually landed.
+        for sentinel in ("codi.base_model.model.transformer.wte.weight",
+                         "decoder.lm_head.weight", "prj.1.weight"):
+            if sentinel in missing:
+                raise RuntimeError(f"SIM-CoT warm-start: core weight '{sentinel}' was not loaded.")
+        logging.warning(
+            f"Warm-started {len(sd)} tensors from SIM-CoT checkpoint {model_args.simcot_ckpt}. "
+            f"Newly-initialized (PonderNet halt head): {missing}"
+        )
 
     if training_args.pondernet:
         freeze_model(model)

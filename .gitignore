@@ -11,6 +11,7 @@ models/
 !pondernet/models/
 !pondernet/models/simcot_gpt2_decoder/
 !pondernet/models/simcot_gpt2_decoder/**
+results/
 pondernet/results/
 pondernet/features/
 

@@ -51,8 +51,11 @@ SIM-CoT-trained checkpoint:
 
 ```bash
 python scripts/fetch_simcot_decoder.py --out models/simcot_gpt2_decoder
-DECODER_PATH=./models/simcot_gpt2_decoder bash scripts/train_gpt2_gsm8k_pondernet.sh
 ```
+
+(The training script already defaults `DECODER_PATH` to `./models/simcot_gpt2_decoder`
+and passes `--decoder_path`; see "Warm-start strategy" below for how the decoder-only
+and full-model recipes are selected.)
 
 `fetch_simcot_decoder.py` downloads `internlm/SIM_COT-GPT2-CODI`, extracts the
 `decoder.*` weights, and saves them as a standalone GPT-2 checkpoint
@@ -62,35 +65,46 @@ drop-in replacement for the vanilla decoder (verified compatible: identical
 GPT-2 124M architecture and vocab, so `pj_in`/`pj_out` resolve to `Identity`
 with no extra untrained projector parameters).
 
-### Warm-start strategy (this branch: decoder-only)
+### Warm-start strategy (two recipes)
 
-This branch warm-starts **only the auxiliary decoder**, not the backbone. The
-recipe is: a **cold backbone** (vanilla GPT-2 + freshly-initialized LoRA, so the
-latent reasoner is learned from scratch) plus a **warm decoder** (so the
-PonderNet per-step loss `L_step`/`L_pondernet` carries real signal from epoch 0,
-which is what the halting head learns from). `model_name_or_path` therefore stays
-a plain GPT-2 — it is only the backbone scaffold.
-
-Why not warm-start the whole model here? The SIM-CoT CODI checkpoint holds three
-namespaces — `codi.*` (245 tensors, backbone + LoRA), `decoder.*` (149), `prj.*`
-(6) = 400 total — and `--decoder_path` loads a standalone copy of exactly the
-`decoder.*` subset. So a **full**-model warm-start would already include the
-decoder, making `--decoder_path` redundant in that scenario. The two are distinct
-training recipes, not duplicate code:
+There are **two warm-start recipes**, both wired into `train.py` and the training
+script, selected by which checkpoint variables you set. `GPT2_PATH`
+(`model_name_or_path`) always stays a plain GPT-2 — it is only the backbone
+scaffold, **never** the SIM-CoT CODI checkpoint (pointing it there loads the wrapper
+as a bare GPT-2 and silently random-inits the backbone).
 
 | Recipe | backbone (`codi.*`) | decoder (`decoder.*`) | enabled by |
 |---|---|---|---|
-| **decoder-only** (this branch) | cold | warm | `--decoder_path` |
-| full-model | warm | warm (comes for free) | `--simcot_ckpt` (separate path) |
+| **decoder-only** | cold (vanilla GPT-2 + fresh LoRA) | warm | `--decoder_path` (loaded in `CODI.__init__`) |
+| **full-model** | warm | warm (comes with the checkpoint) | `--simcot_ckpt` (`load_state_dict` after assembly) |
 
-We deliberately **removed** the earlier "auto-detect a CODI checkpoint at
-`model_name_or_path` and `load_state_dict` it after init" block from `train.py`.
-It overloaded `model_name_or_path` (also used for the tokenizer and LoRA target
-selection) and relied on random-initializing the backbone and then repairing it —
-the exact pattern that once trained a model to garbage. Full-model warm-start, if
-needed, belongs in its own explicit `--simcot_ckpt` argument (`model_name_or_path`
-stays `gpt2`); it is not wired into this branch. Use it only when you want a warm
-backbone, and drop `--decoder_path` then since it would be redundant.
+The SIM-CoT CODI checkpoint holds three namespaces — `codi.*` (245 tensors,
+backbone + LoRA), `decoder.*` (149), `prj.*` (6) = 400 total — and
+`fetch_simcot_decoder.py` extracts a standalone copy of exactly the `decoder.*`
+subset for the decoder-only path. So **a full-model warm-start already includes the
+decoder**: when `--simcot_ckpt` is set, the `--decoder_path` load in `__init__` is
+overwritten by the same `decoder.*` weights and is therefore redundant (harmless —
+identical tensors — just wasted compute).
+
+**Selecting a recipe.** The script passes *both* flags. `SIMCOT_CKPT` defaults to
+the SIM-CoT CODI checkpoint, so out of the box you get the **full-model** recipe;
+clear it to fall back to **decoder-only**:
+
+```bash
+# full-model warm-start (default): warm backbone + LoRA + decoder + prj
+bash scripts/train_gpt2_gsm8k_pondernet.sh
+
+# decoder-only warm-start: cold backbone, just bootstrap the halting signal
+SIMCOT_CKPT="" bash scripts/train_gpt2_gsm8k_pondernet.sh
+```
+
+In both cases `--pondernet` freezes the backbone and trains the LoRA adapters plus
+the freshly-initialized `halt_head` (the only params not covered by a warm-start).
+The `--simcot_ckpt` load is **sentinel-checked**: it raises if any checkpoint tensor
+fails to map onto the model, or if a core weight (e.g. `decoder.lm_head.weight`) is
+missing — guarding against the namespace-mismatch failure that once trained a model
+to garbage. Note: never pass the CODI checkpoint as `model_name_or_path`; that is the
+exact mistake `--simcot_ckpt` exists to avoid.
 
 ## Evaluation
 

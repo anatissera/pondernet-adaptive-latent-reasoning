@@ -356,7 +356,7 @@ def evaluation(model_args, data_args, training_args):
 
                 # implement the sampling process
                 if training_args.greedy:
-                    next_token_ids = torch.argmax(logits, dim=-1).squeeze(-1)
+                    next_token_ids = torch.argmax(logits, dim=-1)
                 else:
                     logits /= gen_kwargs["temperature"]
                     if gen_kwargs["top_k"] > 1:
@@ -408,7 +408,6 @@ def evaluation(model_args, data_args, training_args):
                     print(f"Prediction={extract_answer_number(decoded_pred)}; Groundtruth={answer[q_idx]}")
                     print("")
                 ans_pred_list.append(extract_answer_number(decoded_pred))
-    import os
     os.makedirs(data_args.results_dir, exist_ok=True)
     results_path = os.path.join(data_args.results_dir, f"{data_args.data_name}.json")
     write_json({"ans": ans_pred_list}, results_path)
