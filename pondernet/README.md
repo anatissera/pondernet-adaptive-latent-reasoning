@@ -62,6 +62,36 @@ drop-in replacement for the vanilla decoder (verified compatible: identical
 GPT-2 124M architecture and vocab, so `pj_in`/`pj_out` resolve to `Identity`
 with no extra untrained projector parameters).
 
+### Warm-start strategy (this branch: decoder-only)
+
+This branch warm-starts **only the auxiliary decoder**, not the backbone. The
+recipe is: a **cold backbone** (vanilla GPT-2 + freshly-initialized LoRA, so the
+latent reasoner is learned from scratch) plus a **warm decoder** (so the
+PonderNet per-step loss `L_step`/`L_pondernet` carries real signal from epoch 0,
+which is what the halting head learns from). `model_name_or_path` therefore stays
+a plain GPT-2 — it is only the backbone scaffold.
+
+Why not warm-start the whole model here? The SIM-CoT CODI checkpoint holds three
+namespaces — `codi.*` (245 tensors, backbone + LoRA), `decoder.*` (149), `prj.*`
+(6) = 400 total — and `--decoder_path` loads a standalone copy of exactly the
+`decoder.*` subset. So a **full**-model warm-start would already include the
+decoder, making `--decoder_path` redundant in that scenario. The two are distinct
+training recipes, not duplicate code:
+
+| Recipe | backbone (`codi.*`) | decoder (`decoder.*`) | enabled by |
+|---|---|---|---|
+| **decoder-only** (this branch) | cold | warm | `--decoder_path` |
+| full-model | warm | warm (comes for free) | `--simcot_ckpt` (separate path) |
+
+We deliberately **removed** the earlier "auto-detect a CODI checkpoint at
+`model_name_or_path` and `load_state_dict` it after init" block from `train.py`.
+It overloaded `model_name_or_path` (also used for the tokenizer and LoRA target
+selection) and relied on random-initializing the backbone and then repairing it —
+the exact pattern that once trained a model to garbage. Full-model warm-start, if
+needed, belongs in its own explicit `--simcot_ckpt` argument (`model_name_or_path`
+stays `gpt2`); it is not wired into this branch. Use it only when you want a warm
+backbone, and drop `--decoder_path` then since it would be redundant.
+
 ## Evaluation
 
 ```bash

@@ -12,7 +12,6 @@ import transformers
 from torch.utils.data import Dataset
 from transformers import Trainer, TrainerCallback
 from transformers.trainer_utils import get_last_checkpoint
-from safetensors.torch import load_file
 from tqdm import tqdm
 from math import ceil
 from peft import PeftModel, LoraConfig, TaskType, get_peft_model
@@ -182,30 +181,13 @@ def train():
         )
 
     # import pdb; pdb.set_trace()
+    # model_name_or_path is always a plain GPT-2 (the backbone scaffold). The
+    # warm-start on this branch is decoder-only, via --decoder_path inside
+    # CODI.__init__ (see pondernet/README.md "Warm-start strategy"). We deliberately
+    # do NOT full-warm-start the CODI wrapper here by auto-detecting a CODI checkpoint
+    # at model_name_or_path: that overloads model_name_or_path and random-inits the
+    # backbone before repairing it. Full-model warm-start lives separately as --simcot_ckpt.
     model = CODI(model_args, training_args, lora_config)
-
-    # If model_name_or_path is a saved CODI checkpoint (keys prefixed with "codi."),
-    # load the full state dict into the CODI wrapper after init.
-    _index_path = os.path.join(model_args.model_name_or_path, "model.safetensors.index.json")
-    _bin_path = os.path.join(model_args.model_name_or_path, "pytorch_model.bin")
-    if os.path.exists(_index_path) or os.path.exists(_bin_path):
-        if os.path.exists(_index_path):
-            import json as _json
-            _index = _json.load(open(_index_path))
-            _shard = os.path.join(model_args.model_name_or_path, list(_index["weight_map"].values())[0])
-            _probe = load_file(_shard)
-        else:
-            _probe = torch.load(_bin_path, map_location="cpu")
-        if any(k.startswith("codi.") for k in _probe.keys()):
-            logging.warning("Detected CODI checkpoint — loading full state dict into CODI model.")
-            from safetensors.torch import load_file as _load_file
-            _shards = set(_index["weight_map"].values()) if os.path.exists(_index_path) else [_bin_path]
-            _state = {}
-            for _s in _shards:
-                _state.update(_load_file(os.path.join(model_args.model_name_or_path, _s)) if _s.endswith(".safetensors") else torch.load(os.path.join(model_args.model_name_or_path, _s), map_location="cpu"))
-            _missing, _unexpected = model.load_state_dict(_state, strict=False)
-            logging.warning(f"CODI checkpoint loaded: {len(_missing)} missing keys, {len(_unexpected)} unexpected keys.")
-            del _state, _probe
 
     if training_args.pondernet:
         freeze_model(model)
