@@ -44,26 +44,28 @@ run is interrupted (see `train.py`) — just re-run the same command.
 
 ### Warm-starting the auxiliary decoder from SIM-CoT
 
-By default `--use_decoder True` initializes the auxiliary decoder from vanilla
-GPT-2, so `L_step`/`L_pondernet` give it no real signal until it has trained
-for a while (the "cold start" problem). Instead, you can warm-start it from a
-SIM-CoT-trained checkpoint:
+A vanilla-GPT-2 auxiliary decoder gives `L_step`/`L_pondernet` no real signal until
+it has trained for a while (the "cold start" problem), so it is warm-started from a
+SIM-CoT-trained decoder checkpoint.
+
+That decoder is **committed to the repo via Git LFS** at
+`pondernet/models/simcot_gpt2_decoder/` (routed through LFS by `pondernet/.gitattributes`,
+and un-ignored in `.gitignore`), so you normally just get it with `git lfs pull` — no
+per-teammate download needed. The training script defaults `DECODER_PATH` to
+`./models/simcot_gpt2_decoder` and passes `--decoder_path`, which `model.py` loads as a
+drop-in replacement for the vanilla decoder (verified compatible: identical GPT-2 124M
+architecture and vocab, so `pj_in`/`pj_out` resolve to `Identity` with no extra
+untrained projector parameters).
+
+To **regenerate** that LFS checkpoint (rarely needed), run:
 
 ```bash
 python scripts/fetch_simcot_decoder.py --out models/simcot_gpt2_decoder
 ```
 
-(The training script already defaults `DECODER_PATH` to `./models/simcot_gpt2_decoder`
-and passes `--decoder_path`; see "Warm-start strategy" below for how the decoder-only
-and full-model recipes are selected.)
-
-`fetch_simcot_decoder.py` downloads `internlm/SIM_COT-GPT2-CODI`, extracts the
-`decoder.*` weights, and saves them as a standalone GPT-2 checkpoint
-(`models/` is gitignored — each teammate fetches their own copy). The training
-script then passes it via `--decoder_path`, which `model.py` loads as a
-drop-in replacement for the vanilla decoder (verified compatible: identical
-GPT-2 124M architecture and vocab, so `pj_in`/`pj_out` resolve to `Identity`
-with no extra untrained projector parameters).
+which downloads `internlm/SIM_COT-GPT2-CODI` and extracts the `decoder.*` weights into a
+standalone GPT-2 checkpoint. See "Warm-start strategy" below for how the decoder-only and
+full-model recipes are selected.
 
 ### Warm-start strategy (two recipes)
 
@@ -86,9 +88,9 @@ decoder**: when `--simcot_ckpt` is set, the `--decoder_path` load in `__init__` 
 overwritten by the same `decoder.*` weights and is therefore redundant (harmless —
 identical tensors — just wasted compute).
 
-**Selecting a recipe.** The script passes *both* flags. `SIMCOT_CKPT` defaults to
-the SIM-CoT CODI checkpoint, so out of the box you get the **full-model** recipe;
-clear it to fall back to **decoder-only**:
+**Selecting a recipe.** The script passes *both* flags. `SIMCOT_CKPT` defaults to the
+SIM-CoT CODI checkpoint, so out of the box you get the **full-model** recipe; set
+`SIMCOT_CKPT=""` to fall back to **decoder-only**:
 
 ```bash
 # full-model warm-start (default): warm backbone + LoRA + decoder + prj
@@ -97,6 +99,13 @@ bash scripts/train_gpt2_gsm8k_pondernet.sh
 # decoder-only warm-start: cold backbone, just bootstrap the halting signal
 SIMCOT_CKPT="" bash scripts/train_gpt2_gsm8k_pondernet.sh
 ```
+
+Unlike the LFS-committed decoder, the **full CODI checkpoint**
+(`models/SIM_COT-GPT2-CODI/`, ~730 MB) is **gitignored and not in the repo** — repo
+owners share it on the same filesystem. There is no fetch script for it; a fresh
+environment without that path present must either provide it (download
+`internlm/SIM_COT-GPT2-CODI`) or run decoder-only via `SIMCOT_CKPT=""`. (The script
+uses `${SIMCOT_CKPT-…}` rather than `:-`, so an explicit empty value is honored.)
 
 In both cases `--pondernet` freezes the backbone and trains the LoRA adapters plus
 the freshly-initialized `halt_head` (the only params not covered by a warm-start).

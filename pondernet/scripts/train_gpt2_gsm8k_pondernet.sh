@@ -22,10 +22,15 @@ LOG_DIR="${LOG_DIR:-../outputs/halt_head_gpt2}"
 # from SIM-CoT via SIMCOT_CKPT (full-model) or DECODER_PATH (decoder-only) below.
 GPT2_PATH="${GPT2_PATH:-gpt2}"   # HF model ID or local path
 
-# Warm-start the FULL CODI model (backbone + LoRA adapters + decoder + prj) from the
-# SIM-CoT CODI checkpoint, so the model starts already "thinking in latent space".
-# Loaded via load_state_dict(strict=False) after assembly; only the halt head is fresh.
-SIMCOT_CKPT="${SIMCOT_CKPT:-../models/SIM_COT-GPT2-CODI/model-00001-of-00001.safetensors}"
+# Default recipe: full-model warm-start. Load the FULL CODI model (backbone + LoRA
+# adapters + decoder + prj) from the SIM-CoT CODI checkpoint, so the model starts already
+# "thinking in latent space"; --pondernet then trains the backbone (via LoRA) + halt head
+# while the decoder stays warm-but-frozen. Loaded via load_state_dict(strict=False) after
+# assembly; only the halt head is fresh.
+#   - The checkpoint lives at repo-root models/ (gitignored; repo owners share it on the FS).
+#   - Use `-` (not `:-`) so an explicit empty value is respected: `SIMCOT_CKPT="" bash ...`
+#     falls back to the decoder-only recipe (cold backbone, warm decoder via DECODER_PATH).
+SIMCOT_CKPT="${SIMCOT_CKPT-../models/SIM_COT-GPT2-CODI/model-00001-of-00001.safetensors}"
 
 # Initialize the auxiliary decoder from a SIM-CoT-trained checkpoint instead of
 # vanilla GPT-2, so L_step/L_pondernet provide real signal from epoch 0.
