@@ -8,9 +8,9 @@ We extend [SIM-CoT](https://arxiv.org/pdf/2509.20317) (ICLR 2026) to make the nu
 ## Structure
 
 ```
-baselines/           # Reference implementations (Coconut, CODI) — read-only
+baselines/           # Reference implementations (Coconut, CODI, SIM-CoT) — read-only
 pondernet/           # PonderNet adaptive halting — Subgroup 1's active working area
-models/              # Pre-trained / fine-tuned weights (gitignored)
+models/              # Pre-trained / fine-tuned model weights (gitignored)
 outputs/             # Training logs and TensorBoard events (gitignored)
 data/                # Evaluation datasets
 docs/papers/         # Paper summaries for context

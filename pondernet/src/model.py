@@ -99,6 +99,10 @@ class TrainingArguments(transformers.TrainingArguments):
     per_device_eval_batch_size: int = field(
         default=1,
     )
+    expt_name: str = field(
+        default="default",
+        metadata={"help": "Experiment name"},
+    )
     icot_train_path: str = field(default="/users/k24020023/efficient_cot/icae/code/coconut/icot_gsm8k/train.txt", metadata={"help":"The training data path"})
     num_latent: int = field(default=5, metadata={"help": "The number of latent for training or inference."})
     use_lora: bool = field(default=True, metadata={"help": "Use lora or not."})

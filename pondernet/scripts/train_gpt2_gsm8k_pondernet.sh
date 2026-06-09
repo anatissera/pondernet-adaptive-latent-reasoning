@@ -18,7 +18,15 @@ SAVE_DIR="${SAVE_DIR:-../models/halt_head_gpt2}"
 LOG_DIR="${LOG_DIR:-../outputs/halt_head_gpt2}"
 GPT2_PATH="${GPT2_PATH:-gpt2}"   # HF model ID or local path
 
+# Initialize the auxiliary decoder from a SIM-CoT-trained checkpoint instead of
+# vanilla GPT-2, so L_step/L_pondernet provide real signal from epoch 0.
+# Fetch with: python scripts/fetch_simcot_decoder.py --out models/simcot_gpt2_decoder
+DECODER_PATH="${DECODER_PATH:-./models/simcot_gpt2_decoder}"
+
 mkdir -p "$SAVE_DIR" "$LOG_DIR"
+
+# Avoids CUDA allocator fragmentation (important with K separate answer-decode forwards)
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 # Avoids CUDA allocator fragmentation (important with K separate answer-decode forwards)
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
@@ -60,6 +68,7 @@ python train.py \
     --remove_eos True \
     --print_ref_model_stats False \
     --use_decoder True \
+    --decoder_path "$DECODER_PATH" \
     --print_loss False \
     --pondernet True \
     --pondernet_beta 1.0 \
