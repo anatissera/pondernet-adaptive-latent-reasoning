@@ -18,7 +18,7 @@ by checkpoint convention.
 | `--lora_dropout` | `0.05` | Dropout probability inside each LoRA adapter layer. |
 | `--full_precision` | `True` | Load backbone in full precision (fp16/bf16). When `False`, loads in 4-bit NF4 via BitsAndBytes. |
 | `--use_decoder` | `False` | Attach an auxiliary decoder module for per-step reconstruction (`explain_loss`). |
-| `--decoder_path` | `None` | Path to a standalone GPT-2 checkpoint to use as the auxiliary decoder (used with `--use_decoder`). When omitted and `--use_decoder` is set, the backbone itself is cloned as the decoder. |
+| `--decoder_path` | `None` | Path to a standalone GPT-2 checkpoint to use as the auxiliary decoder (used with `--use_decoder`). Decoder-only warm-start: the auxiliary decoder is re-loaded from the same path as the backbone (`model_name_or_path`). |
 | `--soft_weight` | `None` | Multiplier for soft/distillation loss (legacy; mostly unused in PonderNet runs). |
 | `--save_ablation` | `False` | Save ablation evaluation results. Only activated when explicitly passed on the command line. |
 | `--train` | `True` | Whether the model is being initialised for training (`True`) or inference (`False`). |
@@ -60,7 +60,7 @@ available but not listed here.
 | `--per_device_eval_batch_size` | `1` | Evaluation batch size per GPU. |
 | `--expt_name` | `"default"` | Experiment name, used to label output directories and logs. |
 | `--icot_train_path` | `""` | Deprecated; unused. |
-| `--max_latent_steps` | `5` | Hard upper bound K_max on latent steps; adaptive count ≤ this. (In the current codebase the field is named `num_latent`; it will be renamed to `--max_latent_steps` when that migration lands.) |
+| `--max_latent_steps` | `5` | Hard upper bound K_max on latent steps (adaptive count ≤ this; renamed from the legacy `--num_latent`). |
 | `--use_lora` | `True` | Whether to wrap the backbone with LoRA adapters via PEFT. |
 | `--greedy` | `False` | Use greedy decoding during inference (vs. sampling). |
 | `--exp_mode` | `False` | Use a partial data subset for debugging purposes. |
@@ -168,7 +168,7 @@ They are deliberately not renamed so that existing checkpoints remain loadable.
 | `decoder` | `decoder.*` | Auxiliary GPT-2 that receives each latent embedding concatenated with a CoT step and is trained to reconstruct that step via cross-entropy — the `explain_loss` / L_step signal. Only present when `--use_decoder` is set. |
 | `prj` | `prj.*` | Optional projection module applied to the latent embedding after each backbone pass before feeding it back in. Architecture: `Dropout → Linear(dim, prj_dim) → GELU → Linear(prj_dim, dim) → LayerNorm`. Enabled with `--use_prj`. |
 | `halt_head` | `halt_head.*` | `nn.Linear(hidden_dim, 1)` that maps each latent hidden state h_k to a scalar halting logit; `sigmoid` of this logit gives the conditional halting probability λ_k at step k. This is the **only** component that is freshly initialised during a full-model warm-start. Its bias is initialised to `--pondernet_halt_bias_init` (default −2.0). |
-| `pj_in` | `pj_in.*` | Input projection between the backbone and the auxiliary decoder. When their hidden sizes match it is an `nn.Identity`; otherwise it is `nn.Linear(backbone_hidden, decoder_hidden)`. Only present when `--decoder_path` is set. |
+| `pj_in` | `pj_in.*` | Input projection that projects the auxiliary decoder's input token embeddings (in hidden-size space) from backbone hidden size to decoder hidden size. When sizes match it is an `nn.Identity`; otherwise it is `nn.Linear(backbone_hidden, decoder_hidden)`. Only present when `--decoder_path` is set. |
 | `pj_out` | `pj_out.*` | Output projection from the auxiliary decoder's vocabulary logits back to the backbone's vocabulary space. When sizes match it is an `nn.Identity`; otherwise it is a low-rank projector `LowRankProjector(decoder_vocab, backbone_vocab, rank=decoder_vocab//4)`. Only present when `--decoder_path` is set. |
 
 ### Loss terms
