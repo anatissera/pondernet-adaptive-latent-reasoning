@@ -22,6 +22,10 @@ GPT2_PATH="${GPT2_PATH:-gpt2}"   # HF model ID or local path
 # Fetch with: python scripts/fetch_simcot_decoder.py --out models/simcot_gpt2_decoder
 DECODER_PATH="${DECODER_PATH:-./models/simcot_gpt2_decoder}"
 
+# 1e-4 (gentle) suits warm-starting the decoder from SIM-CoT; override with LR=3e-3 for
+# the from-scratch-decoder setting.
+LR="${LR:-1e-4}"
+
 mkdir -p "$SAVE_DIR"
 
 # Avoids CUDA allocator fragmentation (important with K separate answer-decode forwards)
@@ -29,7 +33,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 python train.py \
     --output_dir "$SAVE_DIR" \
-    --expt_name gsm8k_gpt2_pondernet \
+    --expt_name pondernet_simcot_warmstart \
     --logging_dir "$SAVE_DIR/logs" \
     --logging_steps 10 \
     --model_name_or_path "$GPT2_PATH" \
@@ -37,13 +41,13 @@ python train.py \
     --seed 42 \
     --model_max_length 384 \
     --max_token_num 700 \
-    --per_device_train_batch_size 32 \
-    --gradient_accumulation_steps 4 \
+    --per_device_train_batch_size 16 \
+    --gradient_accumulation_steps 8 \
     --gradient_checkpointing True \
     --dataloader_num_workers 4 \
     --bf16 \
-    --num_train_epochs 40 \
-    --learning_rate 3e-3 \
+    --num_train_epochs 10 \
+    --learning_rate "$LR" \
     --max_grad_norm 2.0 \
     --use_lora True \
     --lora_r 128 --lora_alpha 32 --lora_init \
@@ -72,4 +76,5 @@ python train.py \
     --pondernet_geom_mean 3.0 \
     --pondernet_halt_bias_init -2.0 \
     --pondernet_inf_threshold 0.5 \
+    --max_train_samples 100000 \
     "$@"

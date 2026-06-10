@@ -55,13 +55,52 @@ IGNORE_INDEX = -100
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
-class EpochProgressCallback(TrainerCallback):
-    """Prints a clear separator marking the start of each epoch, alongside
-    the default tqdm bar (which only tracks overall step progress)."""
+class DualProgressCallback(TrainerCallback):
+    """Two tqdm bars and nothing else on the console: an overall bar over all
+    optimizer steps (shows elapsed + ETA via tqdm's default rate display) and a
+    per-epoch bar that resets each epoch. `on_log` is a no-op so the per-step
+    loss dicts never reach stdout (they still go to TensorBoard)."""
+
+    def __init__(self):
+        self.overall_bar = None
+        self.epoch_bar = None
+
+    def on_train_begin(self, args, state, control, **kwargs):
+        if state.is_world_process_zero:
+            self.overall_bar = tqdm(total=state.max_steps, desc="Total", position=0,
+                                    dynamic_ncols=True)
 
     def on_epoch_begin(self, args, state, control, **kwargs):
+        if not state.is_world_process_zero:
+            return
+        n_epochs = int(state.num_train_epochs)
+        steps_per_epoch = max(1, state.max_steps // n_epochs)
+        if self.epoch_bar is not None:
+            self.epoch_bar.close()
+        self.epoch_bar = tqdm(total=steps_per_epoch, position=1, leave=False,
+                              dynamic_ncols=True,
+                              desc=f"Epoch {int(state.epoch) + 1}/{n_epochs}")
+
+    def on_step_end(self, args, state, control, **kwargs):
         if state.is_world_process_zero:
-            print(f"\n=== Epoch {int(state.epoch) + 1}/{int(args.num_train_epochs)} ===")
+            if self.overall_bar is not None:
+                self.overall_bar.update(1)
+            if self.epoch_bar is not None:
+                self.epoch_bar.update(1)
+
+    def on_epoch_end(self, args, state, control, **kwargs):
+        if state.is_world_process_zero and self.epoch_bar is not None:
+            self.epoch_bar.close()
+            self.epoch_bar = None
+
+    def on_train_end(self, args, state, control, **kwargs):
+        if state.is_world_process_zero and self.overall_bar is not None:
+            self.overall_bar.close()
+            self.overall_bar = None
+
+    def on_log(self, args, state, control, **kwargs):
+        # Swallow log dicts so they never print to the console (TensorBoard still gets them).
+        return
 
 
 class CustomTrainer(Trainer):
@@ -102,8 +141,7 @@ class CustomTrainer(Trainer):
 
     def log(self, logs, start_time=None):
         if self.state.global_step is not None:
-            for k, v in logs.items():
-                super().log({k: v})
+            super().log(logs)
 
 def _tokenize_fn(strings: Sequence[str], tokenizer: transformers.PreTrainedTokenizer) -> Dict:
     """Tokenize a list of strings."""
@@ -281,6 +319,8 @@ def train():
                 raw_data = read_json(data_args.data_path)
             elif raw_data is None:
                 raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
+            if getattr(data_args, 'max_train_samples', None):
+                raw_data = raw_data[:data_args.max_train_samples]
             for num_iter, example in tqdm(enumerate(raw_data)):
                 if 'cot' not in example: 
                     example['cot'] = example['steps']
@@ -411,8 +451,13 @@ def train():
         """Make dataset and collator for supervised fine-tuning."""
         logging.warning("Downloading Data")
         if "icot" in data_args.data_name:
-            dataset = None  # SupervisedDataset will load from HF if data_args.data_path is empty
-            train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
+            if data_args.data_path:
+                raw_data = read_json(data_args.data_path)
+            else:
+                raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
+            if data_args.max_train_samples:
+                raw_data = raw_data[:data_args.max_train_samples]
+            train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=raw_data, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
         elif "strategy" in data_args.data_name:
@@ -443,9 +488,13 @@ def train():
         f"seed_{training_args.seed}",
     )
 
+    # Disable HF's built-in progress/printer callbacks so the console shows only our
+    # two tqdm bars (overall + per-epoch); TensorBoard logging is unaffected.
+    training_args.disable_tqdm = True
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
     trainer = CustomTrainer(model=model, tokenizer=tokenizer, args=training_args, **data_module)
-    trainer.add_callback(EpochProgressCallback())
+    trainer.remove_callback(transformers.trainer_callback.PrinterCallback)
+    trainer.add_callback(DualProgressCallback())
 
     last_checkpoint = None
     if os.path.isdir(training_args.output_dir):

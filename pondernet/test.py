@@ -85,6 +85,7 @@ def write_json(data, file_path):
         print(f"写入JSON文件时出错: {e}")
 
 def evaluation(model_args, data_args, training_args):
+    import os
     if model_args.lora_init:
         task_type = TaskType.CAUSAL_LM
         if any(name in model_args.model_name_or_path.lower() for name in ["llama", "mistral", "falcon", "qwen"]):

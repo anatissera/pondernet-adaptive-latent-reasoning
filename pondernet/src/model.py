@@ -75,6 +75,7 @@ class DataArguments:
     batch_size: int = field(default=1, metadata={"help": "batch size during inference"})
     data_path: str = field(default="", metadata={"help": "Local path to training/eval data JSON. If empty, loads from HuggingFace."})
     results_dir: str = field(default="./results", metadata={"help": "Directory for evaluation output JSON files."})
+    max_train_samples: int = field(default=None, metadata={"help": "Truncate training set to this many examples (None = use all)."})
 
 @dataclass
 class TrainingArguments(transformers.TrainingArguments):
