@@ -14,36 +14,51 @@
 
 set -euo pipefail
 
-SAVE_DIR="${SAVE_DIR:-./outputs/pondernet}"
+SAVE_DIR="${SAVE_DIR:-../models/halt_head_gpt2}"
+LOG_DIR="${LOG_DIR:-../outputs/halt_head_gpt2}"
+# GPT2_PATH MUST be a plain GPT-2 checkpoint. Do NOT set it to the SIM-CoT CODI
+# checkpoint -- that is a CODI wrapper (keys under codi.base_model.model.*), and loading
+# it here as a bare GPT2LMHeadModel silently random-inits the whole backbone. Warm-start
+# from SIM-CoT via SIMCOT_CKPT (full-model) or DECODER_PATH (decoder-only) below.
 GPT2_PATH="${GPT2_PATH:-gpt2}"   # HF model ID or local path
+
+# Default recipe: full-model warm-start. Load the FULL CODI model (backbone + LoRA
+# adapters + decoder + prj) from the SIM-CoT CODI checkpoint, so the model starts already
+# "thinking in latent space"; --pondernet then trains the backbone (via LoRA) + halt head
+# while the decoder stays warm-but-frozen. Loaded via load_state_dict(strict=False) after
+# assembly; only the halt head is fresh.
+#   - The checkpoint lives at repo-root models/ (gitignored; repo owners share it on the FS).
+#   - Use `-` (not `:-`) so an explicit empty value is respected: `SIMCOT_CKPT="" bash ...`
+#     falls back to the decoder-only recipe (cold backbone, warm decoder via DECODER_PATH).
+SIMCOT_CKPT="${SIMCOT_CKPT-../models/SIM_COT-GPT2-CODI/model-00001-of-00001.safetensors}"
 
 # Initialize the auxiliary decoder from a SIM-CoT-trained checkpoint instead of
 # vanilla GPT-2, so L_step/L_pondernet provide real signal from epoch 0.
 # Fetch with: python scripts/fetch_simcot_decoder.py --out models/simcot_gpt2_decoder
 DECODER_PATH="${DECODER_PATH:-./models/simcot_gpt2_decoder}"
 
-mkdir -p "$SAVE_DIR"
+mkdir -p "$SAVE_DIR" "$LOG_DIR"
 
 # Avoids CUDA allocator fragmentation (important with K separate answer-decode forwards)
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 python train.py \
     --output_dir "$SAVE_DIR" \
-    --expt_name gsm8k_gpt2_pondernet \
-    --logging_dir "$SAVE_DIR/logs" \
+    --logging_dir "$LOG_DIR" \
     --logging_steps 10 \
     --model_name_or_path "$GPT2_PATH" \
     --data_name icot \
+    --max_train_samples 15000 \
     --seed 42 \
     --model_max_length 384 \
     --max_token_num 700 \
-    --per_device_train_batch_size 32 \
-    --gradient_accumulation_steps 4 \
+    --per_device_train_batch_size 16 \
+    --gradient_accumulation_steps 8 \
     --gradient_checkpointing True \
     --dataloader_num_workers 4 \
     --bf16 \
     --num_train_epochs 40 \
-    --learning_rate 3e-3 \
+    --learning_rate "${LR:-1e-4}" \
     --max_grad_norm 2.0 \
     --use_lora True \
     --lora_r 128 --lora_alpha 32 --lora_init \
@@ -65,6 +80,7 @@ python train.py \
     --print_ref_model_stats False \
     --use_decoder True \
     --decoder_path "$DECODER_PATH" \
+    --simcot_ckpt "$SIMCOT_CKPT" \
     --print_loss False \
     --pondernet True \
     --pondernet_beta 1.0 \

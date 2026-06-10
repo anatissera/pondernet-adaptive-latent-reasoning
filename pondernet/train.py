@@ -182,7 +182,53 @@ def train():
         )
 
     # import pdb; pdb.set_trace()
+    # model_name_or_path is always a plain GPT-2 (the backbone scaffold) -- never the
+    # SIM-CoT CODI checkpoint, which would load as a bare GPT2LMHeadModel and random-init
+    # the backbone. Two warm-start recipes are available (see pondernet/README.md
+    # "Warm-start strategy"): decoder-only via --decoder_path (inside CODI.__init__), and
+    # full-model via --simcot_ckpt (below). With --simcot_ckpt unset the run is decoder-only
+    # (only --decoder_path warm-starts); set it to additionally warm-start the backbone +
+    # LoRA + prj. NOTE: the training script enables --simcot_ckpt by default, so its
+    # out-of-the-box default is full-model -- clear SIMCOT_CKPT there for decoder-only.
     model = CODI(model_args, training_args, lora_config)
+
+    # Optional full-model warm-start: load the full CODI state dict (backbone + LoRA +
+    # decoder + prj) from a SIM-CoT CODI checkpoint into the assembled module. This MUST be a
+    # load_state_dict into the wrapper -- NOT model_name_or_path pointed at the checkpoint
+    # (that random-inits the backbone). Skipped entirely when --simcot_ckpt is unset.
+    if model_args.simcot_ckpt:
+        sd = load_file(model_args.simcot_ckpt)
+        missing, unexpected = model.load_state_dict(sd, strict=False)
+        # Every checkpoint tensor must map onto a model param: a non-empty `unexpected` means
+        # a namespace mismatch (the exact failure mode that silently produced a random model).
+        if unexpected:
+            raise RuntimeError(
+                f"SIM-CoT warm-start: {len(unexpected)} checkpoint tensors did not map onto the "
+                f"model (namespace mismatch). First few: {unexpected[:8]}"
+            )
+        # The only params allowed to be newly-initialized are the new PonderNet halt head.
+        unexpected_missing = [k for k in missing if not k.startswith("halt_head")]
+        if unexpected_missing:
+            raise RuntimeError(
+                f"SIM-CoT warm-start: {len(unexpected_missing)} model params were NOT loaded from "
+                f"the checkpoint (expected only halt_head.*). First few: {unexpected_missing[:8]}"
+            )
+        # Sentinel check: the SIM-CoT latent-reasoning weights actually landed.
+        for sentinel in ("codi.base_model.model.transformer.wte.weight",
+                         "decoder.lm_head.weight", "prj.1.weight"):
+            if sentinel in missing:
+                raise RuntimeError(f"SIM-CoT warm-start: core weight '{sentinel}' was not loaded.")
+        logging.warning(
+            f"Warm-started {len(sd)} tensors from SIM-CoT checkpoint {model_args.simcot_ckpt}. "
+            f"Newly-initialized (PonderNet halt head): {missing}"
+        )
+
+    if training_args.pondernet:
+        freeze_model(model)
+        for name, p in model.named_parameters():
+            if 'halt_head' in name or 'lora_' in name:
+                p.requires_grad = True
+
     tokenizer = transformers.AutoTokenizer.from_pretrained(
             model_args.model_name_or_path,
             token=model_args.token,
@@ -281,6 +327,8 @@ def train():
                 raw_data = read_json(data_args.data_path)
             elif raw_data is None:
                 raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
+            if data_args.max_train_samples is not None:
+                raw_data = raw_data[:data_args.max_train_samples]
             for num_iter, example in tqdm(enumerate(raw_data)):
                 if 'cot' not in example: 
                     example['cot'] = example['steps']
@@ -411,8 +459,13 @@ def train():
         """Make dataset and collator for supervised fine-tuning."""
         logging.warning("Downloading Data")
         if "icot" in data_args.data_name:
-            dataset = None  # SupervisedDataset will load from HF if data_args.data_path is empty
-            train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
+            if data_args.data_path:
+                raw_data = read_json(data_args.data_path)
+            else:
+                raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
+            if data_args.max_train_samples:
+                raw_data = raw_data[:data_args.max_train_samples]
+            train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=raw_data, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
         elif "strategy" in data_args.data_name:

@@ -10,7 +10,7 @@ set -euo pipefail
 
 CKPT="${CKPT:?Set CKPT=/path/to/checkpoint}"
 GPT2_PATH="${GPT2_PATH:-gpt2}"
-RESULTS_DIR="${RESULTS_DIR:-./results/pondernet}"
+RESULTS_DIR="${RESULTS_DIR:-../results/pondernet}"
 THRESHOLD="${THRESHOLD:-0.5}"
 
 mkdir -p "$RESULTS_DIR"
