@@ -32,17 +32,15 @@ Rescued checkpoints:
 
 ## Run Table
 
-Base/warm-start source is the SIM-CoT **CODI checkpoint** (`models/pretrained/simcot-gpt2-codi`, a fine-tuned GPT-2 124M) unless noted; the auxiliary decoder is `models/pretrained/simcot-gpt2-decoder`.
-
-| run-id | base / warm-start | date | method | key hparams | GSM8K accuracy | checkpoint? | notes |
-|--------|-------------------|------|--------|-------------|---------------|-------------|-------|
-| `simcot-baseline-k6` | `simcot-gpt2-codi` (evaluated directly) | 2026-06-08 | SIM-CoT fixed-K (reference) | K=6, lr=1e-3 (upstream default) | **39.50%** (avg 5 samples) | no | Upstream SIM-CoT eval of the CODI checkpoint; results at `results/simcot-baseline-k6/` |
-| `simcot-fixedk-k6-lr1e4` | `simcot-gpt2-codi` warm-start | 2026-06-08 | SIM-CoT fixed-K retrain | K=6, lr=1e-4 | **17.82%** (avg 5 samples) | no | Lower LR re-run of fixed-K; results at `results/simcot-fixedk-k6-lr1e4/` |
-| `simcot-pondernet-halthead-ep40` | `simcot-gpt2-codi` (backbone frozen) | 2026-06-08 | PonderNet halt-head only (backbone frozen) | ep=40, lr=? (see trainer_state.json) | not evaluated | YES — `models/checkpoints/simcot-pondernet-halthead-ep40/` | Halt head trained on top of the frozen CODI backbone; no eval results directory found; accuracy not evaluated |
-| `simcot-pondernet-lr1e4` (thr=0.8) | trained from scratch (no CODI warm-start) | 2026-06-09 | PonderNet adaptive halting | ep=40, lr=1e-4, halt_thr=0.8, seed=42 | **19.26%** (avg 5 samples) | YES — `models/checkpoints/simcot-pondernet-lr1e4/` | Best PonderNet result; results at `results/simcot-pondernet-lr1e4/thr0.8/` |
-| `simcot-pondernet-lr1e4` (thr=0.9) | trained from scratch (no CODI warm-start) | 2026-06-09 | PonderNet adaptive halting | ep=40, lr=1e-4, halt_thr=0.9, seed=42 | **17.82%** (avg 5 samples) | (same checkpoint as thr=0.8) | Sub-variant of same run evaluated at higher halt threshold; results at `results/simcot-pondernet-lr1e4/thr0.9/` |
-| `simcot-pondernet-joint-ep40` | `simcot-gpt2-codi` ⚠ loaded as bare GPT-2 | 2026-06-08 | PonderNet joint training (halt head + backbone) | ep=40, lr=3e-3, seed=42 | ~0% (eval aborted after 24/1319 Qs, all Prediction=inf) | YES — `models/checkpoints/simcot-pondernet-joint-ep40/` | ⚠ KNOWN-BAD: the CODI checkpoint was loaded as bare GPT-2 (random backbone); results at `results/simcot-pondernet-joint-ep40/` (truncated log only) |
-| `simcot-pondernet-warmstart-lr1e4` | `simcot-gpt2-codi` (warm-started 400 tensors) | 2026-06-09 | PonderNet warm-started from SIM-CoT | ep=40, lr=1e-4, seed=42; warm-started 400 tensors | **15.24%** (avg 5 samples) | YES — `models/checkpoints/simcot-pondernet-warmstart-lr1e4/` | Warm-start experiment; lower than thr=0.8 pondernet; results at `results/simcot-pondernet-warmstart-lr1e4/` |
+| run-id | date | method | key hparams | GSM8K accuracy | checkpoint? | notes |
+|--------|------|--------|-------------|---------------|-------------|-------|
+| `simcot-baseline-k6` | 2026-06-08 | SIM-CoT fixed-K (reference) | K=6, lr=1e-3 (upstream default) | **39.50%** (avg 5 samples) | no | Upstream SIM-CoT eval of the CODI checkpoint; results at `results/simcot-baseline-k6/` |
+| `simcot-fixedk-k6-lr1e4` | 2026-06-08 | SIM-CoT fixed-K retrain | K=6, lr=1e-4 | **17.82%** (avg 5 samples) | no | Lower LR re-run of fixed-K; results at `results/simcot-fixedk-k6-lr1e4/` |
+| `simcot-pondernet-halthead-ep40` | 2026-06-08 | PonderNet halt-head only (backbone frozen) | ep=40, lr=? (see trainer_state.json) | not evaluated | YES — `models/checkpoints/simcot-pondernet-halthead-ep40/` | Halt head trained on top of the frozen backbone; no eval results directory found; accuracy not evaluated |
+| `simcot-pondernet-lr1e4` (thr=0.8) | 2026-06-09 | PonderNet adaptive halting | ep=40, lr=1e-4, halt_thr=0.8, seed=42 | **19.26%** (avg 5 samples) | YES — `models/checkpoints/simcot-pondernet-lr1e4/` | Best PonderNet result; results at `results/simcot-pondernet-lr1e4/thr0.8/` |
+| `simcot-pondernet-lr1e4` (thr=0.9) | 2026-06-09 | PonderNet adaptive halting | ep=40, lr=1e-4, halt_thr=0.9, seed=42 | **17.82%** (avg 5 samples) | (same checkpoint as thr=0.8) | Sub-variant of same run evaluated at higher halt threshold; results at `results/simcot-pondernet-lr1e4/thr0.9/` |
+| `simcot-pondernet-joint-ep40` | 2026-06-08 | PonderNet joint training (halt head + backbone) | ep=40, lr=3e-3, seed=42 | ~0% (eval aborted after 24/1319 Qs, all Prediction=inf) | YES — `models/checkpoints/simcot-pondernet-joint-ep40/` | ⚠ KNOWN-BAD: the CODI checkpoint was loaded as bare GPT-2 (random backbone); results at `results/simcot-pondernet-joint-ep40/` (truncated log only) |
+| `simcot-pondernet-warmstart-lr1e4` | 2026-06-09 | PonderNet warm-started from SIM-CoT | ep=40, lr=1e-4, seed=42; warm-started 400 tensors | **15.24%** (avg 5 samples) | YES — `models/checkpoints/simcot-pondernet-warmstart-lr1e4/` | Warm-start experiment; lower than thr=0.8 pondernet; results at `results/simcot-pondernet-warmstart-lr1e4/` |
 | `simcot-pondernet-joint-warmstart` | 2026-06-09 | PonderNet joint warm-started (crashed) | ep=40, lr=? | N/A — crashed at epoch 0.69 | NONE | ⚠ FAILED: RuntimeError `masked_scatter_: expected self and source to have same dtypes (BFloat16 vs Float)`; TB events + `train.log` deleted (approved cleanup) |
 
 ---
