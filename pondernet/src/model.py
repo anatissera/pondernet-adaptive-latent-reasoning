@@ -1,4 +1,5 @@
 """CODI model definition with PonderNet adaptive-halting extension and data-argument dataclasses."""
+import logging
 import transformers
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig, GPTNeoXForCausalLM
 import os
@@ -148,12 +149,9 @@ def print_trainable_parameters(model):
         all_param += param.numel()
         if param.requires_grad:
             trainable_parameters += param.numel()
-    print(
+    logging.info(
         f"trainable params: {trainable_parameters} || all params: {all_param} || trainable%: {100 * trainable_parameters / all_param}"
     )
-    for name, param in model.named_parameters():
-        if param.requires_grad:
-            print(name, param.shape)
 
 
 def freeze_model(model):

@@ -5,6 +5,11 @@ import logging
 import os
 import re
 import random
+import warnings
+
+# Suppress transient HuggingFace library warnings that pollute training logs.
+warnings.filterwarnings("ignore", category=FutureWarning, module="huggingface_hub")
+warnings.filterwarnings("ignore", message="fan_in_fan_out is set to False", category=UserWarning)
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Sequence
 import numpy as np
@@ -58,7 +63,7 @@ def load_local_data(file_path):
 IGNORE_INDEX = -100
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(device)
+logging.info(f"Training device: {device}")
 
 class EpochProgressCallback(TrainerCallback):
     """Prints a clear separator marking the start of each epoch, alongside
