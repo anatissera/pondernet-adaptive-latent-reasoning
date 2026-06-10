@@ -109,7 +109,7 @@ class DualProgressCallback(TrainerCallback):
 
 
 class CustomTrainer(Trainer):
-    def compute_loss(self, model, inputs, num_items_in_batch):
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
         # Extract the global step from the optimizer
         step = self.state.global_step
 
@@ -129,7 +129,7 @@ class CustomTrainer(Trainer):
         outputs = model(**inputs)
         loss = outputs["loss"]
         loss_for_log = loss.detach() if isinstance(loss, torch.Tensor) else loss
-        if step % self.args.logging_steps == 0:
+        if model.training and step % self.args.logging_steps == 0:
             logs = {
                 "loss": _to_scalar(loss_for_log),
                 "ce_loss": _to_scalar(outputs.get("ce_loss")),
@@ -142,7 +142,7 @@ class CustomTrainer(Trainer):
         # if step % self.args.logging_steps == 0:
         #     self.log({"loss": loss.item(), "ce_loss": outputs["ce_loss"], "distill_loss": outputs["distill_loss"], "ref_ce_loss": outputs["ref_ce_loss"],})
 
-        return loss
+        return (loss, outputs) if return_outputs else loss
 
     def log(self, logs, start_time=None):
         if self.state.global_step is not None:
@@ -318,12 +318,6 @@ def train():
 
             token_nums = []
             # import pdb; pdb.set_trace()
-            if data_args.data_path:
-                raw_data = read_json(data_args.data_path)
-            elif raw_data is None:
-                raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
-            if getattr(data_args, 'max_train_samples', None):
-                raw_data = raw_data[:data_args.max_train_samples]
             for num_iter, example in enumerate(raw_data):
                 if 'cot' not in example: 
                     example['cot'] = example['steps']
@@ -456,11 +450,18 @@ def train():
                 raw_data = read_json(data_args.data_path)
             else:
                 raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
+            eval_size = data_args.eval_samples or 0
+            if eval_size > 0:
+                eval_data = raw_data[-eval_size:]
+                raw_data = raw_data[:-eval_size]
+            else:
+                eval_data = None
             if data_args.max_train_samples:
                 raw_data = raw_data[:data_args.max_train_samples]
             train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=raw_data, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
+            eval_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=eval_data, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id) if eval_data else None
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
-            return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
+            return dict(train_dataset=train_dataset, eval_dataset=eval_dataset, data_collator=data_collator)
         elif "strategy" in data_args.data_name:
             dataset = load_dataset("zen-E/StrategyQA_CoT_GPT4o")["train"]
             train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
@@ -493,9 +494,20 @@ def train():
     # two tqdm bars (overall + per-epoch); TensorBoard logging is unaffected.
     training_args.disable_tqdm = True
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
+
+    # Early stopping (matches SimCoT's patience of 3 epochs): evaluate on a small
+    # held-out split each epoch and stop once eval_loss hasn't improved in a while.
+    if data_module.get("eval_dataset") is not None:
+        training_args.eval_strategy = "epoch"
+        training_args.load_best_model_at_end = True
+        training_args.metric_for_best_model = "eval_loss"
+        training_args.greater_is_better = False
+
     trainer = CustomTrainer(model=model, tokenizer=tokenizer, args=training_args, **data_module)
     trainer.remove_callback(transformers.trainer_callback.PrinterCallback)
     trainer.add_callback(DualProgressCallback())
+    if data_module.get("eval_dataset") is not None:
+        trainer.add_callback(transformers.EarlyStoppingCallback(early_stopping_patience=3))
 
     last_checkpoint = None
     if os.path.isdir(training_args.output_dir):
