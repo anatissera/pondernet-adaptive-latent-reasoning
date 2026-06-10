@@ -146,8 +146,10 @@ RESULTS_DIR=../results/<run-id>/thr0.9 THRESHOLD=0.9 bash scripts/eval_gpt2_gsm8
 ```
 
 The script uses `--greedy True` by default, giving deterministic single-pass
-evaluation. Outputs written to `RESULTS_DIR`:
-- `eval.log` — accuracy and average latent-steps summary
+evaluation. Accuracy and average latent-steps are printed to **stdout**; redirect
+or capture them if you want a persistent log, e.g. append `| tee eval.log` to the
+eval command. Files auto-written to `RESULTS_DIR`:
+- `gsm8k.json` — predictions for every test instance
 - `gsm8k_pondernet_detail.json` — per-instance step count and correct flag
 
 ### Fixed-K baseline
@@ -180,7 +182,7 @@ existing schema:
 | `date` | Date training finished |
 | `method` | e.g. `PonderNet adaptive halting, warm-started` |
 | `key hparams` | epochs, lr, `halt_thr`, seed, etc. |
-| `GSM8K accuracy` | from `eval.log` |
+| `GSM8K accuracy` | from stdout (or `eval.log` if you captured it with `tee`) |
 | `checkpoint?` | `YES — models/checkpoints/<run-id>/` or `no` |
 | `notes` | anything notable (known-bad, variant, etc.) |
 
@@ -196,7 +198,7 @@ Also update the **Accuracy Summary** table at the bottom of `runs.md`.
 
 ## Future: MLflow
 
-The trainer already passes `report_to="tensorboard"` in the train script. A
-future swap to `report_to="mlflow"` requires no code changes — set the env var
-`MLFLOW_TRACKING_URI` and the `<run-id>` string (passed as `--expt_name`) becomes
-the natural MLflow run name. The `mlruns/` directory is gitignored.
+The trainer is a HuggingFace `transformers.Trainer`, so MLflow can be enabled
+later via `report_to="mlflow"`. The run-id convention maps naturally onto an
+MLflow run name/tags (HF Trainer exposes a `--run_name` flag for this).
+`mlruns/` is already gitignored.
