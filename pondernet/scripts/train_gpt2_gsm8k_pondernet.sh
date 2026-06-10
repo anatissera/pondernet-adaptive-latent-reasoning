@@ -9,8 +9,9 @@
 #   --pondernet_geom_mean 3.0      geometric prior mean steps (tune this)
 #   --pondernet_inf_threshold 0.5  inference early-stop threshold
 #
-# Data is loaded from HuggingFace (zen-E/GSM8k-Aug) by default.
-# Set --data_path /path/to/local.json to use a local file instead.
+# Training reads the local pinned subset data/gsm8k_aug/train15k.jsonl by default.
+# Override with DATA_PATH=/path/to/other.jsonl or pass --data_path on the command line.
+# The HF hub (zen-E/GSM8k-Aug) is the fallback when no --data_path is given.
 
 set -euo pipefail
 
@@ -36,6 +37,8 @@ SIMCOT_CKPT="${SIMCOT_CKPT-../models/pretrained/simcot-gpt2-codi/model-00001-of-
 # vanilla GPT-2, so L_step/L_pondernet provide real signal from epoch 0.
 # Fetch with: python scripts/fetch_simcot_decoder.py --out ../models/pretrained/simcot-gpt2-decoder
 DECODER_PATH="${DECODER_PATH:-../models/pretrained/simcot-gpt2-decoder}"
+DATA_DIR="${DATA_DIR:-../data}"
+DATA_PATH="${DATA_PATH:-$DATA_DIR/gsm8k_aug/train15k.jsonl}"
 
 mkdir -p "$SAVE_DIR" "$LOG_DIR"
 
@@ -48,7 +51,7 @@ python train.py \
     --logging_steps 10 \
     --model_name_or_path "$GPT2_PATH" \
     --data_name icot \
-    --max_train_samples 15000 \
+    --data_path "$DATA_PATH" \
     --seed 42 \
     --model_max_length 384 \
     --max_token_num 700 \

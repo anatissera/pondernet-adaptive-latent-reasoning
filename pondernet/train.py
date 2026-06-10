@@ -42,6 +42,19 @@ def read_json(file_path):
     """Read a JSON document from file_path and return the parsed object."""
     with open(file_path, "r", encoding="utf-8") as file:
         return json.load(file)
+
+
+def read_jsonl(file_path):
+    """Read a line-delimited JSON (.jsonl) file into a list of objects."""
+    with open(file_path, "r", encoding="utf-8") as file:
+        return [json.loads(line) for line in file if line.strip()]
+
+
+def load_local_data(file_path):
+    """Load a local dataset, dispatching on .jsonl vs .json."""
+    return read_jsonl(file_path) if file_path.endswith(".jsonl") else read_json(file_path)
+
+
 IGNORE_INDEX = -100
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -306,7 +319,7 @@ def train():
 
             token_nums = []
             if data_args.data_path:
-                raw_data = read_json(data_args.data_path)
+                raw_data = load_local_data(data_args.data_path)
             elif raw_data is None:
                 raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
             if data_args.max_train_samples is not None:
@@ -442,7 +455,7 @@ def train():
         logging.warning("Downloading Data")
         if "icot" in data_args.data_name:
             if data_args.data_path:
-                raw_data = read_json(data_args.data_path)
+                raw_data = load_local_data(data_args.data_path)
             else:
                 raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
             if data_args.max_train_samples:
