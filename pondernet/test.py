@@ -225,7 +225,6 @@ def evaluation(model_args, data_args, training_args):
     attention_map_weights = []
     attention_to_latents_against_len_sum = []
     attention_to_latents_against_len_count = []
-    set_seed(training_args.seed)
     gating_probs_sums = None
     len_cot = []
     steps_used_list = []   # latent steps used per instance (pondernet mode only)
@@ -460,6 +459,7 @@ if __name__ == "__main__":
     num_passes = 1 if training_args.greedy else training_args.inf_num_iterations
     accu_list = []
     for i in range(num_passes):
+        set_seed(training_args.seed + i)
         accu = evaluation(model_args, data_args, training_args)
         accu_list.append(accu)
     label = "greedy (1 pass)" if training_args.greedy else f"{num_passes} sampling passes"

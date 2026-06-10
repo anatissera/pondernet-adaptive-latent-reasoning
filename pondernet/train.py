@@ -7,6 +7,7 @@ import re
 import random
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Sequence
+import numpy as np
 import torch
 import json
 import transformers
@@ -139,7 +140,6 @@ def train():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    import numpy as np
     random.seed(training_args.seed)
     np.random.seed(training_args.seed)
 
