@@ -48,19 +48,18 @@ A vanilla-GPT-2 auxiliary decoder gives `L_step`/`L_pondernet` no real signal un
 it has trained for a while (the "cold start" problem), so it is warm-started from a
 SIM-CoT-trained decoder checkpoint.
 
-That decoder is **committed to the repo via Git LFS** at
-`pondernet/models/simcot_gpt2_decoder/` (routed through LFS by `pondernet/.gitattributes`,
-and un-ignored in `.gitignore`), so you normally just get it with `git lfs pull` — no
-per-teammate download needed. The training script defaults `DECODER_PATH` to
-`./models/simcot_gpt2_decoder` and passes `--decoder_path`, which `model.py` loads as a
-drop-in replacement for the vanilla decoder (verified compatible: identical GPT-2 124M
-architecture and vocab, so `pj_in`/`pj_out` resolve to `Identity` with no extra
-untrained projector parameters).
+That decoder lives at `models/pretrained/simcot-gpt2-decoder/` (gitignored, like all
+model artifacts), so it is obtained on demand via the fetch script below — no copy is
+committed to the repo. The training script defaults `DECODER_PATH` to
+`../models/pretrained/simcot-gpt2-decoder` and passes `--decoder_path`, which `model.py`
+loads as a drop-in replacement for the vanilla decoder (verified compatible: identical
+GPT-2 124M architecture and vocab, so `pj_in`/`pj_out` resolve to `Identity` with no
+extra untrained projector parameters).
 
-To **regenerate** that LFS checkpoint (rarely needed), run:
+To fetch (or regenerate) that checkpoint, run:
 
 ```bash
-python scripts/fetch_simcot_decoder.py --out models/simcot_gpt2_decoder
+python scripts/fetch_simcot_decoder.py --out ../models/pretrained/simcot-gpt2-decoder
 ```
 
 which downloads `internlm/SIM_COT-GPT2-CODI` and extracts the `decoder.*` weights into a
@@ -100,8 +99,8 @@ bash scripts/train_gpt2_gsm8k_pondernet.sh
 SIMCOT_CKPT="" bash scripts/train_gpt2_gsm8k_pondernet.sh
 ```
 
-Unlike the LFS-committed decoder, the **full CODI checkpoint**
-(`models/SIM_COT-GPT2-CODI/`, ~730 MB) is **gitignored and not in the repo** — repo
+Like the decoder, the **full CODI checkpoint**
+(`models/pretrained/simcot-gpt2-codi/`, ~730 MB) is **gitignored and not in the repo** — repo
 owners share it on the same filesystem. There is no fetch script for it; a fresh
 environment without that path present must either provide it (download
 `internlm/SIM_COT-GPT2-CODI`) or run decoder-only via `SIMCOT_CKPT=""`. (The script
