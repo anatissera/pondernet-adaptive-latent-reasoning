@@ -33,7 +33,7 @@ def build_model(model_name, pondernet, device):
     ta = TrainingArguments(
         output_dir="/tmp/codi_smoke",
         bf16=True,
-        num_latent=4,
+        max_latent_steps=4,
         use_lora=True,
         use_prj=True,
         prj_dim=768,
@@ -118,7 +118,7 @@ def main():
 
     lam = last["pondernet_lambdas"]          # (B, K)
     sl = last["pondernet_step_losses"]       # (B, K)
-    K = model.num_latent
+    K = model.max_latent_steps
     B = batch["encoder_input_ids"].size(0)
 
     print("\n--- checks ---")

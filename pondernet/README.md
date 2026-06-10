@@ -15,7 +15,7 @@ All flags below live in `src/model.py` (`TrainingArguments`) and are set in
 
 | Flag | Current value | Meaning |
 |---|---|---|
-| `--num_latent` | `6` | Hard upper bound on latent reasoning steps (`K_max`). The model can take at most this many steps even if it never decides to halt. |
+| `--max_latent_steps` | `6` | Hard upper bound on latent reasoning steps (`K_max`). The model can take at most this many steps even if it never decides to halt. |
 | `--pondernet_halt_bias_init` | `-2.0` | Initial bias of the halting head (`halt_head`, a linear layer producing `λ_k`). A negative bias makes `sigmoid(logit)` start low, so the model begins by *not* wanting to halt early — gives the latent loop room to "warm up" before learning when to stop. |
 | `--pondernet_beta` | `1.0` | Weight on the auxiliary decoder loss `L_step` (the per-step reconstruction loss CODI already uses) in the total loss. |
 | `--pondernet_gamma` | `0.01` | Weight on `KL_geom`, the KL-divergence regularizer that pulls the learned halting distribution `p_k` toward a geometric prior. Keeps the model from either always running to `K_max` or halting too aggressively. |
