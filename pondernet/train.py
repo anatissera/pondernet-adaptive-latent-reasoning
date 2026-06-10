@@ -1,4 +1,5 @@
 # Modified from https://github.com/tatsu-lab/stanford_alpaca/blob/main/train.py
+"""Training entrypoint for the PonderNet adaptive-halting latent-CoT model (CODI backbone)."""
 import copy
 import logging
 import os
@@ -18,7 +19,6 @@ from math import ceil
 from peft import PeftModel, LoraConfig, TaskType, get_peft_model
 from datasets import load_dataset
 from functools import partial
-from tqdm import tqdm
 from src.model import (
     CODI,
     ModelArguments,
@@ -26,30 +26,21 @@ from src.model import (
     TrainingArguments,
     freeze_model
 )
-import json
 
 
 def _to_scalar(x):
     """Convert Tensor/number/None to python float (mean-reduced if needed)."""
-    import torch
     if x is None:
         return None
     if isinstance(x, torch.Tensor):
-        # detach，转到 float，若多元素则取 mean，再 item()
+        # detach, cast to float, mean-reduce if multi-element, then .item()
         return x.detach().float().mean().item()
-    # 已经是数字的情况
+    # already a number
     return float(x)
 def read_json(file_path):
-    """
-    从指定路径读取JSON文件并返回对应的Python对象。
-    """
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            return data
-    except Exception as e:
-        print(f"读取JSON文件时出错: {e}")
-        return None
+    """Read a JSON document from file_path and return the parsed object."""
+    with open(file_path, "r", encoding="utf-8") as file:
+        return json.load(file)
 IGNORE_INDEX = -100
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -134,17 +125,8 @@ def extract_answer_number(sentence: str) -> float:
     pred = [s for s in re.findall(r'-?\d+\.?\d*', sentence)]
     if not pred:
         return float('inf')
-    segment = [sentence]
-    if len(segment) > 1:
-        pred_answer = segment[1]
-        pred_answer = [s for s in re.findall(r'-?\d+\.?\d*', pred_answer)]
-        if len(pred_answer) > 0:
-            pred_answer = pred_answer[0]
-        else:
-            pred_answer = float(pred[-1])
-    else:
-        # use the last number as the answer
-        pred_answer = float(pred[-1])
+    # use the last number as the answer
+    pred_answer = float(pred[-1])
 
     if isinstance(pred_answer, str):
         try:
@@ -156,6 +138,10 @@ def extract_answer_number(sentence: str) -> float:
 def train():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+
+    import numpy as np
+    random.seed(training_args.seed)
+    np.random.seed(training_args.seed)
 
     ##########################
     #       Peft Model       #
@@ -181,7 +167,6 @@ def train():
             init_lora_weights=True,
         )
 
-    # import pdb; pdb.set_trace()
     # model_name_or_path is always a plain GPT-2 (the backbone scaffold) -- never the
     # SIM-CoT CODI checkpoint, which would load as a bare GPT2LMHeadModel and random-init
     # the backbone. Two warm-start recipes are available (see pondernet/README.md
@@ -245,16 +230,15 @@ def train():
             tokenizer.pad_token_id = tokenizer.convert_tokens_to_ids('[PAD]')
 
     def get_answer_token_position(tokens, answer_prompts, tokenizer):
-        #answer_prompt = torch.tensor([464, 3280, 318, 25])
-        # import pdb; pdb.set_trace()
         try:
             match_indices = (tokens.unfold(0, len(answer_prompts[0]), 1) == answer_prompts[0]).all(dim=1).nonzero(as_tuple=True)[0].item()
             answer_token_id = match_indices + len(answer_prompts[0])
             return answer_token_id
-        except Exception:
-            breakpoint()
-        
-    # def get_steps_
+        except Exception as e:
+            raise ValueError(
+                f"Could not locate answer prompt {answer_prompts[0].tolist()} in token sequence "
+                f"{tokens.tolist()}"
+            ) from e
 
     def preprocess(
         sources: Sequence[str], 
@@ -298,7 +282,6 @@ def train():
         if answer_prompts[0][0] == tokenizer.bos_token_id: # remove the bos
             answer_prompts[0] = answer_prompts[0][1:]
             answer_prompts[1] = answer_prompts[1][1:]
-        # import pdb; pdb.set_trace()
         ref_answer_position = [get_answer_token_position(x, answer_prompts, tokenizer) for i, x in enumerate(ref_input_ids)]
         model_answer_position = [get_answer_token_position(x, answer_prompts, tokenizer) for x in answers_id]
 
@@ -322,7 +305,6 @@ def train():
             operators = ["+", "-", "*", "/"]
 
             token_nums = []
-            # import pdb; pdb.set_trace()
             if data_args.data_path:
                 raw_data = read_json(data_args.data_path)
             elif raw_data is None:
@@ -479,7 +461,9 @@ def train():
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
         elif "prontoqa" in data_args.data_name:
-            with open("/home/ubuntu/coconut/data/prontoqa_train.json") as f:
+            if not data_args.data_path:
+                raise ValueError("prontoqa requires --data_path pointing to prontoqa_train.json")
+            with open(data_args.data_path) as f:
                 dataset = json.load(f)
             train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)

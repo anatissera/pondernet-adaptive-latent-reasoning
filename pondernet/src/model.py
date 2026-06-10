@@ -1,10 +1,10 @@
+"""CODI model definition with PonderNet adaptive-halting extension and data-argument dataclasses."""
 import transformers
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig, GPTNeoXForCausalLM
 import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import random
 from dataclasses import dataclass, field
 from typing import Optional
 from peft import (
@@ -16,7 +16,6 @@ from torch.nn.functional import gelu
 import math
 from safetensors.torch import load_file
 from transformers.modeling_outputs import ModelOutput
-import random
 import copy
 from torch.amp import autocast
 from typing import List, Sequence, Iterable, Union, Optional
@@ -110,7 +109,7 @@ class TrainingArguments(transformers.TrainingArguments):
         default="default",
         metadata={"help": "Experiment name"},
     )
-    icot_train_path: str = field(default="/users/k24020023/efficient_cot/icae/code/coconut/icot_gsm8k/train.txt", metadata={"help":"The training data path"})
+    icot_train_path: str = field(default="", metadata={"help": "Deprecated; unused."})
     num_latent: int = field(default=5, metadata={"help": "The number of latent for training or inference."})
     use_lora: bool = field(default=True, metadata={"help": "Use lora or not."})
     greedy: bool = field(default=False, metadata={"help": "Greedy decoding during inference."})
@@ -172,7 +171,7 @@ def get_steps(
     trim_at_first_stop: bool = True,
 ) -> List[List[List[int]]]:
     if isinstance(ref_input_ids, torch.Tensor):
-        assert ref_input_ids.dim() == 2, "ref_input_ids 应为 [B, T] 的二维张量"
+        assert ref_input_ids.dim() == 2, "ref_input_ids must be a 2-D tensor [B, T]"
         batch = ref_input_ids
         B, T = batch.size()
         as_lists = batch.detach().cpu().tolist()
@@ -229,9 +228,6 @@ def get_steps(
         elif len(steps_for_sample) < max_steps:
             while len(steps_for_sample) < max_steps:
                 steps_for_sample.append([pad_id])
-        else:
-        # =
-            ...
 
         result.append(steps_for_sample)
 
@@ -242,9 +238,9 @@ def pad_steps(
     pad_id: int = 128256
 ):
     max_len = max(len(step) for steps in step_list for step in steps)
-    # 最大的 step 数量
+    # maximum number of steps
     S_max = max(len(steps) for steps in step_list)
-    # 全局最长的 step 长度
+    # globally longest step length
     L_max = max(len(step) for steps in step_list for step in steps)
     
     result: List[List[List[int]]] = []
@@ -292,7 +288,6 @@ class CODI(torch.nn.Module):
         self.model_args = model_args
         self.training_args = training_args
         self.model_name = model_args.model_name_or_path
-        # import pdb; pdb.set_trace()
         model_wrapper_class = AutoModelForCausalLM 
         if model_args.full_precision:
             self.codi = model_wrapper_class.from_pretrained(
@@ -318,7 +313,6 @@ class CODI(torch.nn.Module):
                         bnb_4bit_quant_type='nf4',
                     )
                 )
-        # import pdb; pdb.set_trace()
         if model_args.use_decoder:
             if model_args.decoder_path:
                 self.decoder = model_wrapper_class.from_pretrained(
@@ -350,7 +344,6 @@ class CODI(torch.nn.Module):
                         resume_download=True,
                     )
         
-        # import pdb; pdb.set_trace()
 
         # saved_weights = torch.load(
         #     '/fs-computility/mllm/shared/weixilin/coconut/ckpts/gsm_cot/gsm-cot/checkpoint_13', map_location=torch.device(self.codi.device)
@@ -567,7 +560,6 @@ class CODI(torch.nn.Module):
         outputs = self.codi(input_ids=encoder_input_ids, use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=encoder_attention_mask)
         past_key_values = outputs.past_key_values
         latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1) # as the next input
-        # import pdb; pdb.set_trace()
         
         if self.model_args.use_decoder:
             forward_idx = 0
@@ -576,7 +568,6 @@ class CODI(torch.nn.Module):
             if 'llama' in self.model_args.model_name_or_path.lower():
                 steps_list = get_steps(ref_input_ids, self.num_latent+1)
                 steps_pad_list = pad_steps(steps_list)
-                # import pdb; pdb.set_trace()
                 # print()
                 # steps_list = pad_steps(steps_list)
             elif 'gpt' in self.model_args.model_name_or_path.lower():
@@ -656,7 +647,6 @@ class CODI(torch.nn.Module):
                     effective_steps_cnt += 1
                 explain_loss_total += explain_loss
             # print(forward_idx, explain_loss, explain_loss_total)
-            # import pdb; pdb.set_trace()
             # print()
 
         len_pred_loss = 0
@@ -707,7 +697,6 @@ class CODI(torch.nn.Module):
         if self.num_latent != 0:
             for i in range(num_latent):
                 # Implicit CoT generation
-                # import pdb; pdb.set_trace()
                 with autocast('cuda', dtype=torch.bfloat16):
                     outputs = self.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
                 # outputs = self.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
@@ -731,7 +720,6 @@ class CODI(torch.nn.Module):
                     for bz_idx in range(bz):
                         explain_embds_list.append(steps_pad_list[bz_idx][forward_idx])
                         explain_embds_list = dedup_trailing_pads(explain_embds_list, pad_id=self.tokenizer.pad_token_id)
-                    # import pdb; pdb.set_trace()
                     indices = torch.tensor(explain_embds_list, dtype=torch.long, device=self.codi.device)
                     explain_embds = self.get_embd(self.codi, self.model_name)(indices)
                     explain_embds = torch.concat([latent_embd, explain_embds], dim=1)
@@ -783,7 +771,6 @@ class CODI(torch.nn.Module):
                         
                         explain_loss_total += explain_loss
                     # print(forward_idx, explain_loss, explain_loss_total)
-                    # import pdb; pdb.set_trace()
                     # print()
 
                 
@@ -808,7 +795,6 @@ class CODI(torch.nn.Module):
                     distill_loss = 0
                     # Calculate distillation loss between the teacher's logits and the student's logits for every layer
                     for j, (out, ref_out) in enumerate(zip(outputs.hidden_states, ref_outputs.hidden_states)):
-                        # import pdb; pdb.set_trace()
                         ref_selected = ref_out.gather(1, ref_answer_position.unsqueeze(-1).unsqueeze(-1).expand(-1, -1, ref_out.size(-1)))
                         out_selected = out.gather(1, model_answer_position.unsqueeze(-1).unsqueeze(-1).expand(-1, -1, out.size(-1)))
 
@@ -863,7 +849,6 @@ class CODI(torch.nn.Module):
         if self.model_args.use_decoder:
             explain_loss_total = torch.as_tensor(explain_loss_total, device=loss.device, dtype=loss.dtype)
             loss += explain_loss_total
-        # import pdb; pdb.set_trace()
         if ce_loss_total != 0:
             ce_loss_total = ce_loss_total.detach()
         if distill_loss_total != 0:
