@@ -110,7 +110,7 @@ class TrainingArguments(transformers.TrainingArguments):
         metadata={"help": "Experiment name"},
     )
     icot_train_path: str = field(default="", metadata={"help": "Deprecated; unused."})
-    num_latent: int = field(default=5, metadata={"help": "The number of latent for training or inference."})
+    max_latent_steps: int = field(default=5, metadata={"help": "The number of latent for training or inference."})
     use_lora: bool = field(default=True, metadata={"help": "Use lora or not."})
     greedy: bool = field(default=False, metadata={"help": "Greedy decoding during inference."})
     exp_mode: bool = field(default=False, metadata={"help": "Use partial number of data. for debugging."})
@@ -258,19 +258,19 @@ def pad_steps(
 
     return result
 
-def dedup_trailing_pads(explain_embds_list, pad_id=128256):
-    if not explain_embds_list:
+def dedup_trailing_pads(step_token_ids, pad_id=128256):
+    if not step_token_ids:
         return []
 
-    max_len = len(explain_embds_list[0])
+    max_len = len(step_token_ids[0])
 
     while max_len > 1:
-        if all(row[max_len - 2] == pad_id for row in explain_embds_list):
+        if all(row[max_len - 2] == pad_id for row in step_token_ids):
             max_len -= 1
         else:
             break
 
-    return [row[:max_len] for row in explain_embds_list]
+    return [row[:max_len] for row in step_token_ids]
 
 class LowRankProjector(nn.Module):
     def __init__(self, input_dim, output_dim, rank=64):
@@ -364,7 +364,7 @@ class CODI(torch.nn.Module):
         )  # dummy values for mem tokens
 
         self.dim = self.codi.config.hidden_size
-        self.num_latent = training_args.num_latent
+        self.max_latent_steps = training_args.max_latent_steps
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, use_fast=False)
 
         # LoRA
@@ -559,19 +559,19 @@ class CODI(torch.nn.Module):
         past_key_values = None
         outputs = self.codi(input_ids=encoder_input_ids, use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=encoder_attention_mask)
         past_key_values = outputs.past_key_values
-        latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1) # as the next input
+        latent_hidden = outputs.hidden_states[-1][:, -1, :].unsqueeze(1) # as the next input
         
         if self.model_args.use_decoder:
-            forward_idx = 0
+            step_idx = 0
             explain_loss_total = 0.0
             effective_steps_cnt = 0
             if 'llama' in self.model_args.model_name_or_path.lower():
-                steps_list = get_steps(ref_input_ids, self.num_latent+1)
+                steps_list = get_steps(ref_input_ids, self.max_latent_steps+1)
                 steps_pad_list = pad_steps(steps_list)
                 # print()
                 # steps_list = pad_steps(steps_list)
             elif 'gpt' in self.model_args.model_name_or_path.lower():
-                steps_list = get_steps(ref_input_ids, self.num_latent+1, start_ids=(16791, 9959), end_id=4211, 
+                steps_list = get_steps(ref_input_ids, self.max_latent_steps+1, start_ids=(16791, 9959), end_id=4211, 
                                        eot_id=self.tokenizer.eos_token_id, pad_id=self.tokenizer.pad_token_id, 
                                        stop_ids=(self.tokenizer.eos_token_id, self.tokenizer.pad_token_id))
                 steps_pad_list = pad_steps(steps_list, pad_id=self.tokenizer.pad_token_id)
@@ -581,20 +581,20 @@ class CODI(torch.nn.Module):
         
         if self.use_prj:
             with autocast('cuda', dtype=torch.bfloat16, enabled=True):
-                latent_embd = self.prj(latent_embd)
-            # latent_embd = self.prj(latent_embd)
+                latent_hidden = self.prj(latent_hidden)
+            # latent_hidden = self.prj(latent_hidden)
 
 
         if self.model_args.use_decoder:
             
             bz = len(steps_pad_list)
-            explain_embds_list = []
+            step_token_ids = []
             for bz_idx in range(bz):
-                explain_embds_list.append(steps_pad_list[bz_idx][forward_idx])
-                explain_embds_list = dedup_trailing_pads(explain_embds_list, pad_id=self.tokenizer.pad_token_id)
-            indices = torch.tensor(explain_embds_list, dtype=torch.long, device=self.codi.device)
+                step_token_ids.append(steps_pad_list[bz_idx][step_idx])
+                step_token_ids = dedup_trailing_pads(step_token_ids, pad_id=self.tokenizer.pad_token_id)
+            indices = torch.tensor(step_token_ids, dtype=torch.long, device=self.codi.device)
             explain_embds = self.get_embd(self.codi, self.model_name)(indices)
-            explain_embds = torch.concat([latent_embd, explain_embds], dim=1)
+            explain_embds = torch.concat([latent_hidden, explain_embds], dim=1)
             
             prefix = torch.full((bz, 1), -570, dtype=indices.dtype, device=indices.device)
             indices_with_prefix = torch.cat([prefix, indices], dim=1)
@@ -606,7 +606,7 @@ class CODI(torch.nn.Module):
                 (explain_labels == -570) | (explain_labels == self.tokenizer.pad_token_id),
                 -100
             )
-            forward_idx += 1
+            step_idx += 1
 
             if self.model_args.decoder_path:
                 explain_embds = self.pj_in(explain_embds)
@@ -646,13 +646,13 @@ class CODI(torch.nn.Module):
                     explain_loss = self.loss_fct(shift_explain_logits, shift_explain_labels)
                     effective_steps_cnt += 1
                 explain_loss_total += explain_loss
-            # print(forward_idx, explain_loss, explain_loss_total)
+            # print(step_idx, explain_loss, explain_loss_total)
             # print()
 
         len_pred_loss = 0
         dynamic_mask = None
         if self.fix_attn_mask:
-            dynamic_mask = torch.ones((encoder_attention_mask.size(0), self.num_latent), device=ref_labels.device)
+            dynamic_mask = torch.ones((encoder_attention_mask.size(0), self.max_latent_steps), device=ref_labels.device)
 
         # Iterate over the latent embeddings
         distill_loss_total = 0
@@ -692,37 +692,37 @@ class CODI(torch.nn.Module):
         model_answer_position = model_answer_position - 1
         ref_answer_position = ref_answer_position -1
       
-        num_latent = self.num_latent
+        max_latent_steps = self.max_latent_steps
         pondernet_lambdas, pondernet_step_losses = [], []
-        if self.num_latent != 0:
-            for i in range(num_latent):
+        if self.max_latent_steps != 0:
+            for i in range(max_latent_steps):
                 # Implicit CoT generation
                 with autocast('cuda', dtype=torch.bfloat16):
-                    outputs = self.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
-                # outputs = self.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
+                    outputs = self.codi(inputs_embeds=latent_hidden, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
+                # outputs = self.codi(inputs_embeds=latent_hidden, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
                 past_key_values = outputs.past_key_values
-                latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
+                latent_hidden = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
                 if self.use_prj:
                     with autocast('cuda', dtype=torch.bfloat16, enabled=True):
-                        latent_embd = self.prj(latent_embd)
-                    # latent_embd = self.prj(latent_embd)
+                        latent_hidden = self.prj(latent_hidden)
+                    # latent_hidden = self.prj(latent_hidden)
 
                 if self.pondernet:
                     # lambda_k from this latent state; candidate answer after k = i+1 steps
-                    pondernet_lambdas.append(self._halting_lambda(latent_embd))           # (B,)
+                    pondernet_lambdas.append(self._halting_lambda(latent_hidden))           # (B,)
                     _, _, ans_ce_k = self._answer_logits_and_loss(
                         decoder_input_ids, labels, past_key_values, attention_mask=None)  # (B,)
                     pondernet_step_losses.append(ans_ce_k)
 
                 if self.model_args.use_decoder:
                     bz = len(steps_pad_list)
-                    explain_embds_list = []
+                    step_token_ids = []
                     for bz_idx in range(bz):
-                        explain_embds_list.append(steps_pad_list[bz_idx][forward_idx])
-                        explain_embds_list = dedup_trailing_pads(explain_embds_list, pad_id=self.tokenizer.pad_token_id)
-                    indices = torch.tensor(explain_embds_list, dtype=torch.long, device=self.codi.device)
+                        step_token_ids.append(steps_pad_list[bz_idx][step_idx])
+                        step_token_ids = dedup_trailing_pads(step_token_ids, pad_id=self.tokenizer.pad_token_id)
+                    indices = torch.tensor(step_token_ids, dtype=torch.long, device=self.codi.device)
                     explain_embds = self.get_embd(self.codi, self.model_name)(indices)
-                    explain_embds = torch.concat([latent_embd, explain_embds], dim=1)
+                    explain_embds = torch.concat([latent_hidden, explain_embds], dim=1)
                     
                     prefix = torch.full((bz, 1), -570, dtype=indices.dtype, device=indices.device)
                     indices_with_prefix = torch.cat([prefix, indices], dim=1)
@@ -738,7 +738,7 @@ class CODI(torch.nn.Module):
                     if self.model_args.decoder_path:
                         explain_embds = self.pj_in(explain_embds)
 
-                    forward_idx += 1
+                    step_idx += 1
                     if (explain_labels != -100).sum() == 0:
                         explain_loss_total += 0.0
                     else:
@@ -770,13 +770,13 @@ class CODI(torch.nn.Module):
                             effective_steps_cnt += 1
                         
                         explain_loss_total += explain_loss
-                    # print(forward_idx, explain_loss, explain_loss_total)
+                    # print(step_idx, explain_loss, explain_loss_total)
                     # print()
 
                 
 
                 # Calculate the distillation loss
-                if i == num_latent - 1: # the last latent embedding
+                if i == max_latent_steps - 1: # the last latent embedding
                     # Decode the final answer in natural language
                     embds = self.get_embd(self.codi, self.model_name)(decoder_input_ids)
                   
@@ -814,7 +814,7 @@ class CODI(torch.nn.Module):
                     distill_loss_total += distill_loss
 
                     # Calculate the CE loss for the student task
-                    if i == num_latent - 1:
+                    if i == max_latent_steps - 1:
                         logits = outputs.logits
                         effective_logits = logits[:, :-1, :]
                         effective_logits = effective_logits.reshape(-1, logits.size(-1))

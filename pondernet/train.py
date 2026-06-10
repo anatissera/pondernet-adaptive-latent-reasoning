@@ -348,7 +348,7 @@ def train():
                         cot = cot[:-1]
                     
                     len_cot = len(cot) 
-                    for i in range(training_args.num_latent):
+                    for i in range(training_args.max_latent_steps):
                         cot_list.append(" ".join(cot[:max(0, len_cot-i)]))
                     answer = example['answer'].split(' ')[-1]
                     

@@ -258,8 +258,8 @@ def evaluation(model_args, data_args, training_args):
             
             if model.pondernet:
                 # --- PonderNet adaptive halting inference ---
-                # Stop when cumulative halt probability exceeds threshold; K_max = num_latent.
-                k_max = model.num_latent
+                # Stop when cumulative halt probability exceeds threshold; K_max = max_latent_steps.
+                k_max = model.max_latent_steps
                 threshold = model.pondernet_inf_threshold
                 not_halted = torch.ones(batch_size, dtype=torch.float32, device=device)
                 steps_used = [k_max] * batch_size  # default: used all steps
@@ -378,7 +378,7 @@ def evaluation(model_args, data_args, training_args):
                     print(decoded_pred)
                     print(f"Question {q_idx} Ends")
                     if model.pondernet:
-                        print(f"Latent steps used: {steps_used[mini_step]}/{model.num_latent}")
+                        print(f"Latent steps used: {steps_used[mini_step]}/{model.max_latent_steps}")
                     print(f"Prediction={extract_answer_number(decoded_pred)}; Groundtruth={answer[q_idx]}")
                     print("")
                 ans_pred_list.append(extract_answer_number(decoded_pred))
@@ -391,7 +391,7 @@ def evaluation(model_args, data_args, training_args):
     print(f"average length of COT: {sum(len_cot)/len(len_cot)}")
     if model.pondernet and steps_used_list:
         avg_steps = sum(steps_used_list) / len(steps_used_list)
-        print(f"[PonderNet] average latent steps used: {avg_steps:.2f} / {model.num_latent}  "
+        print(f"[PonderNet] average latent steps used: {avg_steps:.2f} / {model.max_latent_steps}  "
               f"(threshold={model.pondernet_inf_threshold})")
         # Accuracy-vs-budget table
         from collections import defaultdict

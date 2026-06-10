@@ -21,7 +21,7 @@ python test.py \
     --data_name gsm8k \
     --results_dir "$RESULTS_DIR" \
     --batch_size 1 \
-    --num_latent 6 \
+    --max_latent_steps 6 \
     --use_lora True \
     --lora_r 128 --lora_alpha 32 --lora_init \
     --bf16 \

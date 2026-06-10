@@ -70,7 +70,7 @@ python train.py \
     --lr_scheduler_type cosine \
     --do_train \
     --report_to tensorboard \
-    --num_latent 6 \
+    --max_latent_steps 6 \
     --logging_strategy steps \
     --use_prj True \
     --prj_dim 768 \
