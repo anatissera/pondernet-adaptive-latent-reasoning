@@ -135,20 +135,6 @@ class TrainingArguments(transformers.TrainingArguments):
     pondernet_geom_mean: float = field(default=3.0, metadata={"help": "Mean number of steps for the geometric prior used in KL_geom (controls compute pressure)."})
     pondernet_inf_threshold: float = field(default=0.5, metadata={"help": "Cumulative halting probability threshold for inference early-stopping. Stop when sum_k p_k > threshold."})
 
-def print_trainable_parameters(model):
-    trainable_parameters = 0
-    all_param = 0
-    for _, param in model.named_parameters():
-        all_param += param.numel()
-        if param.requires_grad:
-            trainable_parameters += param.numel()
-    print(
-        f"trainable params: {trainable_parameters} || all params: {all_param} || trainable%: {100 * trainable_parameters / all_param}"
-    )
-    for name, param in model.named_parameters():
-        if param.requires_grad:
-            print(name, param.shape)
-
 
 def freeze_model(model):
     for _, param in model.named_parameters():
@@ -456,7 +442,6 @@ class CODI(torch.nn.Module):
             raise NotImplementedError
 
     def init(self):
-        print_trainable_parameters(self)
         if (
             self.training_args.restore_from is not None
             and self.training_args.restore_from != ""

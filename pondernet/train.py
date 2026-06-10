@@ -4,11 +4,17 @@ import logging
 import os
 import re
 import random
+import warnings
+
+warnings.filterwarnings("ignore")
+logging.getLogger().setLevel(logging.ERROR)
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Sequence
 import torch
 import json
 import transformers
+
+transformers.logging.set_verbosity_error()
 from torch.utils.data import Dataset
 from transformers import Trainer, TrainerCallback
 from transformers.trainer_utils import get_last_checkpoint
@@ -53,7 +59,6 @@ def read_json(file_path):
 IGNORE_INDEX = -100
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(device)
 
 class DualProgressCallback(TrainerCallback):
     """Two tqdm bars and nothing else on the console: an overall bar over all
@@ -256,7 +261,6 @@ def train():
         bot_id: int,
         eot_id: int,
     ) -> Dict:
-        print("Tokenizing inputs... This may take some time...")
         sources_id = _tokenize_fn(sources, tokenizer)["input_ids"]
         cot_id = _tokenize_fn(targets, tokenizer)["input_ids"]
         answers_id = _tokenize_fn(answers, tokenizer)["input_ids"]
@@ -306,8 +310,7 @@ def train():
         QUESTION_DA_PROMPT = "\nAnswer the above question. Answer the final number directly in one number.\n"
         def __init__(self, data_name, raw_data, tokenizer, bot, eot):
             super(SupervisedDataset, self).__init__()
-            logging.warning("Formatting inputs...")
-            
+
             self.data_name = data_name
             questions, cots, answers = [], [], []
             num_ops_list = []
@@ -321,7 +324,7 @@ def train():
                 raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
             if getattr(data_args, 'max_train_samples', None):
                 raw_data = raw_data[:data_args.max_train_samples]
-            for num_iter, example in tqdm(enumerate(raw_data)):
+            for num_iter, example in enumerate(raw_data):
                 if 'cot' not in example: 
                     example['cot'] = example['steps']
                     example['cot'] = ' '.join(example['cot'])
@@ -402,9 +405,7 @@ def train():
                 cots = cots[:training_args.exp_data_num]
                 answers = answers[:training_args.exp_data_num]
             
-            print(f"{len(cots)} data in total...")
-            logging.warning("Tokenizing inputs... This may take some time...")
-
+            print("Tokenizing inputs... This may take some time...")
             self.data_dict = preprocess(questions, cots, answers, tokenizer, bot, eot)
             self.keys = list(self.data_dict.keys())
 
