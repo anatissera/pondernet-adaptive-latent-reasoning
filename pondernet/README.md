@@ -128,3 +128,9 @@ CKPT=/path/to/checkpoint NUM_LATENT=6 bash scripts/eval_gpt2_gsm8k_fixedk.sh
 The PonderNet eval reports accuracy, the average number of latent steps used,
 and an accuracy-vs-budget table (plus a per-instance JSON dump in
 `results_dir` for offline plotting).
+
+## Documentation
+
+- [`../docs/pipeline.md`](../docs/pipeline.md) — end-to-end workflow: acquire artifacts, choose a warm-start recipe, train, evaluate, and record results in the run manifest (includes a Mermaid flow diagram).
+- [`../docs/parameters.md`](../docs/parameters.md) — complete CLI flag reference, both warm-start recipes and the `model_name_or_path` trap, and the module/loss-term glossary.
+- [`../docs/runs.md`](../docs/runs.md) — run manifest listing every experiment: naming convention, artifact layout, hparams, and accuracy results.
