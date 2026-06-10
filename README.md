@@ -20,8 +20,6 @@ docs/papers/         # Paper summaries for context
 
 ```bash
 uv sync
-# or
-pip install -r pondernet/requirements.txt
 ```
 
 ## Context for contributors

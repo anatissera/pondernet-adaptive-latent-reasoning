@@ -32,5 +32,5 @@ bash scripts/train_gpt2_gsm8k_pondernet.sh
 ## Setup
 
 ```bash
-uv sync   # or: pip install -r pondernet/requirements.txt
+uv sync
 ```
