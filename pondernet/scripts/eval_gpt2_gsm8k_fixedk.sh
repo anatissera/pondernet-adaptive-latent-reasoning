@@ -10,7 +10,7 @@ set -euo pipefail
 
 CKPT="${CKPT:?Set CKPT=/path/to/checkpoint}"
 GPT2_PATH="${GPT2_PATH:-gpt2}"
-RESULTS_DIR="${RESULTS_DIR:-../results/fixedk}"
+RESULTS_DIR="${RESULTS_DIR:-../results/simcot-fixedk-default}"
 NUM_LATENT="${NUM_LATENT:-6}"
 
 mkdir -p "$RESULTS_DIR"

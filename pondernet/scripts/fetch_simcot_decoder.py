@@ -2,7 +2,7 @@
 into a standalone GPT-2 checkpoint loadable via --decoder_path.
 
 Usage:
-    python scripts/fetch_simcot_decoder.py [--out models/simcot_gpt2_decoder]
+    python scripts/fetch_simcot_decoder.py [--out ../models/pretrained/simcot-gpt2-decoder]
 """
 import argparse
 import os
@@ -18,7 +18,7 @@ PREFIX = "decoder."
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out", default="models/simcot_gpt2_decoder")
+    parser.add_argument("--out", default="../models/pretrained/simcot-gpt2-decoder")
     parser.add_argument("--cache_dir", default=None)
     args = parser.parse_args()
 

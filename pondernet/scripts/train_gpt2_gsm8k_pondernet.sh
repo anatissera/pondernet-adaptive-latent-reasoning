@@ -14,8 +14,8 @@
 
 set -euo pipefail
 
-SAVE_DIR="${SAVE_DIR:-../models/halt_head_gpt2}"
-LOG_DIR="${LOG_DIR:-../outputs/halt_head_gpt2}"
+SAVE_DIR="${SAVE_DIR:-../models/checkpoints/simcot-pondernet-default}"
+LOG_DIR="${LOG_DIR:-../outputs/simcot-pondernet-default}"
 # GPT2_PATH MUST be a plain GPT-2 checkpoint. Do NOT set it to the SIM-CoT CODI
 # checkpoint -- that is a CODI wrapper (keys under codi.base_model.model.*), and loading
 # it here as a bare GPT2LMHeadModel silently random-inits the whole backbone. Warm-start
@@ -30,12 +30,12 @@ GPT2_PATH="${GPT2_PATH:-gpt2}"   # HF model ID or local path
 #   - The checkpoint lives at repo-root models/ (gitignored; repo owners share it on the FS).
 #   - Use `-` (not `:-`) so an explicit empty value is respected: `SIMCOT_CKPT="" bash ...`
 #     falls back to the decoder-only recipe (cold backbone, warm decoder via DECODER_PATH).
-SIMCOT_CKPT="${SIMCOT_CKPT-../models/SIM_COT-GPT2-CODI/model-00001-of-00001.safetensors}"
+SIMCOT_CKPT="${SIMCOT_CKPT-../models/pretrained/simcot-gpt2-codi/model-00001-of-00001.safetensors}"
 
 # Initialize the auxiliary decoder from a SIM-CoT-trained checkpoint instead of
 # vanilla GPT-2, so L_step/L_pondernet provide real signal from epoch 0.
-# Fetch with: python scripts/fetch_simcot_decoder.py --out models/simcot_gpt2_decoder
-DECODER_PATH="${DECODER_PATH:-./models/simcot_gpt2_decoder}"
+# Fetch with: python scripts/fetch_simcot_decoder.py --out ../models/pretrained/simcot-gpt2-decoder
+DECODER_PATH="${DECODER_PATH:-../models/pretrained/simcot-gpt2-decoder}"
 
 mkdir -p "$SAVE_DIR" "$LOG_DIR"
 
