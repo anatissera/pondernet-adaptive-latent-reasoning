@@ -357,7 +357,7 @@ def evaluation(model_args, data_args, training_args):
 
                 # implement the sampling process
                 if training_args.greedy:
-                    next_token_ids = torch.argmax(logits, dim=-1).squeeze(-1)
+                    next_token_ids = torch.argmax(logits, dim=-1)
                 else:
                     logits /= gen_kwargs["temperature"]
                     if gen_kwargs["top_k"] > 1:
@@ -376,9 +376,9 @@ def evaluation(model_args, data_args, training_args):
 
                         for b in range(logits.size(0)):
                             logits[b, sorted_indices[b, sorted_indices_to_remove[b]]] = -float("inf")
-                    
+
                     probs = F.softmax(logits, dim=-1)
-                    next_token_ids = torch.multinomial(probs, num_samples=1).squeeze(-1)
+                    next_token_ids = torch.multinomial(probs, num_samples=1).squeeze(1)
 
                 # Handle EOS for each sequence
                 for b in range(batch_size):

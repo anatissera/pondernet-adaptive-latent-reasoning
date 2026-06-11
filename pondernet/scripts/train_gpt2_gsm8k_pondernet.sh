@@ -46,7 +46,7 @@ python train.py \
     --gradient_checkpointing True \
     --dataloader_num_workers 4 \
     --bf16 \
-    --num_train_epochs 10 \
+    --num_train_epochs 40 \
     --learning_rate "$LR" \
     --max_grad_norm 2.0 \
     --use_lora True \
