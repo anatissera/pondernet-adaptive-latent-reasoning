@@ -76,7 +76,6 @@ class DataArguments:
     data_path: str = field(default="", metadata={"help": "Local path to training/eval data JSON. If empty, loads from HuggingFace."})
     results_dir: str = field(default="./results", metadata={"help": "Directory for evaluation output JSON files."})
     max_train_samples: int = field(default=None, metadata={"help": "Truncate training set to this many examples (None = use all)."})
-    eval_samples: int = field(default=200, metadata={"help": "Number of held-out examples (taken from the end of the dataset, before max_train_samples truncation) used for per-epoch eval / early stopping."})
 
 @dataclass
 class TrainingArguments(transformers.TrainingArguments):
