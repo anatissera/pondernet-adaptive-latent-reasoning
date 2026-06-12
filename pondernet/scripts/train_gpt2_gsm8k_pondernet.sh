@@ -45,7 +45,9 @@ mkdir -p "$SAVE_DIR" "$LOG_DIR"
 # Avoids CUDA allocator fragmentation (important with K separate answer-decode forwards)
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-python train.py \
+# Assemble the training command into an array so we can both record it (for
+# reproducibility -- LR and every other resolved flag) and run it verbatim.
+TRAIN_CMD=(python train.py
     --output_dir "$SAVE_DIR" \
     --logging_dir "$LOG_DIR" \
     --logging_steps 10 \
@@ -92,3 +94,34 @@ python train.py \
     --pondernet_halt_bias_init -2.0 \
     --pondernet_inf_threshold 0.5 \
     "$@"
+)
+
+# Record the exact invocation into the run folder: resolved env overrides + the
+# full flag list (printf %q makes it copy-paste re-runnable) + provenance.
+{
+    echo "#!/usr/bin/env bash"
+    echo "# Recorded by train_gpt2_gsm8k_pondernet.sh on $(date -Iseconds)"
+    echo "# host=$(hostname)  user=$(whoami)  cwd=$(pwd)"
+    echo "# git=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)$(git diff --quiet 2>/dev/null || echo '-dirty')"
+    echo "#"
+    echo "# Key env overrides (so the run can be reproduced):"
+    echo "#   SAVE_DIR=$SAVE_DIR"
+    echo "#   LOG_DIR=$LOG_DIR"
+    echo "#   LR=${LR:-2e-5}"
+    echo "#   GPT2_PATH=$GPT2_PATH"
+    echo "#   SIMCOT_CKPT=$SIMCOT_CKPT"
+    echo "#   DECODER_PATH=$DECODER_PATH"
+    echo "#   DATA_PATH=$DATA_PATH"
+    echo "#   CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-<unset>}"
+    echo "#   PYTORCH_CUDA_ALLOC_CONF=$PYTORCH_CUDA_ALLOC_CONF"
+    echo
+    printf '%q ' "${TRAIN_CMD[@]}"
+    echo
+} > "$LOG_DIR/command.sh"
+
+echo "[train] command recorded to $LOG_DIR/command.sh"
+echo "[train] teeing stdout+stderr to $LOG_DIR/train.log"
+
+# Run it, mirroring all output into the run folder so logs live with the run
+# (pipefail, set above, makes the exit status reflect train.py, not tee).
+"${TRAIN_CMD[@]}" 2>&1 | tee "$LOG_DIR/train.log"

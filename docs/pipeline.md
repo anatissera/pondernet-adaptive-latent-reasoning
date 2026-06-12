@@ -114,11 +114,18 @@ and the full-model warm-start recipe. Common overrides:
 | Epochs | append `--num_train_epochs 20` |
 | Fast ablation | append `--max_train_samples 1000` |
 
-Checkpoints are saved per epoch (up to 2 kept) under `SAVE_DIR`. Training logs
-and events are written to `LOG_DIR`. The trainer is configured with
-`--report_to tensorboard`; the same `LOG_DIR` is the natural run name for a
-future MLflow integration (`mlruns/` is gitignored). If the run is interrupted,
-re-running the same command auto-resumes from the last checkpoint in `SAVE_DIR`.
+Checkpoints are saved per epoch (up to 2 kept) under `SAVE_DIR`. Everything for a
+run lands in its `LOG_DIR` folder — no need to redirect stdout yourself:
+
+| File in `LOG_DIR` | What it is |
+|-------------------|------------|
+| `command.sh` | The exact resolved invocation (every flag, incl. `--learning_rate`) plus the key env overrides, git SHA, host, and timestamp. Copy-paste re-runnable; the record of what produced the run. |
+| `train.log` | Full stdout+stderr of the run (the script tees into it). |
+| `events.out.tfevents.*` | TensorBoard scalars (`--report_to tensorboard`). |
+
+The same `LOG_DIR` is the natural run name for a future MLflow integration
+(`mlruns/` is gitignored). If the run is interrupted, re-running the same command
+auto-resumes from the last checkpoint in `SAVE_DIR`.
 
 ---
 
