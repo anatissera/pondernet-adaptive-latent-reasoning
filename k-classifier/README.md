@@ -151,3 +151,49 @@ Todavía falta la parte principal de Option-A:
 - entrenar un clasificador liviano que reciba el input y prediga k;
 - comparar ese clasificador contra baselines de k fijo;
 - medir no solo accuracy, sino también costo promedio de razonamiento.
+
+---
+
+## Adaptive k classifier
+
+This module trains a multi-output classifier that predicts which latent reasoning budgets are likely to solve a prompt.
+
+Each training example is:
+
+- input: prompt
+- label: binary vector over k values, e.g. `[0,0,1,1,1,0,0,0]`
+
+The classifier outputs one logit per k and is trained with `BCEWithLogitsLoss`.
+
+### Build dataset
+
+```bash
+python3 k-classifier/scripts/build_k_classifier_dataset.py \
+  --input k-classifier/results/k_sweep_train_full_codi.jsonl \
+  --output k-classifier/data/k_classifier_train.jsonl \
+  --k-min 1 \
+  --k-max 8
+```
+
+### Train classifier
+
+```bash
+python3 k-classifier/scripts/train_k_classifier.py \
+  --data k-classifier/data/k_classifier_train.jsonl \
+  --output-dir k-classifier/results/k_classifier_distilbert \
+  --model-name distilbert-base-uncased \
+  --epochs 3 \
+  --batch-size 16 \
+  --lr 2e-5 \
+  --max-length 256 \
+  --threshold 0.7 \
+  --fallback-k 6
+```
+
+### Predict k
+
+```bash
+python3 k-classifier/scripts/predict_k.py \
+  --checkpoint k-classifier/results/k_classifier_distilbert \
+  --prompt "Natalia sold clips to 48 of her friends..."
+```
