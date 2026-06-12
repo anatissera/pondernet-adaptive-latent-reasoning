@@ -38,7 +38,7 @@ SIMCOT_CKPT="${SIMCOT_CKPT-../models/pretrained/simcot-gpt2-codi/model-00001-of-
 # Fetch with: python scripts/fetch_simcot_decoder.py --out ../models/pretrained/simcot-gpt2-decoder
 DECODER_PATH="${DECODER_PATH:-../models/pretrained/simcot-gpt2-decoder}"
 DATA_DIR="${DATA_DIR:-../data}"
-DATA_PATH="${DATA_PATH:-$DATA_DIR/gsm8k_aug/train15k.jsonl}"
+DATA_PATH="${DATA_PATH:-$DATA_DIR/gsm8k_aug/train100k.jsonl}"
 
 mkdir -p "$SAVE_DIR" "$LOG_DIR"
 
@@ -55,14 +55,14 @@ python train.py \
     --seed 42 \
     --model_max_length 384 \
     --max_token_num 700 \
-    --per_device_train_batch_size 16 \
-    --gradient_accumulation_steps 8 \
-    --gradient_checkpointing True \
+    --per_device_train_batch_size 32 \
+    --gradient_accumulation_steps 4 \
+    --gradient_checkpointing False \
     --dataloader_num_workers 4 \
     --bf16 \
-    --num_train_epochs 40 \
-    --learning_rate "${LR:-1e-4}" \
-    --max_grad_norm 2.0 \
+    --num_train_epochs 5 \
+    --learning_rate "${LR:-2e-5}" \
+    --max_grad_norm 1.0 \
     --use_lora True \
     --lora_r 128 --lora_alpha 32 --lora_init \
     --save_strategy "epoch" \

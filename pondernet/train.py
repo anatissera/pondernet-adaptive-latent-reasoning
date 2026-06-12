@@ -110,6 +110,35 @@ class CustomTrainer(Trainer):
 
         return loss
 
+    def create_optimizer(self):
+        """Discriminative LRs: gentle on the warm-started backbone (LoRA + prj),
+        hot on the from-scratch halt head. Opt-in via HALT_HEAD_LR env var; unset =
+        HF default single global LR. The cosine scheduler scales all groups by the
+        same factor, so the base/halt LR ratio is preserved throughout training."""
+        if self.optimizer is not None:
+            return self.optimizer
+        halt_lr = os.environ.get("HALT_HEAD_LR")
+        if not halt_lr:
+            return super().create_optimizer()
+        halt_lr, base_lr, wd = float(halt_lr), self.args.learning_rate, self.args.weight_decay
+        decay = set(self.get_decay_parameter_names(self.model))
+        named = [(n, p) for n, p in self.model.named_parameters() if p.requires_grad]
+        halt = [(n, p) for n, p in named if "halt_head" in n]
+        base = [(n, p) for n, p in named if "halt_head" not in n]
+        groups = [
+            {"params": [p for n, p in base if n in decay],     "weight_decay": wd,  "lr": base_lr},
+            {"params": [p for n, p in base if n not in decay],  "weight_decay": 0.0, "lr": base_lr},
+            {"params": [p for n, p in halt if n in decay],      "weight_decay": wd,  "lr": halt_lr},
+            {"params": [p for n, p in halt if n not in decay],  "weight_decay": 0.0, "lr": halt_lr},
+        ]
+        groups = [g for g in groups if g["params"]]
+        self.optimizer = torch.optim.AdamW(
+            groups, lr=base_lr,
+            betas=(self.args.adam_beta1, self.args.adam_beta2), eps=self.args.adam_epsilon)
+        logging.warning(f"Discriminative LR: backbone={base_lr} halt_head={halt_lr} "
+                        f"(halt params={sum(1 for _ in halt)})")
+        return self.optimizer
+
     def log(self, logs, start_time=None):
         if self.state.global_step is not None:
             for k, v in logs.items():
