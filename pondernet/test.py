@@ -69,6 +69,28 @@ def write_json(data, file_path):
     with open(file_path, "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
 
+
+def _slice_past_key_values(past_key_values, idx):
+    """Return a copy of `past_key_values` keeping only the batch rows in `idx`.
+
+    `idx` is a 1-D LongTensor of batch indices (on the cache's device). Handles both
+    the legacy tuple-of-tuples layout and transformers' Cache objects (via the legacy
+    round-trip). Each kept tensor is `index_select`-ed on the batch dim, so the result
+    is an independent copy — decoding from it does not mutate the caller's cache.
+
+    Used by PonderNet eval to decode each example's answer from the KV prefix at *its
+    own* halt step instead of the batch's shared termination prefix.
+    """
+    if past_key_values is None:
+        return None
+    # transformers Cache object (e.g. DynamicCache): round-trip through legacy form
+    if hasattr(past_key_values, "to_legacy_cache") and hasattr(type(past_key_values), "from_legacy_cache"):
+        legacy = past_key_values.to_legacy_cache()
+        sliced = tuple(tuple(t.index_select(0, idx) for t in layer) for layer in legacy)
+        return type(past_key_values).from_legacy_cache(sliced)
+    # legacy tuple-of-tuples
+    return tuple(tuple(t.index_select(0, idx) for t in layer) for layer in past_key_values)
+
 def evaluation(model_args, data_args, training_args):
     import os
     if model_args.lora_init:
@@ -221,6 +243,71 @@ def evaluation(model_args, data_args, training_args):
         "do_sample": True,
     }
 
+    def generate_answers(past_key_values, bs):
+        """Autoregressively decode answers for `bs` sequences from `past_key_values`.
+
+        Returns a list of `bs` token-id lists. The given cache is extended locally
+        (the binding is reassigned each step), so the caller's cache is untouched.
+        """
+        if training_args.remove_eos:
+            eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id], dtype=torch.long, device='cuda')).unsqueeze(0).to(device)
+        else:
+            eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id, tokenizer.eos_token_id], dtype=torch.long, device='cuda')).unsqueeze(0).to(device)
+        output = eot_emb.expand(bs, -1, -1)
+
+        finished = torch.zeros(bs, dtype=torch.bool, device="cuda")  # Track EOS for each sequence
+        pred_tokens = [[] for _ in range(bs)]
+        for _ in range(gen_kwargs["max_new_tokens"]):
+            out = model.codi(
+                    inputs_embeds=output,
+                    output_hidden_states=False,
+                    attention_mask=None,
+                    use_cache=True,
+                    output_attentions=False,
+                    past_key_values=past_key_values
+                )
+            past_key_values = out.past_key_values
+            logits = out.logits[:, -1, :model.codi.config.vocab_size-1]
+
+            # implement the sampling process
+            if training_args.greedy:
+                next_token_ids = torch.argmax(logits, dim=-1)
+            else:
+                logits /= gen_kwargs["temperature"]
+                if gen_kwargs["top_k"] > 1:
+                    top_k_values, _ = torch.topk(logits, gen_kwargs["top_k"], dim=-1)
+                    min_top_k_value = top_k_values[:, -1].unsqueeze(-1)
+                    logits[logits < min_top_k_value] = -float("inf")
+
+                if gen_kwargs["top_p"] < 1.0:
+                    sorted_logit, sorted_indices = torch.sort(logits, descending=True, dim=-1)
+                    cumulative_probs = torch.cumsum(F.softmax(sorted_logit, dim=-1), dim=-1)
+
+                    sorted_indices_to_remove = cumulative_probs > gen_kwargs["top_p"]
+                    if sorted_indices_to_remove.any():
+                        sorted_indices_to_remove = sorted_indices_to_remove.roll(1, dims=-1)
+                        sorted_indices_to_remove[:, 0] = False
+
+                    for b in range(logits.size(0)):
+                        logits[b, sorted_indices[b, sorted_indices_to_remove[b]]] = -float("inf")
+
+                probs = F.softmax(logits, dim=-1)
+                next_token_ids = torch.multinomial(probs, num_samples=1).squeeze(1)
+
+            # Handle EOS for each sequence
+            for b in range(bs):
+                if not finished[b]:
+                    pred_tokens[b].append(next_token_ids[b].item())
+                    if next_token_ids[b] == tokenizer.eos_token_id:
+                        finished[b] = True
+
+            # Break if all sequences have finished
+            if finished.all():
+                break
+
+            output = model.get_embd(model.codi, model.model_name)(next_token_ids).unsqueeze(1).to(device)
+        return pred_tokens
+
     ans_pred_list = []
     ans_pred_list_accu_at_n_passes = []
     attention_map_weights = []
@@ -258,12 +345,19 @@ def evaluation(model_args, data_args, training_args):
                 latent_embd = latent_embd + model_args.soft_weight * soft_embeds
             
             if model.pondernet:
-                # --- PonderNet adaptive halting inference ---
-                # Stop when cumulative halt probability exceeds threshold; K_max = max_latent_steps.
+                # --- PonderNet adaptive halting inference (faithful per-example) ---
+                # Each example's answer is decoded from the KV prefix at *its own* halt
+                # step. When a row crosses the cumulative-halt threshold we slice the
+                # shared cache down to that row and decode immediately, so batched eval
+                # matches the batch_size=1 result. (The previous loop decoded every row
+                # from the batch's termination prefix, inflating the latent steps that
+                # early-halting examples were actually evaluated with.)
                 k_max = model.max_latent_steps
                 threshold = model.pondernet_inf_threshold
                 not_halted = torch.ones(batch_size, dtype=torch.float32, device=device)
-                steps_used = [k_max] * batch_size  # default: used all steps
+                done = torch.zeros(batch_size, dtype=torch.bool, device=device)
+                steps_used = [k_max] * batch_size      # default: used all steps
+                pred_tokens = [None] * batch_size      # answer per row, filled at halt
 
                 for i in range(k_max):
                     outputs = model.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
@@ -274,16 +368,28 @@ def evaluation(model_args, data_args, training_args):
                         latent_embd = model.prj(latent_embd)
 
                     lambda_k = model._halting_lambda(latent_embd)          # (B,)
-                    not_halted = not_halted * (1.0 - lambda_k.float())     # update survivor prob
+                    not_halted = not_halted * (1.0 - lambda_k.float())     # survivor prob
 
-                    # Record halt step for examples crossing the threshold this step
-                    newly_halted = (not_halted < (1.0 - threshold))
-                    for b in range(batch_size):
-                        if newly_halted[b] and steps_used[b] == k_max:
+                    # Rows that cross the halt threshold this step (and, on the final
+                    # step, any still-running row, capped at k_max) get their answer
+                    # decoded now from the current per-row prefix.
+                    crossed = (not_halted < (1.0 - threshold)) & (~done)
+                    last_step = (i == k_max - 1)
+                    finalize = crossed | (last_step & ~done)
+                    if finalize.any():
+                        idx = finalize.nonzero(as_tuple=False).flatten()
+                        sub_pkv = _slice_past_key_values(past_key_values, idx)
+                        sub_preds = generate_answers(sub_pkv, idx.numel())
+                        for j, b in enumerate(idx.tolist()):
+                            pred_tokens[b] = sub_preds[j]
                             steps_used[b] = i + 1
+                            done[b] = True
 
-                    if newly_halted.all():
+                    if bool(done.all()):
                         break
+
+                # Safety net: any row that never finalized (should not happen) → empty.
+                pred_tokens = [pt if pt is not None else [] for pt in pred_tokens]
             else:
                 # --- Original fixed-step inference ---
                 steps_used = [training_args.inf_latent_iterations] * batch_size
@@ -304,69 +410,8 @@ def evaluation(model_args, data_args, training_args):
                             soft_embeds = model.prj(soft_embeds)
                         latent_embd = latent_embd + model_args.soft_weight * soft_embeds
 
-            if training_args.remove_eos:
-                eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id], dtype=torch.long, device='cuda')).unsqueeze(0).to(device)
-            else:
-                eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id, tokenizer.eos_token_id], dtype=torch.long, device='cuda')).unsqueeze(0).to(device)
-            
-            eot_emb = eot_emb.expand(batch["input_ids"].size(0), -1, -1)
-
-            output = eot_emb
-            
-            seq_len = 0
-            finished = torch.zeros(batch_size, dtype=torch.bool, device="cuda")  # Track EOS for each sequence
-            pred_tokens = [[] for _ in range(batch_size)]
-            for i in range(gen_kwargs["max_new_tokens"]):
-                seq_len += 1
-                out = model.codi(
-                        inputs_embeds=output,
-                        output_hidden_states=False,
-                        attention_mask=None,
-                        use_cache=True,
-                        output_attentions=False,
-                        past_key_values=past_key_values
-                    )
-                past_key_values = out.past_key_values
-                logits = out.logits[:, -1, :model.codi.config.vocab_size-1]
-
-                # implement the sampling process
-                if training_args.greedy:
-                    next_token_ids = torch.argmax(logits, dim=-1)
-                else:
-                    logits /= gen_kwargs["temperature"]
-                    if gen_kwargs["top_k"] > 1:
-                        top_k_values, _ = torch.topk(logits, gen_kwargs["top_k"], dim=-1)
-                        min_top_k_value = top_k_values[:, -1].unsqueeze(-1)
-                        logits[logits < min_top_k_value] = -float("inf")
-
-                    if gen_kwargs["top_p"] < 1.0:
-                        sorted_logit, sorted_indices = torch.sort(logits, descending=True, dim=-1)
-                        cumulative_probs = torch.cumsum(F.softmax(sorted_logit, dim=-1), dim=-1)
-
-                        sorted_indices_to_remove = cumulative_probs > gen_kwargs["top_p"]
-                        if sorted_indices_to_remove.any():
-                            sorted_indices_to_remove = sorted_indices_to_remove.roll(1, dims=-1)
-                            sorted_indices_to_remove[:, 0] = False
-
-                        for b in range(logits.size(0)):
-                            logits[b, sorted_indices[b, sorted_indices_to_remove[b]]] = -float("inf")
-
-                    probs = F.softmax(logits, dim=-1)
-                    next_token_ids = torch.multinomial(probs, num_samples=1).squeeze(1)
-
-                # Handle EOS for each sequence
-                for b in range(batch_size):
-                    if not finished[b]:
-                        pred_tokens[b].append(next_token_ids[b].item())
-                        if next_token_ids[b] == tokenizer.eos_token_id:
-                            finished[b] = True
-
-                # Break if all sequences have finished
-                if finished.all():
-                    break
-
-                #output = model.codi.get_base_model().transformer.wte(next_token_ids).unsqueeze(1).to(device)
-                output = model.get_embd(model.codi, model.model_name)(next_token_ids).unsqueeze(1).to(device)
+                # Fixed-K: every row shares the same prefix, so one batched decode is exact.
+                pred_tokens = generate_answers(past_key_values, batch_size)
 
             for mini_step, pred_token in enumerate(pred_tokens):
                 len_cot.append(len(pred_token))

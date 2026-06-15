@@ -12,7 +12,9 @@ CKPT="${CKPT:?Set CKPT=/path/to/checkpoint}"
 GPT2_PATH="${GPT2_PATH:-gpt2}"
 RESULTS_DIR="${RESULTS_DIR:-../results/simcot-pondernet-default}"
 THRESHOLD="${THRESHOLD:-0.5}"
-BATCH_SIZE="${BATCH_SIZE:-16}"
+# Per-example halting is now faithful for batch>1 (see _slice_past_key_values in
+# test.py), so BATCH_SIZE>1 speeds eval without changing results. Default stays 1.
+BATCH_SIZE="${BATCH_SIZE:-1}"
 
 mkdir -p "$RESULTS_DIR"
 
@@ -21,7 +23,7 @@ python test.py \
     --ckpt_dir "$CKPT" \
     --data_name gsm8k \
     --results_dir "$RESULTS_DIR" \
-    --batch_size 1 \
+    --batch_size "$BATCH_SIZE" \
     --max_latent_steps 6 \
     --use_lora True \
     --lora_r 128 --lora_alpha 32 --lora_init \
