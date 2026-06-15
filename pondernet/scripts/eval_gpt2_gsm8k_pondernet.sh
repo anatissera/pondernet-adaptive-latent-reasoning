@@ -12,6 +12,7 @@ CKPT="${CKPT:?Set CKPT=/path/to/checkpoint}"
 GPT2_PATH="${GPT2_PATH:-gpt2}"
 RESULTS_DIR="${RESULTS_DIR:-../results/simcot-pondernet-default}"
 THRESHOLD="${THRESHOLD:-0.5}"
+BATCH_SIZE="${BATCH_SIZE:-16}"
 
 mkdir -p "$RESULTS_DIR"
 

@@ -93,6 +93,7 @@ TRAIN_CMD=(python train.py
     --pondernet_geom_mean 3.0 \
     --pondernet_halt_bias_init -2.0 \
     --pondernet_inf_threshold 0.5 \
+    --max_train_samples 100000 \
     "$@"
 )
 

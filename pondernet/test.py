@@ -70,6 +70,7 @@ def write_json(data, file_path):
         json.dump(data, file, ensure_ascii=False, indent=4)
 
 def evaluation(model_args, data_args, training_args):
+    import os
     if model_args.lora_init:
         task_type = TaskType.CAUSAL_LM
         if any(name in model_args.model_name_or_path.lower() for name in ["llama", "mistral", "falcon", "qwen"]):
@@ -349,9 +350,9 @@ def evaluation(model_args, data_args, training_args):
 
                         for b in range(logits.size(0)):
                             logits[b, sorted_indices[b, sorted_indices_to_remove[b]]] = -float("inf")
-                    
+
                     probs = F.softmax(logits, dim=-1)
-                    next_token_ids = torch.multinomial(probs, num_samples=1).squeeze(-1)
+                    next_token_ids = torch.multinomial(probs, num_samples=1).squeeze(1)
 
                 # Handle EOS for each sequence
                 for b in range(batch_size):

@@ -454,7 +454,6 @@ class CODI(torch.nn.Module):
             raise NotImplementedError
 
     def init(self):
-        print_trainable_parameters(self)
         if (
             self.training_args.restore_from is not None
             and self.training_args.restore_from != ""

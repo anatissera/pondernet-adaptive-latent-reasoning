@@ -16,6 +16,8 @@ import numpy as np
 import torch
 import json
 import transformers
+
+transformers.logging.set_verbosity_error()
 from torch.utils.data import Dataset
 from transformers import Trainer, TrainerCallback
 from transformers.trainer_utils import get_last_checkpoint
@@ -65,17 +67,56 @@ IGNORE_INDEX = -100
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logging.info(f"Training device: {device}")
 
-class EpochProgressCallback(TrainerCallback):
-    """Prints a clear separator marking the start of each epoch, alongside
-    the default tqdm bar (which only tracks overall step progress)."""
+class DualProgressCallback(TrainerCallback):
+    """Two tqdm bars and nothing else on the console: an overall bar over all
+    optimizer steps (shows elapsed + ETA via tqdm's default rate display) and a
+    per-epoch bar that resets each epoch. `on_log` is a no-op so the per-step
+    loss dicts never reach stdout (they still go to TensorBoard)."""
+
+    def __init__(self):
+        self.overall_bar = None
+        self.epoch_bar = None
+
+    def on_train_begin(self, args, state, control, **kwargs):
+        if state.is_world_process_zero:
+            self.overall_bar = tqdm(total=state.max_steps, desc="Total", position=0,
+                                    dynamic_ncols=True)
 
     def on_epoch_begin(self, args, state, control, **kwargs):
+        if not state.is_world_process_zero:
+            return
+        n_epochs = int(state.num_train_epochs)
+        steps_per_epoch = max(1, state.max_steps // n_epochs)
+        if self.epoch_bar is not None:
+            self.epoch_bar.close()
+        self.epoch_bar = tqdm(total=steps_per_epoch, position=1, leave=False,
+                              dynamic_ncols=True,
+                              desc=f"Epoch {int(state.epoch) + 1}/{n_epochs}")
+
+    def on_step_end(self, args, state, control, **kwargs):
         if state.is_world_process_zero:
-            print(f"\n=== Epoch {int(state.epoch) + 1}/{int(args.num_train_epochs)} ===")
+            if self.overall_bar is not None:
+                self.overall_bar.update(1)
+            if self.epoch_bar is not None:
+                self.epoch_bar.update(1)
+
+    def on_epoch_end(self, args, state, control, **kwargs):
+        if state.is_world_process_zero and self.epoch_bar is not None:
+            self.epoch_bar.close()
+            self.epoch_bar = None
+
+    def on_train_end(self, args, state, control, **kwargs):
+        if state.is_world_process_zero and self.overall_bar is not None:
+            self.overall_bar.close()
+            self.overall_bar = None
+
+    def on_log(self, args, state, control, **kwargs):
+        # Swallow log dicts so they never print to the console (TensorBoard still gets them).
+        return
 
 
 class CustomTrainer(Trainer):
-    def compute_loss(self, model, inputs, num_items_in_batch):
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
         # Extract the global step from the optimizer
         step = self.state.global_step
 
@@ -95,7 +136,7 @@ class CustomTrainer(Trainer):
         outputs = model(**inputs)
         loss = outputs["loss"]
         loss_for_log = loss.detach() if isinstance(loss, torch.Tensor) else loss
-        if step % self.args.logging_steps == 0:
+        if model.training and step % self.args.logging_steps == 0:
             logs = {
                 "loss": _to_scalar(loss_for_log),
                 "ce_loss": _to_scalar(outputs.get("ce_loss")),
@@ -108,7 +149,7 @@ class CustomTrainer(Trainer):
         # if step % self.args.logging_steps == 0:
         #     self.log({"loss": loss.item(), "ce_loss": outputs["ce_loss"], "distill_loss": outputs["distill_loss"], "ref_ce_loss": outputs["ref_ce_loss"],})
 
-        return loss
+        return (loss, outputs) if return_outputs else loss
 
     def create_optimizer(self):
         """Discriminative LRs: gentle on the warm-started backbone (LoRA + prj),
@@ -141,8 +182,7 @@ class CustomTrainer(Trainer):
 
     def log(self, logs, start_time=None):
         if self.state.global_step is not None:
-            for k, v in logs.items():
-                super().log({k: v})
+            super().log(logs)
 
 def _tokenize_fn(strings: Sequence[str], tokenizer: transformers.PreTrainedTokenizer) -> Dict:
     """Tokenize a list of strings."""
@@ -295,7 +335,6 @@ def train():
         bot_id: int,
         eot_id: int,
     ) -> Dict:
-        print("Tokenizing inputs... This may take some time...")
         sources_id = _tokenize_fn(sources, tokenizer)["input_ids"]
         cot_id = _tokenize_fn(targets, tokenizer)["input_ids"]
         answers_id = _tokenize_fn(answers, tokenizer)["input_ids"]
@@ -344,8 +383,7 @@ def train():
         QUESTION_DA_PROMPT = "\nAnswer the above question. Answer the final number directly in one number.\n"
         def __init__(self, data_name, raw_data, tokenizer, bot, eot):
             super(SupervisedDataset, self).__init__()
-            logging.warning("Formatting inputs...")
-            
+
             self.data_name = data_name
             questions, cots, answers = [], [], []
             num_ops_list = []
@@ -439,9 +477,7 @@ def train():
                 cots = cots[:training_args.exp_data_num]
                 answers = answers[:training_args.exp_data_num]
             
-            print(f"{len(cots)} data in total...")
-            logging.warning("Tokenizing inputs... This may take some time...")
-
+            print("Tokenizing inputs... This may take some time...")
             self.data_dict = preprocess(questions, cots, answers, tokenizer, bot, eot)
             self.keys = list(self.data_dict.keys())
 
@@ -527,9 +563,14 @@ def train():
         f"seed_{training_args.seed}",
     )
 
+    # Disable HF's built-in progress/printer callbacks so the console shows only our
+    # two tqdm bars (overall + per-epoch); TensorBoard logging is unaffected.
+    training_args.disable_tqdm = True
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
+
     trainer = CustomTrainer(model=model, tokenizer=tokenizer, args=training_args, **data_module)
-    trainer.add_callback(EpochProgressCallback())
+    trainer.remove_callback(transformers.trainer_callback.PrinterCallback)
+    trainer.add_callback(DualProgressCallback())
 
     last_checkpoint = None
     if os.path.isdir(training_args.output_dir):
