@@ -6,12 +6,9 @@ outputs/
 runs/
 wandb/
 models/
-# ...except the SIM-CoT decoder checkpoint, tracked via Git LFS so the team
-# shares one warm-started copy instead of everyone re-downloading it.
-!pondernet/models/
-!pondernet/models/simcot_gpt2_decoder/
-!pondernet/models/simcot_gpt2_decoder/**
+results/
 pondernet/results/
+pondernet/features/
 
 # Entornos virtuales
 .venv/
@@ -25,3 +22,6 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# MLflow tracking (reserved for future use)
+mlruns/

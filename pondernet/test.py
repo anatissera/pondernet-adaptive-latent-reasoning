@@ -11,6 +11,7 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+"""Evaluation entrypoint for the PonderNet adaptive-halting latent-CoT model (CODI backbone)."""
 
 import logging
 import math
@@ -25,7 +26,6 @@ from torch.nn import functional as F
 import json
 
 from peft import PeftModel, LoraConfig, TaskType, get_peft_model
-from peft import PeftModel
 from datasets import load_dataset, concatenate_datasets
 from accelerate.utils import set_seed
 from safetensors.torch import load_file
@@ -44,45 +44,30 @@ do_print = True
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
-import json
-from peft import PeftModel, LoraConfig
-
 def save_jsonl_line(filepath, data):
-    """
-    将一条字典数据追加写入到 JSONL 文件中。
+    """Append a single dict as a JSON line to a JSONL file.
 
-    参数:
-        filepath (str): 目标 JSONL 文件路径。
-        data (dict): 要写入的数据，必须是可序列化为 JSON 的字典。
+    Args:
+        filepath (str): Path to the target JSONL file.
+        data (dict): Data to write; must be JSON-serializable.
     """
     if not isinstance(data, dict):
-        raise ValueError("data 必须是一个字典")
+        raise ValueError("data must be a dict")
 
     with open(filepath, "a", encoding="utf-8") as f:
         json_line = json.dumps(data, ensure_ascii=False)
         f.write(json_line + "\n")
 
 def read_json(file_path):
-    """
-    从指定路径读取JSON文件并返回对应的Python对象。
-    """
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            return data
-    except Exception as e:
-        print(f"读取JSON文件时出错: {e}")
-        return None
+    """Read a JSON document from file_path and return the parsed object."""
+    with open(file_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
 
 def write_json(data, file_path):
-    """
-    将Python对象写入指定路径的JSON文件中。
-    """
-    try:
-        with open(file_path, 'w', encoding='utf-8') as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)
-    except Exception as e:
-        print(f"写入JSON文件时出错: {e}")
+    """Write a Python object to file_path as pretty-printed JSON."""
+    with open(file_path, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
 
 def evaluation(model_args, data_args, training_args):
     import os
@@ -107,11 +92,9 @@ def evaluation(model_args, data_args, training_args):
         )
     else:
         raise NotImplementedError
-    # import pdb; pdb.set_trace()
     model = CODI(model_args, training_args, lora_config)
     #if "llama" in model_args.model_name_or_path:
     #    model.codi.resize_token_embeddings(128261)
-    # import pdb; pdb.set_trace()
     try:
         state_dict = load_file(os.path.join(model_args.ckpt_dir, "model.safetensors"))
     except Exception:
@@ -122,8 +105,7 @@ def evaluation(model_args, data_args, training_args):
     model.load_state_dict(state_dict, strict=False)
     model.codi.tie_weights()
     
-    tokenizer_path = model_args.model_name_or_path 
-    # tokenizer_path = '/mnt/shared-storage-user/mllm/shared/weixilin/gpt2'
+    tokenizer_path = model_args.model_name_or_path
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         tokenizer_path,
         token=model_args.token,
@@ -141,7 +123,6 @@ def evaluation(model_args, data_args, training_args):
     device = "cuda"
     model = model.to('cuda')
     model.to(torch.bfloat16)
-    # import pdb; pdb.set_trace()
     ######################
     #      dataset       #
     ######################
@@ -149,22 +130,17 @@ def evaluation(model_args, data_args, training_args):
     question_name = "question"
     answer_name = "answer"
     if "gsm-hard" == data_args.data_name:
-        # dataset = load_dataset("juyoung-trl/gsm-hard")
-        # test_set = dataset['train']
-        # question_name = "instruction"
-        # answer_name = "response"
-        test_set = read_json('/mnt/shared-storage-user/weixilin/MLLM/coconut/data/gsm8k_hard_format.json')
+        if not data_args.data_path:
+            raise ValueError("gsm-hard requires --data_path pointing to gsm8k_hard_format.json")
+        test_set = read_json(data_args.data_path)
     elif "multi-arith" == data_args.data_name:
-        # dataset = load_dataset("ChilleD/MultiArith")
-        # test_set = dataset['test']
-        # answer_name = "final_ans"
-        test_set = read_json('/mnt/shared-storage-user/weixilin/MLLM/coconut/data/multiarith_format.json')
+        if not data_args.data_path:
+            raise ValueError("multi-arith requires --data_path pointing to multiarith_format.json")
+        test_set = read_json(data_args.data_path)
     elif "svamp" == data_args.data_name:
-        # dataset = load_dataset("ChilleD/SVAMP")
-        # test_set = concatenate_datasets([dataset["train"], dataset["test"]])
-        # question_name = "question_concat"
-        # answer_name = "Answer"
-        test_set = read_json('/mnt/shared-storage-user/weixilin/MLLM/coconut/data/svamp_format.json')
+        if not data_args.data_path:
+            raise ValueError("svamp requires --data_path pointing to svamp_format.json")
+        test_set = read_json(data_args.data_path)
     elif "commonsense" == data_args.data_name:
         dataset = load_dataset("zen-E/CommonsenseQA-GPT4omini")
         test_set = dataset['validation']
@@ -213,7 +189,6 @@ def evaluation(model_args, data_args, training_args):
                     f"eval steps: {eval_step}")
     
     question_data = []
-    # import pdb; pdb.set_trace()
     for i in range(eval_step):
         if i < eval_step - 1:
             batch = tokenizer(
@@ -251,7 +226,6 @@ def evaluation(model_args, data_args, training_args):
     attention_map_weights = []
     attention_to_latents_against_len_sum = []
     attention_to_latents_against_len_count = []
-    #set_seed(42)
     gating_probs_sums = None
     len_cot = []
     steps_used_list = []   # latent steps used per instance (pondernet mode only)
@@ -285,8 +259,8 @@ def evaluation(model_args, data_args, training_args):
             
             if model.pondernet:
                 # --- PonderNet adaptive halting inference ---
-                # Stop when cumulative halt probability exceeds threshold; K_max = num_latent.
-                k_max = model.num_latent
+                # Stop when cumulative halt probability exceeds threshold; K_max = max_latent_steps.
+                k_max = model.max_latent_steps
                 threshold = model.pondernet_inf_threshold
                 not_halted = torch.ones(batch_size, dtype=torch.float32, device=device)
                 steps_used = [k_max] * batch_size  # default: used all steps
@@ -405,11 +379,10 @@ def evaluation(model_args, data_args, training_args):
                     print(decoded_pred)
                     print(f"Question {q_idx} Ends")
                     if model.pondernet:
-                        print(f"Latent steps used: {steps_used[mini_step]}/{model.num_latent}")
+                        print(f"Latent steps used: {steps_used[mini_step]}/{model.max_latent_steps}")
                     print(f"Prediction={extract_answer_number(decoded_pred)}; Groundtruth={answer[q_idx]}")
                     print("")
                 ans_pred_list.append(extract_answer_number(decoded_pred))
-    import os
     os.makedirs(data_args.results_dir, exist_ok=True)
     results_path = os.path.join(data_args.results_dir, f"{data_args.data_name}.json")
     write_json({"ans": ans_pred_list}, results_path)
@@ -419,7 +392,7 @@ def evaluation(model_args, data_args, training_args):
     print(f"average length of COT: {sum(len_cot)/len(len_cot)}")
     if model.pondernet and steps_used_list:
         avg_steps = sum(steps_used_list) / len(steps_used_list)
-        print(f"[PonderNet] average latent steps used: {avg_steps:.2f} / {model.num_latent}  "
+        print(f"[PonderNet] average latent steps used: {avg_steps:.2f} / {model.max_latent_steps}  "
               f"(threshold={model.pondernet_inf_threshold})")
         # Accuracy-vs-budget table
         from collections import defaultdict
@@ -483,8 +456,12 @@ if __name__ == "__main__":
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
+    # Greedy decoding is deterministic, so multi-pass averaging is redundant — run once.
+    num_passes = 1 if training_args.greedy else training_args.inf_num_iterations
     accu_list = []
-    for i in range(training_args.inf_num_iterations):
+    for i in range(num_passes):
+        set_seed(training_args.seed + i)
         accu = evaluation(model_args, data_args, training_args)
         accu_list.append(accu)
-    print(f"Average accuracy over {training_args.inf_num_iterations} sampling: {sum(accu_list)/len(accu_list)}")
+    label = "greedy (1 pass)" if training_args.greedy else f"{num_passes} sampling passes"
+    print(f"Average accuracy over {label}: {sum(accu_list) / len(accu_list)}")

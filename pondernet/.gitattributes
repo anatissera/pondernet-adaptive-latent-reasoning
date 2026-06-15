@@ -1,1 +1,0 @@
-models/simcot_gpt2_decoder/*.safetensors filter=lfs diff=lfs merge=lfs -text

@@ -1,4 +1,5 @@
 # Modified from https://github.com/tatsu-lab/stanford_alpaca/blob/main/train.py
+"""Training entrypoint for the PonderNet adaptive-halting latent-CoT model (CODI backbone)."""
 import copy
 import logging
 import os
@@ -6,10 +7,12 @@ import re
 import random
 import warnings
 
-warnings.filterwarnings("ignore")
-logging.getLogger().setLevel(logging.ERROR)
+# Suppress transient HuggingFace library warnings that pollute training logs.
+warnings.filterwarnings("ignore", category=FutureWarning, module="huggingface_hub")
+warnings.filterwarnings("ignore", message="fan_in_fan_out is set to False", category=UserWarning)
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Sequence
+import numpy as np
 import torch
 import json
 import transformers
@@ -24,7 +27,6 @@ from math import ceil
 from peft import PeftModel, LoraConfig, TaskType, get_peft_model
 from datasets import load_dataset
 from functools import partial
-from tqdm import tqdm
 from src.model import (
     CODI,
     ModelArguments,
@@ -32,33 +34,38 @@ from src.model import (
     TrainingArguments,
     freeze_model
 )
-import json
 
 
 def _to_scalar(x):
     """Convert Tensor/number/None to python float (mean-reduced if needed)."""
-    import torch
     if x is None:
         return None
     if isinstance(x, torch.Tensor):
-        # detach，转到 float，若多元素则取 mean，再 item()
+        # detach, cast to float, mean-reduce if multi-element, then .item()
         return x.detach().float().mean().item()
-    # 已经是数字的情况
+    # already a number
     return float(x)
 def read_json(file_path):
-    """
-    从指定路径读取JSON文件并返回对应的Python对象。
-    """
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            return data
-    except Exception as e:
-        print(f"读取JSON文件时出错: {e}")
-        return None
+    """Read a JSON document from file_path and return the parsed object."""
+    with open(file_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def read_jsonl(file_path):
+    """Read a line-delimited JSON (.jsonl) file into a list of objects."""
+    with open(file_path, "r", encoding="utf-8") as file:
+        return [json.loads(line) for line in file if line.strip()]
+
+
+def load_local_data(file_path):
+    """Load a local dataset, dispatching on .jsonl vs .json."""
+    return read_jsonl(file_path) if file_path.endswith(".jsonl") else read_json(file_path)
+
+
 IGNORE_INDEX = -100
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+logging.info(f"Training device: {device}")
 
 class DualProgressCallback(TrainerCallback):
     """Two tqdm bars and nothing else on the console: an overall bar over all
@@ -144,6 +151,35 @@ class CustomTrainer(Trainer):
 
         return (loss, outputs) if return_outputs else loss
 
+    def create_optimizer(self):
+        """Discriminative LRs: gentle on the warm-started backbone (LoRA + prj),
+        hot on the from-scratch halt head. Opt-in via HALT_HEAD_LR env var; unset =
+        HF default single global LR. The cosine scheduler scales all groups by the
+        same factor, so the base/halt LR ratio is preserved throughout training."""
+        if self.optimizer is not None:
+            return self.optimizer
+        halt_lr = os.environ.get("HALT_HEAD_LR")
+        if not halt_lr:
+            return super().create_optimizer()
+        halt_lr, base_lr, wd = float(halt_lr), self.args.learning_rate, self.args.weight_decay
+        decay = set(self.get_decay_parameter_names(self.model))
+        named = [(n, p) for n, p in self.model.named_parameters() if p.requires_grad]
+        halt = [(n, p) for n, p in named if "halt_head" in n]
+        base = [(n, p) for n, p in named if "halt_head" not in n]
+        groups = [
+            {"params": [p for n, p in base if n in decay],     "weight_decay": wd,  "lr": base_lr},
+            {"params": [p for n, p in base if n not in decay],  "weight_decay": 0.0, "lr": base_lr},
+            {"params": [p for n, p in halt if n in decay],      "weight_decay": wd,  "lr": halt_lr},
+            {"params": [p for n, p in halt if n not in decay],  "weight_decay": 0.0, "lr": halt_lr},
+        ]
+        groups = [g for g in groups if g["params"]]
+        self.optimizer = torch.optim.AdamW(
+            groups, lr=base_lr,
+            betas=(self.args.adam_beta1, self.args.adam_beta2), eps=self.args.adam_epsilon)
+        logging.warning(f"Discriminative LR: backbone={base_lr} halt_head={halt_lr} "
+                        f"(halt params={sum(1 for _ in halt)})")
+        return self.optimizer
+
     def log(self, logs, start_time=None):
         if self.state.global_step is not None:
             super().log(logs)
@@ -177,17 +213,8 @@ def extract_answer_number(sentence: str) -> float:
     pred = [s for s in re.findall(r'-?\d+\.?\d*', sentence)]
     if not pred:
         return float('inf')
-    segment = [sentence]
-    if len(segment) > 1:
-        pred_answer = segment[1]
-        pred_answer = [s for s in re.findall(r'-?\d+\.?\d*', pred_answer)]
-        if len(pred_answer) > 0:
-            pred_answer = pred_answer[0]
-        else:
-            pred_answer = float(pred[-1])
-    else:
-        # use the last number as the answer
-        pred_answer = float(pred[-1])
+    # use the last number as the answer
+    pred_answer = float(pred[-1])
 
     if isinstance(pred_answer, str):
         try:
@@ -199,6 +226,9 @@ def extract_answer_number(sentence: str) -> float:
 def train():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+
+    random.seed(training_args.seed)
+    np.random.seed(training_args.seed)
 
     ##########################
     #       Peft Model       #
@@ -224,8 +254,53 @@ def train():
             init_lora_weights=True,
         )
 
-    # import pdb; pdb.set_trace()
+    # model_name_or_path is always a plain GPT-2 (the backbone scaffold) -- never the
+    # SIM-CoT CODI checkpoint, which would load as a bare GPT2LMHeadModel and random-init
+    # the backbone. Two warm-start recipes are available (see pondernet/README.md
+    # "Warm-start strategy"): decoder-only via --decoder_path (inside CODI.__init__), and
+    # full-model via --simcot_ckpt (below). With --simcot_ckpt unset the run is decoder-only
+    # (only --decoder_path warm-starts); set it to additionally warm-start the backbone +
+    # LoRA + prj. NOTE: the training script enables --simcot_ckpt by default, so its
+    # out-of-the-box default is full-model -- clear SIMCOT_CKPT there for decoder-only.
     model = CODI(model_args, training_args, lora_config)
+
+    # Optional full-model warm-start: load the full CODI state dict (backbone + LoRA +
+    # decoder + prj) from a SIM-CoT CODI checkpoint into the assembled module. This MUST be a
+    # load_state_dict into the wrapper -- NOT model_name_or_path pointed at the checkpoint
+    # (that random-inits the backbone). Skipped entirely when --simcot_ckpt is unset.
+    if model_args.simcot_ckpt:
+        sd = load_file(model_args.simcot_ckpt)
+        missing, unexpected = model.load_state_dict(sd, strict=False)
+        # Every checkpoint tensor must map onto a model param: a non-empty `unexpected` means
+        # a namespace mismatch (the exact failure mode that silently produced a random model).
+        if unexpected:
+            raise RuntimeError(
+                f"SIM-CoT warm-start: {len(unexpected)} checkpoint tensors did not map onto the "
+                f"model (namespace mismatch). First few: {unexpected[:8]}"
+            )
+        # The only params allowed to be newly-initialized are the new PonderNet halt head.
+        unexpected_missing = [k for k in missing if not k.startswith("halt_head")]
+        if unexpected_missing:
+            raise RuntimeError(
+                f"SIM-CoT warm-start: {len(unexpected_missing)} model params were NOT loaded from "
+                f"the checkpoint (expected only halt_head.*). First few: {unexpected_missing[:8]}"
+            )
+        # Sentinel check: the SIM-CoT latent-reasoning weights actually landed.
+        for sentinel in ("codi.base_model.model.transformer.wte.weight",
+                         "decoder.lm_head.weight", "prj.1.weight"):
+            if sentinel in missing:
+                raise RuntimeError(f"SIM-CoT warm-start: core weight '{sentinel}' was not loaded.")
+        logging.warning(
+            f"Warm-started {len(sd)} tensors from SIM-CoT checkpoint {model_args.simcot_ckpt}. "
+            f"Newly-initialized (PonderNet halt head): {missing}"
+        )
+
+    if training_args.pondernet:
+        freeze_model(model)
+        for name, p in model.named_parameters():
+            if 'halt_head' in name or 'lora_' in name:
+                p.requires_grad = True
+
     tokenizer = transformers.AutoTokenizer.from_pretrained(
             model_args.model_name_or_path,
             token=model_args.token,
@@ -242,16 +317,15 @@ def train():
             tokenizer.pad_token_id = tokenizer.convert_tokens_to_ids('[PAD]')
 
     def get_answer_token_position(tokens, answer_prompts, tokenizer):
-        #answer_prompt = torch.tensor([464, 3280, 318, 25])
-        # import pdb; pdb.set_trace()
         try:
             match_indices = (tokens.unfold(0, len(answer_prompts[0]), 1) == answer_prompts[0]).all(dim=1).nonzero(as_tuple=True)[0].item()
             answer_token_id = match_indices + len(answer_prompts[0])
             return answer_token_id
-        except Exception:
-            breakpoint()
-        
-    # def get_steps_
+        except Exception as e:
+            raise ValueError(
+                f"Could not locate answer prompt {answer_prompts[0].tolist()} in token sequence "
+                f"{tokens.tolist()}"
+            ) from e
 
     def preprocess(
         sources: Sequence[str], 
@@ -294,7 +368,6 @@ def train():
         if answer_prompts[0][0] == tokenizer.bos_token_id: # remove the bos
             answer_prompts[0] = answer_prompts[0][1:]
             answer_prompts[1] = answer_prompts[1][1:]
-        # import pdb; pdb.set_trace()
         ref_answer_position = [get_answer_token_position(x, answer_prompts, tokenizer) for i, x in enumerate(ref_input_ids)]
         model_answer_position = [get_answer_token_position(x, answer_prompts, tokenizer) for x in answers_id]
 
@@ -317,8 +390,13 @@ def train():
             operators = ["+", "-", "*", "/"]
 
             token_nums = []
-            # import pdb; pdb.set_trace()
-            for num_iter, example in enumerate(raw_data):
+            if data_args.data_path:
+                raw_data = load_local_data(data_args.data_path)
+            elif raw_data is None:
+                raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
+            if data_args.max_train_samples is not None:
+                raw_data = raw_data[:data_args.max_train_samples]
+            for num_iter, example in tqdm(enumerate(raw_data)):
                 if 'cot' not in example: 
                     example['cot'] = example['steps']
                     example['cot'] = ' '.join(example['cot'])
@@ -355,7 +433,7 @@ def train():
                         cot = cot[:-1]
                     
                     len_cot = len(cot) 
-                    for i in range(training_args.num_latent):
+                    for i in range(training_args.max_latent_steps):
                         cot_list.append(" ".join(cot[:max(0, len_cot-i)]))
                     answer = example['answer'].split(' ')[-1]
                     
@@ -447,7 +525,7 @@ def train():
         logging.warning("Downloading Data")
         if "icot" in data_args.data_name:
             if data_args.data_path:
-                raw_data = read_json(data_args.data_path)
+                raw_data = load_local_data(data_args.data_path)
             else:
                 raw_data = list(load_dataset("zen-E/GSM8k-Aug")["train"])
             if data_args.max_train_samples:
@@ -466,7 +544,9 @@ def train():
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
         elif "prontoqa" in data_args.data_name:
-            with open("/home/ubuntu/coconut/data/prontoqa_train.json") as f:
+            if not data_args.data_path:
+                raise ValueError("prontoqa requires --data_path pointing to prontoqa_train.json")
+            with open(data_args.data_path) as f:
                 dataset = json.load(f)
             train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
