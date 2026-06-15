@@ -243,12 +243,17 @@ def evaluation(model_args, data_args, training_args):
         "do_sample": True,
     }
 
-    def generate_answers(past_key_values, bs):
-        """Autoregressively decode answers for `bs` sequences from `past_key_values`.
+    def generate_answers(past_key_values, attn):
+        """Autoregressively decode answers for `attn.size(0)` sequences from `past_key_values`.
 
-        Returns a list of `bs` token-id lists. The given cache is extended locally
-        (the binding is reassigned each step), so the caller's cache is untouched.
+        `attn` is the attention mask (B, L) covering the cache so far (1 = real token,
+        0 = left-pad); it is extended by the number of tokens appended each step so the
+        model keeps masking padded positions (with batch>1 the question is left-padded,
+        and an unmasked cache would let later steps attend to pad keys). Returns a list
+        of B token-id lists. The cache and mask are extended locally, so the caller's
+        copies are untouched.
         """
+        bs = attn.size(0)
         if training_args.remove_eos:
             eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id], dtype=torch.long, device='cuda')).unsqueeze(0).to(device)
         else:
@@ -258,10 +263,17 @@ def evaluation(model_args, data_args, training_args):
         finished = torch.zeros(bs, dtype=torch.bool, device="cuda")  # Track EOS for each sequence
         pred_tokens = [[] for _ in range(bs)]
         for _ in range(gen_kwargs["max_new_tokens"]):
+            # position ids for the token(s) appended this step = running count of real
+            # tokens (attn.sum) .. +n_new-1, then extend the mask to cover them.
+            n_new = output.size(1)
+            base = attn.sum(dim=1, keepdim=True).long()
+            pos_ids = base + torch.arange(n_new, device=attn.device).unsqueeze(0)
+            attn = torch.cat([attn, torch.ones((bs, n_new), dtype=attn.dtype, device=attn.device)], dim=1)
             out = model.codi(
                     inputs_embeds=output,
                     output_hidden_states=False,
-                    attention_mask=None,
+                    attention_mask=attn,
+                    position_ids=pos_ids,
                     use_cache=True,
                     output_attentions=False,
                     past_key_values=past_key_values
@@ -327,7 +339,12 @@ def evaluation(model_args, data_args, training_args):
         with torch.no_grad():
             # encode the question
             past_key_values = None
-            outputs = model.codi(input_ids=batch["input_ids"], use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=batch["attention_mask"])
+            # Position ids derived from the mask so left-padding does not shift the real
+            # tokens' positions (else batch>1 would see different positions than bs=1).
+            # No-op at bs=1 (no padding => 0..L-1). Continuation positions are taken as
+            # attn.sum() (the running count of real tokens) at each appended step.
+            enc_pos = (batch["attention_mask"].long().cumsum(-1) - 1).clamp(min=0)
+            outputs = model.codi(input_ids=batch["input_ids"], use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=batch["attention_mask"], position_ids=enc_pos)
             past_key_values = outputs.past_key_values
             latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
 
@@ -344,6 +361,11 @@ def evaluation(model_args, data_args, training_args):
                     soft_embeds = model.prj(soft_embeds)
                 latent_embd = latent_embd + model_args.soft_weight * soft_embeds
             
+            # Running attention mask over the cache (1 = real token, 0 = left-pad),
+            # grown by one column per appended latent. Passing it on every step keeps
+            # the model from attending to left-padding KVs when batch_size > 1.
+            attn = batch["attention_mask"]
+
             if model.pondernet:
                 # --- PonderNet adaptive halting inference (faithful per-example) ---
                 # Each example's answer is decoded from the KV prefix at *its own* halt
@@ -360,7 +382,9 @@ def evaluation(model_args, data_args, training_args):
                 pred_tokens = [None] * batch_size      # answer per row, filled at halt
 
                 for i in range(k_max):
-                    outputs = model.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
+                    pos_ids = attn.sum(dim=1, keepdim=True).long()   # position of the latent appended now
+                    attn = torch.cat([attn, torch.ones((batch_size, 1), dtype=attn.dtype, device=attn.device)], dim=1)
+                    outputs = model.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=attn, position_ids=pos_ids)
                     past_key_values = outputs.past_key_values
                     latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
 
@@ -379,7 +403,7 @@ def evaluation(model_args, data_args, training_args):
                     if finalize.any():
                         idx = finalize.nonzero(as_tuple=False).flatten()
                         sub_pkv = _slice_past_key_values(past_key_values, idx)
-                        sub_preds = generate_answers(sub_pkv, idx.numel())
+                        sub_preds = generate_answers(sub_pkv, attn.index_select(0, idx))
                         for j, b in enumerate(idx.tolist()):
                             pred_tokens[b] = sub_preds[j]
                             steps_used[b] = i + 1
@@ -395,7 +419,9 @@ def evaluation(model_args, data_args, training_args):
                 steps_used = [training_args.inf_latent_iterations] * batch_size
                 inf_latent_iterations = training_args.inf_latent_iterations
                 for i in range(inf_latent_iterations):
-                    outputs = model.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
+                    pos_ids = attn.sum(dim=1, keepdim=True).long()   # position of the latent appended now
+                    attn = torch.cat([attn, torch.ones((batch_size, 1), dtype=attn.dtype, device=attn.device)], dim=1)
+                    outputs = model.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=attn, position_ids=pos_ids)
                     past_key_values = outputs.past_key_values
                     latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
 
@@ -411,7 +437,7 @@ def evaluation(model_args, data_args, training_args):
                         latent_embd = latent_embd + model_args.soft_weight * soft_embeds
 
                 # Fixed-K: every row shares the same prefix, so one batched decode is exact.
-                pred_tokens = generate_answers(past_key_values, batch_size)
+                pred_tokens = generate_answers(past_key_values, attn)
 
             for mini_step, pred_token in enumerate(pred_tokens):
                 len_cot.append(len(pred_token))
