@@ -27,6 +27,44 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 |--------|----------|---------------------|
 | `pondernet` | PonderNet-style adaptive halting (phases 1–6 complete) | `pondernet/` |
 
+## Method: adaptive halting (PonderNet on SIM-CoT)
+
+SIM-CoT runs a **fixed** number of latent reasoning steps K: each step feeds the
+model's own hidden state `z_k` back as the next input embedding (bypassing the
+vocab projection); after K steps it switches to text and decodes the answer. An
+auxiliary decoder reconstructs each step's text during training (`L_step`) and is
+discarded at inference. We make K **adaptive per instance** following PonderNet:
+
+- **Halting head** (`halt_head`, `nn.Linear(dim, 1)`, bias init `-2.0`): maps each
+  latent state `h_k` → conditional halting prob `lambda_k = sigmoid(.)`.
+- The answer is decoded after **every** prefix `k = 1…K`, not only at K.
+- Halting distribution `p_k = (∏_{j<k}(1 - lambda_j)) · lambda_k`, with an absorbing
+  boundary at K (`lambda_K → 1`) so rows sum to 1 (`_halting_distribution`).
+- Loss: `L = L_pondernet + β·L_step + γ·KL_geom`, where
+  `L_pondernet = Σ_k p_k · L_ans^(k)` is the expected answer loss and `KL_geom`
+  regularizes `p_k` toward a truncated geometric prior (`_kl_geom`; defaults
+  `γ=0.01`, `geom_mean=3.0`). CODI's `distill_loss` + `ref_ce` are also kept.
+- **Inference** (`test.py`): accumulate halting mass and stop the latent loop once
+  cumulative halt prob crosses a threshold (default `0.5`); `K_max = max_latent_steps`
+  is a hard cap.
+
+## Gotchas (read before training / evaluating)
+
+- **`--gradient_checkpointing` MUST stay `False`.** It is incompatible with the
+  latent loop's KV cache (`use_cache=True` + `past_key_values`); HF silently forces
+  `use_cache=False`, so every latent step runs context-free and the model trains
+  against a broken objective. This bug capped every early run at ~15–19% (half the
+  39.5% baseline); the fix first beat baseline at **42.23%**. See `docs/runs.md` →
+  *Root Cause*. Costs VRAM — `per_device_train_batch_size 32` fits the 3090.
+- **Run eval at `--batch_size 1` for faithful adaptive halting.** In `test.py` the
+  latent loop only breaks when **all** examples in the batch have halted, and the
+  answer is decoded from the batch-termination prefix — so with batch > 1 an example
+  that halts early still gets its answer computed from *more* steps than `steps_used`
+  reports. The avg-steps metric stays correct; per-example accuracy does not reflect
+  compute-at-halt. Exact only at `batch_size = 1` (see `pondernet/test.py`).
+- **Eval on the idle GPU**, not the one training (`CUDA_VISIBLE_DEVICES`), or the
+  shared card OOMs mid-run.
+
 ## Running Baselines
 
 ```bash

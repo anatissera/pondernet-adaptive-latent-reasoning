@@ -20,6 +20,9 @@ __pycache__/
 # Secrets
 .env
 
+# Session scratch / handoff notes (local only)
+last-session-AGENTS.md
+
 # macOS
 .DS_Store
 
