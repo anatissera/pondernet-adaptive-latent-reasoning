@@ -1,14 +1,28 @@
 # Datasets / modelos / outputs
+# Trailing-slash variants ignored dirs; bare names also cover symlinks in worktrees
+data
 data/
+datasets
 datasets/
+checkpoints
 checkpoints/
+outputs
 outputs/
+runs
 runs/
+wandb
 wandb/
+models
 models/
+results
 results/
 pondernet/results/
 pondernet/features/
+
+# Worktree-local scripts y configs
+activate.sh
+.claude-config/
+.gh-config/
 
 # Entornos virtuales
 .venv/
@@ -22,6 +36,9 @@ __pycache__/
 
 # Session scratch / handoff notes (local only)
 last-session-AGENTS.md
+
+# Superpowers plans / internal tooling (local only); matches at any depth
+superpowers/
 
 # macOS
 .DS_Store
