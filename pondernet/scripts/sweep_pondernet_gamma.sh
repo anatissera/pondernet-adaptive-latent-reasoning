@@ -50,6 +50,10 @@ THRESHOLDS="${THRESHOLDS:-0.5 0.8 0.9}"
 EVAL_BATCH_SIZE="${EVAL_BATCH_SIZE:-1}"
 SWEEP_TAG="${SWEEP_TAG:-gammasweep}"
 SAVE_TOTAL_LIMIT="${SAVE_TOTAL_LIMIT:-$((EPOCHS + 1))}"
+# Batch size / accumulation overrides (default: train script values: bs=32, accum=4).
+# Set TRAIN_BS=16 TRAIN_ACCUM=8 when training on the 3060 (12 GB) instead of the 3090.
+TRAIN_BS="${TRAIN_BS:-}"
+TRAIN_ACCUM="${TRAIN_ACCUM:-}"
 
 SWEEP_DIR="../results/${SWEEP_TAG}"
 SUMMARY="${SWEEP_DIR}/summary.tsv"
@@ -58,6 +62,7 @@ printf 'gamma\tgeom_mean\tcheckpoint\tthreshold\taccuracy_pct\tavg_steps\trun_id
 
 echo "[sweep] gammas=[$GAMMAS] geom_mean=$GEOM_MEAN epochs=$EPOCHS thresholds=[$THRESHOLDS]"
 echo "[sweep] train_gpu=$TRAIN_GPU eval_gpu=$EVAL_GPU (CUDA_DEVICE_ORDER=$CUDA_DEVICE_ORDER)"
+echo "[sweep] batch overrides: TRAIN_BS=${TRAIN_BS:-<script default 32>} TRAIN_ACCUM=${TRAIN_ACCUM:-<script default 4>}"
 echo "[sweep] frontier -> $SUMMARY"
 
 for G in $GAMMAS; do
@@ -77,6 +82,12 @@ for G in $GAMMAS; do
                  --save_total_limit "$SAVE_TOTAL_LIMIT")
     if [[ -n "${MAX_TRAIN_SAMPLES:-}" ]]; then
         TRAIN_EXTRA+=(--max_train_samples "$MAX_TRAIN_SAMPLES")
+    fi
+    if [[ -n "${TRAIN_BS:-}" ]]; then
+        TRAIN_EXTRA+=(--per_device_train_batch_size "$TRAIN_BS")
+    fi
+    if [[ -n "${TRAIN_ACCUM:-}" ]]; then
+        TRAIN_EXTRA+=(--gradient_accumulation_steps "$TRAIN_ACCUM")
     fi
 
     if ! CUDA_VISIBLE_DEVICES="$TRAIN_GPU" \

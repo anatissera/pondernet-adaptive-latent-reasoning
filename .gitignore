@@ -37,6 +37,9 @@ __pycache__/
 # Session scratch / handoff notes (local only)
 last-session-AGENTS.md
 
+# Superpowers plans / internal tooling (local only); matches at any depth
+superpowers/
+
 # macOS
 .DS_Store
 
