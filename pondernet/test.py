@@ -59,8 +59,10 @@ def save_jsonl_line(filepath, data):
         f.write(json_line + "\n")
 
 def read_json(file_path):
-    """Read a JSON document from file_path and return the parsed object."""
+    """Read a JSON or JSONL file and return the parsed object (list for JSONL)."""
     with open(file_path, "r", encoding="utf-8") as file:
+        if file_path.endswith(".jsonl"):
+            return [json.loads(line) for line in file if line.strip()]
         return json.load(file)
 
 
@@ -328,6 +330,7 @@ def evaluation(model_args, data_args, training_args):
     gating_probs_sums = None
     len_cot = []
     steps_used_list = []   # latent steps used per instance (pondernet mode only)
+    cot_steps_list = []    # ground-truth CoT step count per instance (None if dataset lacks 'cot')
     model.eval()
     attn_to_latent_list = []
     if model_args.soft_weight:
@@ -442,6 +445,10 @@ def evaluation(model_args, data_args, training_args):
             for mini_step, pred_token in enumerate(pred_tokens):
                 len_cot.append(len(pred_token))
                 steps_used_list.append(steps_used[mini_step])
+                _q = step * data_args.batch_size + mini_step
+                _rec = test_set[_q]
+                _cot = (_rec.get('cot', '') if isinstance(_rec, dict) else getattr(_rec, 'cot', ''))
+                cot_steps_list.append(_cot.count('<<') if _cot else None)
                 decoded_pred = tokenizer.decode(pred_token, skip_special_tokens=True)
                 if do_print:
                     q_idx = step * data_args.batch_size + mini_step
@@ -455,18 +462,17 @@ def evaluation(model_args, data_args, training_args):
                     print("")
                 ans_pred_list.append(extract_answer_number(decoded_pred))
     os.makedirs(data_args.results_dir, exist_ok=True)
-    results_path = os.path.join(data_args.results_dir, f"{data_args.data_name}.json")
-    write_json({"ans": ans_pred_list}, results_path)
     accuracy = compute_accuracy(answer, ans_pred_list)
 
     print(f"adapter: {model_args.adapter_name_or_path} | GSM8K test accuracy: {100*accuracy:.2f}% | ")
     print(f"average length of COT: {sum(len_cot)/len(len_cot)}")
     if model.pondernet and steps_used_list:
+        from collections import defaultdict
         avg_steps = sum(steps_used_list) / len(steps_used_list)
         print(f"[PonderNet] average latent steps used: {avg_steps:.2f} / {model.max_latent_steps}  "
               f"(threshold={model.pondernet_inf_threshold})")
+
         # Accuracy-vs-budget table
-        from collections import defaultdict
         step_correct = defaultdict(list)
         for pred, gold, su in zip(ans_pred_list, answer, steps_used_list):
             step_correct[su].append(pred == gold)
@@ -477,10 +483,56 @@ def evaluation(model_args, data_args, training_args):
             n = len(step_correct[k])
             acc_k = 100.0 * sum(step_correct[k]) / n
             print(f"{k:>6} | {n:>6} | {acc_k:>7.1f}%")
-        # Save full per-instance results for offline plotting
-        detailed_path = os.path.join(data_args.results_dir, f"{data_args.data_name}_pondernet_detail.json")
-        write_json({"steps_used": steps_used_list, "correct": [p == g for p, g in zip(ans_pred_list, answer)]}, detailed_path)
-        print(f"[PonderNet] Per-instance detail saved to {detailed_path}")
+
+        # instance_results.json — one object per datapoint
+        per_example_path = os.path.join(data_args.results_dir, "instance_results.json")
+        write_json([
+            {
+                "steps_used":  su,
+                "correct":     p == g,
+                "cot_steps":   cs,
+                "pred_answer": p,
+                "gt_answer":   g,
+            }
+            for su, p, g, cs in zip(steps_used_list, ans_pred_list, answer, cot_steps_list)
+        ], per_example_path)
+        print(f"[PonderNet] Instance results saved to {per_example_path}")
+
+        # summary.json — run-level metrics + breakdowns
+        by_steps = [
+            {"steps_used": k, "n": len(v), "accuracy_pct": round(100.0 * sum(v) / len(v), 2)}
+            for k, v in sorted(step_correct.items())
+        ]
+        cot_buckets = defaultdict(lambda: {"n": 0, "correct": 0, "steps_sum": 0})
+        for su, p, g, cs in zip(steps_used_list, ans_pred_list, answer, cot_steps_list):
+            key = cs  # int or None
+            cot_buckets[key]["n"] += 1
+            cot_buckets[key]["correct"] += int(p == g)
+            cot_buckets[key]["steps_sum"] += su
+        by_cot = [
+            {
+                "cot_steps":      k,
+                "n":              v["n"],
+                "accuracy_pct":   round(100.0 * v["correct"] / v["n"], 2),
+                "avg_steps_used": round(v["steps_sum"] / v["n"], 2),
+            }
+            for k, v in sorted(cot_buckets.items(), key=lambda x: (x[0] is None, x[0]))
+        ]
+        summary = {
+            "accuracy_pct":     round(100 * accuracy, 2),
+            "total_examples":   len(ans_pred_list),
+            "avg_steps_used":   round(avg_steps, 3),
+            "max_latent_steps": model.max_latent_steps,
+            "threshold":        model.pondernet_inf_threshold,
+            "by_steps_used":    by_steps,
+            "by_cot_steps":     by_cot,
+        }
+        summary_path = os.path.join(data_args.results_dir, "summary.json")
+        write_json(summary, summary_path)
+        print(f"[PonderNet] Run summary saved to {summary_path}")
+    else:
+        predictions_path = os.path.join(data_args.results_dir, "predictions.json")
+        write_json({"ans": ans_pred_list}, predictions_path)
     if model_args.save_ablation:
         ablation_path = os.path.join(data_args.results_dir, f"{data_args.data_name}.jsonl")
         save_jsonl_line(ablation_path, {'model_name': model_args.ckpt_dir, 'data_name': data_args.data_name, 'soft_weight': model_args.soft_weight, 'acc.': accuracy})

@@ -5,6 +5,8 @@ top of CODI's fixed-K latent chain-of-thought: instead of always running a
 fixed number of latent reasoning steps `K`, the model learns a per-instance
 halting probability at each step and can stop early.
 
+> **Layout note**: `train.py` and `test.py` live at the root of `pondernet/` (not in `src/`) because they are CLI entry points invoked directly by the shell scripts in `scripts/`. `src/model.py` is the library they import. Run everything from the `pondernet/` directory.
+
 Enabled via the `--pondernet True` flag (default `False` — the original
 fixed-K SIM-CoT/CODI training path is unaffected when this is off).
 
