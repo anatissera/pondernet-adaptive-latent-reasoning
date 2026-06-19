@@ -85,6 +85,31 @@ beneficia de 3. Por eso no hay headroom adaptativo — no porque `c` sea irrelev
 porque su varianza per-instancia es muy baja. El óptimo es **fijo c=2** (8 vec, 39.42 %),
 y el adaptive (10 vec, 39.80 %) gasta más para lo mismo.
 
+## ¿Por qué satura en c=2? ¿Es sesgo o es la tarea?
+
+Pregunta clave: ¿`c` satura de verdad, o nuestro setup lo sesgó a saturar? Auditoría
+(detalle e implementación en `IMPLEMENTATION.md` §6):
+
+**Contexto de los papers (agente de investigación):** CODI (el código base) usa **1 vector
+por paso**; los papers SIM-CoT/Coconut usan `c_thought=2` (`SIM-CoT/Coconut/args/*.yaml`).
+El checkpoint del que hicimos warm-start (`models/pretrained/simcot-gpt2-codi`) fue entrenado
+con **c=1**. Los pasos se segmentan por marcadores de texto (`<<…>>`), supervisados desde el CoT.
+
+**Sesgos en nuestro setup (a remover para un test limpio):**
+1. **Warm-start c=1 + LoRA-only (base congelada).** El modelo arranca en el régimen c=1 y solo
+   LoRA(r=128) lo adapta; la circuitería de razonamiento del backbone sigue siendo la de c=1.
+   → **El usuario tiene razón: no deberíamos usar el checkpoint SIM-CoT; hay que reentrenar sin
+   ese ancla** (cold start / full fine-tune desde GPT-2 plano).
+2. **Granularidad: 1 operación aritmética = 1 paso.** En GSM8K-Aug cada paso es un `<<a op b=c>>`
+   trivial → 2 vectores lo saturan. La **varianza de la tarea está en el nº de pasos (1–6 ops),
+   no en la complejidad por paso**. Por eso el eje `c` es plano y el eje `K` tiene headroom.
+3. **La respuesta se entrena solo a budget máximo (M/paso).** El answer head nunca aprende a
+   responder con menos vectores → sesga contra c bajo y contra que la adaptividad pague.
+
+**Veredicto del análisis:** la saturación en c=2 es **mayormente la tarea** (pasos triviales y
+uniformes), con el warm-start/LoRA como ancla **secundaria**. Un retrain sin sesgo (puntos 1-3)
+es necesario para afirmarlo con rigor — es exactamente lo que se planifica a continuación.
+
 ## Conclusión y recomendación
 
 1. **Implementación validada.** Option-B entrena, halta adaptativo por paso, y baja el
