@@ -331,6 +331,8 @@ def evaluation(model_args, data_args, training_args):
     gating_probs_sums = None
     len_cot = []
     steps_used_list = []   # latent steps used per instance (pondernet mode only)
+    ob_vectors_per_step_all = []   # Option-B: per-(instance,step) vector counts (n_k)
+    ob_total_vectors_all = []      # Option-B: total vectors per instance (sum_k n_k)
     model.eval()
     attn_to_latent_list = []
     if model_args.soft_weight:
@@ -395,7 +397,51 @@ def evaluation(model_args, data_args, training_args):
                         fixedk_preds[i].append(extract_answer_number(decoded))
                 continue  # skip the normal per-row recording below
 
-            if model.pondernet:
+            if getattr(model, "option_b", False):
+                # --- Option-B adaptive vectors-per-step inference ---
+                # Within each of K fixed reasoning steps, add sub-vectors (re-feeding
+                # the hidden) until the MLP's predicted L_step stops decreasing
+                # (|L_hat_j - L_hat_{j-1}| < eps) or ob_max_subvectors is reached, then
+                # advance to the next step. Decode the answer after all K steps. Latent
+                # generation mirrors training (the current sub-vector is appended to the
+                # cache when the NEXT one is generated). Faithful at batch_size=1; with
+                # bs>1 the shared cache means a row that halted still gets later rows'
+                # latents appended, inflating its compute (same caveat as PonderNet).
+                K = model.ob_num_steps
+                Mmax = model.ob_max_subvectors
+                eps = model.ob_eps
+                n_per_step = [[0] * K for _ in range(batch_size)]
+                first = True
+                for k in range(K):
+                    prev_lhat = None
+                    active = torch.ones(batch_size, dtype=torch.bool, device=device)  # rows still extending this step
+                    for j in range(Mmax):
+                        if not first:
+                            pos_ids = attn.sum(dim=1, keepdim=True).long()
+                            attn = torch.cat([attn, torch.ones((batch_size, 1), dtype=attn.dtype, device=attn.device)], dim=1)
+                            outputs = model.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=attn, position_ids=pos_ids)
+                            past_key_values = outputs.past_key_values
+                            latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
+                            if training_args.use_prj:
+                                latent_embd = model.prj(latent_embd)
+                        first = False
+                        l_hat = model.ob_mlp(latent_embd.squeeze(1).float()).squeeze(-1)  # (B,)
+                        for b in range(batch_size):
+                            if bool(active[b]):
+                                n_per_step[b][k] += 1
+                        if j >= 1:
+                            mature = (l_hat - prev_lhat).abs() < eps
+                            active = active & (~mature)
+                        prev_lhat = l_hat
+                        if not bool(active.any()):
+                            break
+                # decode the answer from the full latent prefix
+                pred_tokens = generate_answers(past_key_values, attn)
+                steps_used = [sum(n_per_step[b]) for b in range(batch_size)]
+                for b in range(batch_size):
+                    ob_vectors_per_step_all.append(n_per_step[b])
+                    ob_total_vectors_all.append(sum(n_per_step[b]))
+            elif model.pondernet:
                 # --- PonderNet adaptive halting inference (faithful per-example) ---
                 # Each example's answer is decoded from the KV prefix at *its own* halt
                 # step. When a row crosses the cumulative-halt threshold we slice the
@@ -527,6 +573,36 @@ def evaluation(model_args, data_args, training_args):
         detailed_path = os.path.join(data_args.results_dir, f"{data_args.data_name}_pondernet_detail.json")
         write_json({"steps_used": steps_used_list, "correct": [p == g for p, g in zip(ans_pred_list, answer)]}, detailed_path)
         print(f"[PonderNet] Per-instance detail saved to {detailed_path}")
+    if getattr(model, "option_b", False) and ob_total_vectors_all:
+        from collections import Counter, defaultdict
+        import statistics as _st
+        n_inst = len(ob_total_vectors_all)
+        K = model.ob_num_steps
+        avg_total = sum(ob_total_vectors_all) / n_inst
+        # mean vectors at each step position, and the marginal distribution of n_k
+        per_step_mean = [_st.mean(v[s] for v in ob_vectors_per_step_all) for s in range(K)]
+        nk_flat = [nk for v in ob_vectors_per_step_all for nk in v]
+        nk_dist = Counter(nk_flat)
+        print(f"\n[Option-B] avg TOTAL vectors/instance: {avg_total:.2f} / {K * model.ob_max_subvectors} "
+              f"(K={K}, M_max={model.ob_max_subvectors}, eps={model.ob_eps})")
+        print(f"[Option-B] mean vectors at each step: " + ", ".join(f"s{s}={m:.2f}" for s, m in enumerate(per_step_mean)))
+        print(f"[Option-B] n_k distribution (how many vectors a step uses): "
+              + ", ".join(f"{k}:{nk_dist[k]}" for k in sorted(nk_dist)))
+        # Accuracy vs total-vector budget
+        budget_correct = defaultdict(list)
+        for pred, gold, tv in zip(ans_pred_list, answer, ob_total_vectors_all):
+            budget_correct[tv].append(pred == gold)
+        print("\n[Option-B] Accuracy vs total-vector budget:")
+        print(f"{'Vecs':>6} | {'N':>6} | {'Acc (%)':>8}")
+        print("-" * 26)
+        for tv in sorted(budget_correct):
+            n = len(budget_correct[tv]); acc_tv = 100.0 * sum(budget_correct[tv]) / n
+            print(f"{tv:>6} | {n:>6} | {acc_tv:>7.1f}%")
+        detailed_path = os.path.join(data_args.results_dir, f"{data_args.data_name}_optionb_detail.json")
+        write_json({"vectors_per_step": ob_vectors_per_step_all, "total_vectors": ob_total_vectors_all,
+                    "correct": [p == g for p, g in zip(ans_pred_list, answer)], "accuracy_pct": round(100 * accuracy, 2)},
+                   detailed_path)
+        print(f"[Option-B] per-instance detail saved to {detailed_path}")
     if model_args.save_ablation:
         ablation_path = os.path.join(data_args.results_dir, f"{data_args.data_name}.jsonl")
         save_jsonl_line(ablation_path, {'model_name': model_args.ckpt_dir, 'data_name': data_args.data_name, 'soft_weight': model_args.soft_weight, 'acc.': accuracy})

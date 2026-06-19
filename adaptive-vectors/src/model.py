@@ -450,6 +450,8 @@ class CODI(torch.nn.Module):
             self.ob_lambda_dist = training_args.ob_lambda_dist
             self.ob_lambda_halt = training_args.ob_lambda_halt
             self.ob_probe = training_args.ob_probe
+            self.ob_eps = training_args.ob_eps                       # inference: halt a step when |L_hat_j - L_hat_{j-1}| < eps
+            self.ob_max_subvectors = training_args.ob_max_subvectors  # inference: hard cap on sub-vectors per step
             # MLP head: predicts per-example L_step from the latent hidden h_k.
             # Survives inference (the decoder does not). Kept in float32; fed detached
             # h_k by default (ob_detach_hk) so it cannot corrupt the backbone.

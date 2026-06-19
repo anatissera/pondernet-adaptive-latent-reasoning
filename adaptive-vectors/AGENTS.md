@@ -192,7 +192,25 @@ madura en j=1) → no hay nada que adaptar → rethink/report (la usuaria pidió
 si no hay resultados).
 
 ### Fase 4 — Inferencia adaptativa
-_(en progreso)_
+**Fecha:** 2026-06-19
+
+`test.py`: branch `option_b` (antes que pondernet). Por cada uno de los K pasos fijos,
+agrega sub-vectores (re-alimentando el hidden) hasta que `|L̂_j - L̂_{j-1}| < ob_eps`
+o se alcanza `ob_max_subvectors`; luego avanza al siguiente paso; decodifica la
+respuesta tras los K pasos. La generación latente espeja el training (el sub-vector
+actual se agrega al cache cuando se genera el siguiente; el último nunca se agrega →
+mismo off-by-one). Fiel a `batch_size=1` (con bs>1 el cache compartido infla el
+cómputo de filas que ya frenaron — mismo caveat que PonderNet). Reporta: accuracy,
+avg vectores totales/instancia, media de vectores por posición de paso, distribución
+de `n_k`, y tabla accuracy-vs-budget. Guarda detalle por instancia en `results/`.
+Script: `scripts/eval_gpt2_gsm8k_optionb.sh` (bs=1, 3060). `__init__` ahora expone
+`ob_eps`, `ob_max_subvectors`.
+
+### Fase 5 — Entrenamiento + evaluación
+**Fecha:** 2026-06-19 — run1 lanzado (tmux `optionb-train`): K=4, M=3, BS=8×ACCUM4,
+3 épocas, 8000 ej., LR 2e-5, HALT_LR 1e-3, **λ_halt=0** (sin penalty, para medir
+headroom puro: ¿bajan las curvas de bloque tras entrenar?). 3060, ~2.9s/it, ~7.5GB.
+Eval pendiente al terminar.
 
 ### Fase 4 — Inferencia adaptativa
 _(pendiente)_
