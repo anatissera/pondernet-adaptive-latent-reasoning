@@ -438,6 +438,18 @@ class CODI(torch.nn.Module):
             self.pondernet_geom_mean = training_args.pondernet_geom_mean
             self.pondernet_inf_threshold = training_args.pondernet_inf_threshold
 
+        # --- Option-B: adaptive vectors-per-step (c) ---
+        self.option_b = getattr(training_args, "option_b", False)
+        if self.option_b:
+            self.ob_subvectors_per_step = training_args.ob_subvectors_per_step
+            self.ob_detach_hk = training_args.ob_detach_hk
+            self.ob_lambda_ans = training_args.ob_lambda_ans
+            self.ob_lambda_step = training_args.ob_lambda_step
+            self.ob_lambda_dist = training_args.ob_lambda_dist
+            self.ob_lambda_halt = training_args.ob_lambda_halt
+            self.ob_probe = training_args.ob_probe
+            # NOTE: the MLP head (self.ob_mlp) is added in Phase 2, not here.
+
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
             self.tokenizer.pad_token_id = self.pad_token_id
@@ -556,6 +568,99 @@ class CODI(torch.nn.Module):
         per_example_ce = (tok_loss * valid).sum(dim=1) / valid.sum(dim=1).clamp_min(1.0)
         return outputs, logits, per_example_ce
 
+    def _explain_loss_for(self, latent_hidden, steps_pad_list, step_idx):
+        """Decoder reconstruction loss L_step for ONE reasoning step's text,
+        decoded from `latent_hidden`. Faithful extraction of the in-loop decoder
+        block; used by the Option-B probe (and later phases) to score a single
+        (step, sub-vector) pair. Returns a scalar tensor."""
+        bz = len(steps_pad_list)
+        step_token_ids = []
+        for bz_idx in range(bz):
+            step_token_ids.append(steps_pad_list[bz_idx][step_idx])
+            step_token_ids = dedup_trailing_pads(step_token_ids, pad_id=self.tokenizer.pad_token_id)
+        indices = torch.tensor(step_token_ids, dtype=torch.long, device=self.codi.device)
+        explain_embds = self.get_embd(self.codi, self.model_name)(indices)
+        explain_embds = torch.concat([latent_hidden, explain_embds], dim=1)
+
+        prefix = torch.full((bz, 1), -570, dtype=indices.dtype, device=indices.device)
+        indices_with_prefix = torch.cat([prefix, indices], dim=1)
+        explain_attention_mask = (indices_with_prefix != self.tokenizer.pad_token_id)
+        explain_labels = indices_with_prefix.clone()
+        explain_labels = explain_labels.masked_fill(
+            (explain_labels == -570) | (explain_labels == self.tokenizer.pad_token_id), -100)
+
+        if self.model_args.decoder_path:
+            explain_embds = self.pj_in(explain_embds)
+        if (explain_labels != -100).sum() == 0:
+            return torch.tensor(0.0, device=self.codi.device)
+
+        with autocast('cuda', dtype=torch.bfloat16):
+            explain_outputs = self.decoder(inputs_embeds=explain_embds,
+                                           attention_mask=explain_attention_mask,
+                                           output_hidden_states=True)
+        explain_logits = explain_outputs.logits
+        if self.model_args.decoder_path:
+            explain_logits = self.pj_out(explain_logits)
+        shift_logits = explain_logits[..., :-1, :].contiguous().view(-1, explain_logits.size(-1))
+        shift_labels = explain_labels[..., 1:].contiguous().view(-1)
+        if (shift_labels != -100).sum() == 0:
+            return torch.tensor(0.0, device=self.codi.device)
+        return self.loss_fct(shift_logits, shift_labels)
+
+    def _ob_probe(self, encoder_input_ids, encoder_attention_mask, ref_input_ids):
+        """Phase-1 GO/NO-GO diagnostic. For each reasoning step, generate M
+        sub-vectors (re-feeding the hidden state) and log the decoder's L_step
+        for that step's text from EACH sub-vector. Tests the core assumption:
+        does L_step decrease as we add sub-vectors within a single step?
+
+        `step k = 0.0000` means that example had no text for step k (padding) and
+        is excluded from the mean-over-steps line."""
+        import statistics
+        with torch.no_grad():
+            M = self.ob_subvectors_per_step
+            K = self.max_latent_steps
+            # per-step target token ids — identical construction to the main path (gpt2)
+            steps_list = get_steps(ref_input_ids, K + 1, start_ids=(16791, 9959), end_id=4211,
+                                   eot_id=self.tokenizer.eos_token_id, pad_id=self.tokenizer.pad_token_id,
+                                   stop_ids=(self.tokenizer.eos_token_id, self.tokenizer.pad_token_id))
+            steps_pad_list = pad_steps(steps_list, pad_id=self.tokenizer.pad_token_id)
+
+            outputs = self.codi(input_ids=encoder_input_ids, use_cache=True,
+                                output_hidden_states=True, attention_mask=encoder_attention_mask)
+            past_key_values = outputs.past_key_values
+            latent_hidden = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
+            if self.use_prj:
+                latent_hidden = self.prj(latent_hidden)
+
+            curves = []  # curves[step][subvec] = mean L_step over batch
+            first = True
+            for step_idx in range(K):
+                row = []
+                for j in range(M):
+                    if not first:
+                        outputs = self.codi(inputs_embeds=latent_hidden, use_cache=True,
+                                            output_hidden_states=True, past_key_values=past_key_values)
+                        past_key_values = outputs.past_key_values
+                        latent_hidden = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
+                        if self.use_prj:
+                            latent_hidden = self.prj(latent_hidden)
+                    first = False
+                    row.append(float(self._explain_loss_for(latent_hidden, steps_pad_list, step_idx)))
+                curves.append(row)
+
+            # exclude all-zero (padding) steps from the mean-over-steps summary
+            real_steps = [s for s in range(K) if any(v > 0.0 for v in curves[s])]
+            mean_by_subvec = [statistics.mean(curves[s][j] for s in real_steps) for j in range(M)] \
+                if real_steps else [0.0] * M
+            print("[OB-PROBE] L_step by sub-vector position (mean over non-pad steps): "
+                  + " -> ".join(f"{v:.4f}" for v in mean_by_subvec), flush=True)
+            for s in range(K):
+                print(f"[OB-PROBE]   step {s}: " + " -> ".join(f"{v:.4f}" for v in curves[s]), flush=True)
+
+        # grad-connected zero leaf (built OUTSIDE no_grad) so HF Trainer.backward() is a safe no-op
+        loss = torch.zeros((), device=self.codi.device, requires_grad=True)
+        return {"loss": loss, "logits": None, "ce_loss": 0.0, "distill_loss": 0.0, "ref_ce_loss": 0.0}
+
     def forward(
         self,
         encoder_input_ids: torch.LongTensor = None,
@@ -570,6 +675,9 @@ class CODI(torch.nn.Module):
         step: int = None,
         step_ratio: float = None
     ):
+        if getattr(self, "option_b", False) and getattr(self, "ob_probe", False):
+            return self._ob_probe(encoder_input_ids, encoder_attention_mask, ref_input_ids)
+
         if not self.fix_attn_mask:
             ref_attention_mask = None
         
