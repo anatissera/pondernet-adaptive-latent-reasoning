@@ -180,3 +180,26 @@ They are deliberately not renamed so that existing checkpoints remain loadable.
 | `explain_loss` | Auxiliary decoder reconstruction cross-entropy (L_step): how well `decoder` can predict each CoT step from the corresponding latent embedding. Weighted by `--explain_loss_factor` (standard mode) or `--pondernet_beta` (PonderNet mode). |
 | `distill_loss` | Hidden-state distillation loss between student (latent path) and teacher (reference CoT path) at the answer position, averaged over all transformer layers. Weighted by `--distill_loss_factor`. |
 | `ref_ce_loss` | Cross-entropy loss for the reference/teacher task (the model predicting the full CoT sequence). Weighted by `--ref_loss_factor`. |
+
+## (d) Run-layout env overrides (`EXP` / `RUN`)
+
+The train/eval scripts derive their artifact directories from two environment
+variables so every run lands under the experiment-scoped layout:
+
+| Env var | Meaning | Constraint |
+|---------|---------|------------|
+| `EXP` | Experiment dir name (`<NN-exp>`) | must match `^[0-9]{2}-[a-z0-9.-]+$` (e.g. `04-simcot-pondernet-gammasweep`); the `simcot`/`simcot-pondernet` prefix lives here, not in `RUN` |
+| `RUN` | Run id within the experiment | the distinguishing part only (e.g. `g0.05-gm3.0-ep5`) |
+
+Derivation (only when the explicit dir var is unset — explicit
+`SAVE_DIR`/`LOG_DIR`/`RESULTS_DIR` always win, for back-compat):
+
+```
+SAVE_DIR    = ../models/checkpoints/$EXP/$RUN   (train)
+LOG_DIR     = ../outputs/$EXP/$RUN              (train)
+RESULTS_DIR = ../results/$EXP/$RUN              (eval)
+```
+
+The train/eval scripts refuse to run when `EXP`/`RUN` are missing or `EXP` fails the
+pattern. Scaffold a new experiment folder by hand and record a finished run following
+the existing entries' format; see [`experiments.md`](experiments.md).
