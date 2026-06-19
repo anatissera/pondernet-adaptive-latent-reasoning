@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# One-off: resume the simcot-pondernet-gcfix-100k run from its epoch-2 checkpoint
+# One-off (historical): resumed the gcfix run from its epoch-2 checkpoint
 # (checkpoint-1556) after the OOM crash. Calls train.py directly with the exact
 # gcfix recipe so HF Trainer auto-resumes; does NOT use the (reverted) train .sh.
+# Paths updated for the experiment-scoped layout (03-simcot-pondernet-gcfix/100k);
+# the run is complete, so this is kept only for reproducibility.
 set -euo pipefail
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 REPO=/home/tpnlp/adaptive-latent-reasoning
 python train.py \
-    --output_dir "$REPO/models/checkpoints/simcot-pondernet-gcfix-100k" \
+    --output_dir "$REPO/models/checkpoints/03-simcot-pondernet-gcfix/100k" \
     --expt_name default \
-    --logging_dir "$REPO/outputs/simcot-pondernet-gcfix-100k" \
+    --logging_dir "$REPO/outputs/03-simcot-pondernet-gcfix/100k" \
     --logging_steps 10 \
     --model_name_or_path gpt2 \
     --data_name icot \
