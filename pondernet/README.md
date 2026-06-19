@@ -37,12 +37,18 @@ geometric prior with mean `pondernet_geom_mean`.
 
 ## Training
 
+Launch with `EXP=<NN-exp> RUN=<run-id>`; the script derives `SAVE_DIR`/`LOG_DIR` from
+them (artifacts land under `<models/checkpoints|outputs>/<NN-exp>/<run-id>/`). The
+script refuses to run without a valid `EXP`/`RUN`.
+
 ```bash
-CUDA_VISIBLE_DEVICES=0 bash scripts/train_gpt2_gsm8k_pondernet.sh
+EXP=04-simcot-pondernet-gammasweep RUN=g0.05-gm3.0-ep5 \
+  CUDA_VISIBLE_DEVICES=0 bash scripts/train_gpt2_gsm8k_pondernet.sh
 ```
 
 Training auto-resumes from the last checkpoint found in `output_dir` if the
-run is interrupted (see `train.py`) — just re-run the same command.
+run is interrupted (see `train.py`) — just re-run the same command. Explicit
+`SAVE_DIR`/`LOG_DIR` still override the `EXP`/`RUN` derivation (back-compat).
 
 ### Warm-starting the auxiliary decoder from SIM-CoT
 
@@ -118,20 +124,26 @@ exact mistake `--simcot_ckpt` exists to avoid.
 
 ## Evaluation
 
+Run eval at `--batch_size 1` (default) for faithful halting, on the **idle** GPU:
+
 ```bash
 # Adaptive halting (PonderNet)
-CKPT=/path/to/checkpoint bash scripts/eval_gpt2_gsm8k_pondernet.sh
+EXP=04-simcot-pondernet-gammasweep RUN=g0.05-gm3.0-ep5 CKPT=/path/to/checkpoint \
+  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
+  bash scripts/eval_gpt2_gsm8k_pondernet.sh
 
 # Fixed-K baseline, for comparison (set NUM_LATENT to whatever K you trained with)
-CKPT=/path/to/checkpoint NUM_LATENT=6 bash scripts/eval_gpt2_gsm8k_fixedk.sh
+EXP=01-simcot-baselines RUN=fixedk-k6 CKPT=/path/to/checkpoint NUM_LATENT=6 \
+  bash scripts/eval_gpt2_gsm8k_fixedk.sh
 ```
 
-The PonderNet eval reports accuracy, the average number of latent steps used,
-and an accuracy-vs-budget table (plus a per-instance JSON dump in
-`results_dir` for offline plotting).
+`RESULTS_DIR` is derived as `../results/<NN-exp>/<run-id>/` (or pass it explicitly to
+override). Both eval scripts self-write `command.sh`, `eval.log`, and `summary.json`
+there. The PonderNet eval reports accuracy, the average number of latent steps used,
+and an accuracy-vs-budget table (plus a per-instance JSON dump for offline plotting).
 
 ## Documentation
 
 - [`../docs/pipeline.md`](../docs/pipeline.md) — end-to-end workflow: acquire artifacts, choose a warm-start recipe, train, evaluate, and record results in the run manifest (includes a Mermaid flow diagram).
 - [`../docs/parameters.md`](../docs/parameters.md) — complete CLI flag reference, both warm-start recipes and the `model_name_or_path` trap, and the module/loss-term glossary.
-- [`../docs/runs.md`](../docs/runs.md) — run manifest listing every experiment: naming convention, artifact layout, hparams, and accuracy results.
+- [`../docs/experiments.md`](../docs/experiments.md) — experiment index → per-experiment `experiment.md`/`runs.md` → per-run `<run-id>.md`: artifact layout, hparams, and accuracy results. Launch runs with `EXP`/`RUN`; record them by following the existing run entries' format.

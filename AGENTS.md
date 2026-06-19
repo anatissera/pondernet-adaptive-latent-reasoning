@@ -10,14 +10,14 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 - `pondernet/` — PonderNet adaptive halting built on CODI; Subgroup 1's active working area
 - `models/` — model weights (gitignored), split by provenance:
   - `pretrained/` — downloaded backbones + decoder: `gpt2`, `simcot-gpt2-codi`, `simcot-gpt2-coconut`, `simcot-gpt2-decoder` (fetch the decoder with `pondernet/scripts/fetch_simcot_decoder.py`)
-  - `checkpoints/<run-id>/` — our trained runs
-- `outputs/` — training logs and TensorBoard events (gitignored); one subdir per run-id
-- `results/` — evaluation outputs (gitignored); one subdir per run-id
+  - `checkpoints/<NN-exp>/<run-id>/` — our trained runs, grouped under a numbered experiment
+- `outputs/` — training logs and TensorBoard events (gitignored); `<NN-exp>/<run-id>/` per run
+- `results/` — evaluation outputs (gitignored); `<NN-exp>/<run-id>/` per run
 - `data/` — datasets (gitignored); `gsm8k_aug/` holds the GSM8k-Aug jsonl, training is pinned to `train15k.jsonl` by default
-- A single **run-id** names the same experiment across `models/checkpoints/`, `outputs/`, and `results/` (see `docs/runs.md`)
+- Runs are grouped into numbered **experiments**: a `<NN-exp>/<run-id>` pair names the same run across `models/checkpoints/`, `outputs/`, and `results/` (see `docs/experiments.md`). Dead/scratch runs live under `<dir>/archive/`.
 - `docs/pipeline.md` — end-to-end training/eval workflow + diagram; **read this first to train a model**
 - `docs/parameters.md` — CLI flag reference, warm-start recipes, and the kept-name glossary
-- `docs/runs.md` — run manifest (run-id, date, hparams, accuracy)
+- `docs/experiments.md` — experiment index → per-experiment `experiment.md`/`runs.md` → per-run `<run-id>.md`
 - `docs/methods-comparison.md` — cross-paper comparison table and chain-of-influence narrative; read this for method context
 - `docs/papers/` — full paper content (raw); only read if you need deeper detail beyond the comparison doc
 
@@ -54,8 +54,9 @@ discarded at inference. We make K **adaptive per instance** following PonderNet:
   latent loop's KV cache (`use_cache=True` + `past_key_values`); HF silently forces
   `use_cache=False`, so every latent step runs context-free and the model trains
   against a broken objective. This bug capped every early run at ~15–19% (half the
-  39.5% baseline); the fix first beat baseline at **42.23%**. See `docs/runs.md` →
-  *Root Cause*. Costs VRAM — `per_device_train_batch_size 32` fits the 3090.
+  39.5% baseline); the fix first beat baseline at **42.23%**. See
+  `docs/experiments/03-simcot-pondernet-gcfix/experiment.md` → *Root Cause*. Costs
+  VRAM — `per_device_train_batch_size 32` fits the 3090.
 - **Run eval at `--batch_size 1` for faithful adaptive halting.** In `test.py` the
   latent loop only breaks when **all** examples in the batch have halted, and the
   answer is decoded from the batch-termination prefix — so with batch > 1 an example
@@ -65,6 +66,18 @@ discarded at inference. We make K **adaptive per instance** following PonderNet:
 - **Eval on the idle GPU**, not the one training (`CUDA_VISIBLE_DEVICES`), or the
   shared card OOMs mid-run.
 
+## Logging a run
+
+- Launch train/eval with `EXP=<NN-exp> RUN=<run-id>` (the scripts refuse to run without
+  a valid `EXP`/`RUN`; `EXP` must match `^[0-9]{2}-[a-z0-9.-]+$`).
+  Artifacts land in `<outputs|results|models/checkpoints>/<NN-exp>/<run-id>/`. Explicit
+  `SAVE_DIR`/`LOG_DIR`/`RESULTS_DIR` still override the derivation (back-compat).
+- Eval self-writes `command.sh`, `eval.log`, and `summary.json` into the results dir.
+- Before the first run of a new investigation, create
+  `docs/experiments/<NN-exp>/` by hand, following an existing experiment as a template.
+  After a run finishes, write the per-run `.md`, update the experiment table, and
+  refresh the index. Docs live in git under `docs/experiments/`.
+
 ## Running Baselines
 
 ```bash
@@ -72,8 +85,8 @@ discarded at inference. We make K **adaptive per instance** following PonderNet:
 python run.py args/gsm_coconut.yaml
 
 # PonderNet — adaptive halting variant (from pondernet/)
-# Trains on the pinned data/gsm8k_aug/train15k.jsonl by default.
-SAVE_DIR=../models/checkpoints/<run-id> LOG_DIR=../outputs/<run-id> \
+# Trains on the pinned data/gsm8k_aug/train100k.jsonl (--max_train_samples 100000) by default.
+EXP=04-simcot-pondernet-gammasweep RUN=g0.05-gm3.0-ep5 \
   bash scripts/train_gpt2_gsm8k_pondernet.sh
 ```
 

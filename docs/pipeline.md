@@ -3,7 +3,7 @@
 This document walks through the five stages of an experiment run, from acquiring
 pretrained artifacts through recording results. Every command is run from the
 `pondernet/` directory unless otherwise noted. For flag definitions see
-[`parameters.md`](parameters.md); for the run manifest see [`runs.md`](runs.md).
+[`parameters.md`](parameters.md); for the experiment index see [`experiments.md`](experiments.md).
 
 ---
 
@@ -13,9 +13,9 @@ pretrained artifacts through recording results. Every command is run from the
 flowchart TD
     A["1. Acquire artifacts\n(models/pretrained/, data/gsm8k_aug/)"]
     B["2. Choose warm-start recipe\n(SIMCOT_CKPT vs decoder-only)"]
-    C["3. Train\n→ models/checkpoints/<run-id>/\n→ outputs/<run-id>/"]
-    D["4. Evaluate\n→ results/<run-id>/"]
-    E["5. Record\n→ docs/runs.md"]
+    C["3. Train (EXP/RUN)\n→ models/checkpoints/<NN-exp>/<run-id>/\n→ outputs/<NN-exp>/<run-id>/"]
+    D["4. Evaluate (EXP/RUN)\n→ results/<NN-exp>/<run-id>/"]
+    E["5. Record\n→ update docs/experiments/"]
 
     A --> B --> C --> D --> E
 ```
@@ -55,7 +55,7 @@ Training data comes from HuggingFace dataset `zen-E/GSM8k-Aug`. The training
 script is pinned by default to the local subset:
 
 ```
-data/gsm8k_aug/train15k.jsonl    # 15,000 examples (default)
+data/gsm8k_aug/train100k.jsonl   # 100,000 examples (default; --max_train_samples 100000)
 ```
 
 Override with `DATA_PATH=/path/to/other.jsonl` or `--data_path` on the command
@@ -95,17 +95,21 @@ description and the sentinel checks that guard against it.
 
 ## 3. Train
 
-Run from `pondernet/`. Choose a `<run-id>` following the naming convention in
-[`runs.md`](runs.md) (pattern: `<base-model>-<method>[-<variant>]-<hparams>`).
+Run from `pondernet/`. Pick an experiment (`EXP=<NN-exp>`, scaffolded by hand as a new
+`docs/experiments/<NN-exp>/` folder) and a `RUN=<run-id>`; the script derives all three
+artifact dirs from them. The train/eval scripts refuse to run if `EXP`/`RUN` are unset
+or `EXP` doesn't match `^[0-9]{2}-[a-z0-9.-]+$`.
 
 ```bash
-SAVE_DIR=../models/checkpoints/<run-id> \
-LOG_DIR=../outputs/<run-id> \
+EXP=04-simcot-pondernet-gammasweep RUN=g0.05-gm3.0-ep5 \
 bash scripts/train_gpt2_gsm8k_pondernet.sh
+#   → SAVE_DIR=../models/checkpoints/$EXP/$RUN, LOG_DIR=../outputs/$EXP/$RUN
 ```
 
-The script defaults to 40 epochs, `lr=1e-4`, `--max_latent_steps 6` (K_max),
-and the full-model warm-start recipe. Common overrides:
+Explicit `SAVE_DIR`/`LOG_DIR` still override the derivation (back-compat).
+The script defaults to 5 epochs, `lr=2e-5`, `train100k.jsonl` (`--max_train_samples
+100000`), `--max_latent_steps 6` (K_max), and the full-model warm-start recipe.
+Common overrides:
 
 | Override | Example |
 |----------|---------|
@@ -135,27 +139,35 @@ auto-resumes from the last checkpoint in `SAVE_DIR`.
 
 Run from `pondernet/`:
 
+Run eval at `--batch_size 1` for faithful halting, on the **idle 3060**
+(`CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0`):
+
 ```bash
-CKPT=../models/checkpoints/<run-id> \
-RESULTS_DIR=../results/<run-id> \
+EXP=04-simcot-pondernet-gammasweep RUN=g0.05-gm3.0-ep5 \
+CKPT=../models/checkpoints/04-simcot-pondernet-gammasweep/g0.05-gm3.0-ep5 \
 THRESHOLD=0.5 \
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
 bash scripts/eval_gpt2_gsm8k_pondernet.sh
+#   → RESULTS_DIR=../results/$EXP/$RUN
 ```
 
 `THRESHOLD` maps to `--pondernet_inf_threshold`: the model halts when the
 cumulative halting probability Σ_k p_k exceeds this value. The default in the
-script is `0.5`. To evaluate the same checkpoint at different thresholds, run
-the script multiple times pointing `RESULTS_DIR` to sub-directories:
+script is `0.5`. To evaluate the same checkpoint at different thresholds, point
+`RESULTS_DIR` at sub-directories (an explicit `RESULTS_DIR` overrides the `EXP`/`RUN`
+derivation):
 
 ```bash
-RESULTS_DIR=../results/<run-id>/thr0.8 THRESHOLD=0.8 bash scripts/eval_gpt2_gsm8k_pondernet.sh
-RESULTS_DIR=../results/<run-id>/thr0.9 THRESHOLD=0.9 bash scripts/eval_gpt2_gsm8k_pondernet.sh
+RESULTS_DIR=../results/$EXP/$RUN/thr0.8 THRESHOLD=0.8 bash scripts/eval_gpt2_gsm8k_pondernet.sh
+RESULTS_DIR=../results/$EXP/$RUN/thr0.9 THRESHOLD=0.9 bash scripts/eval_gpt2_gsm8k_pondernet.sh
 ```
 
 The script uses `--greedy True` by default, giving deterministic single-pass
-evaluation. Accuracy and average latent-steps are printed to **stdout**; redirect
-or capture them if you want a persistent log, e.g. append `| tee eval.log` to the
-eval command. Files auto-written to `RESULTS_DIR`:
+evaluation. The eval script **self-logs** into `RESULTS_DIR` — no manual `tee`:
+- `command.sh` — the exact resolved eval invocation (git SHA, host, threshold)
+- `eval.log` — full stdout+stderr (accuracy + avg latent-steps)
+- `summary.json` — machine-readable metrics (`accuracy_pct`, `avg_steps_used`,
+  `threshold`, `ckpt`, …); read when recording the run
 - `gsm8k.json` — predictions for every test instance
 - `gsm8k_pondernet_detail.json` — per-instance step count and correct flag
 
@@ -178,22 +190,19 @@ local file needed. The training data is not touched during eval.
 
 ---
 
-## 5. Record in runs.md
+## 5. Record the run
 
-Once eval is complete, add a row to [`docs/runs.md`](runs.md) following the
-existing schema:
+Once eval is complete, record the run using its mechanical artifacts
+(`outputs/<NN-exp>/<run-id>/command.sh` and `results/<NN-exp>/<run-id>/summary.json`):
 
-| Column | Fill in |
-|--------|---------|
-| `run-id` | The `<run-id>` chosen in Step 3 |
-| `date` | Date training finished |
-| `method` | e.g. `PonderNet adaptive halting, warm-started` |
-| `key hparams` | epochs, lr, `halt_thr`, seed, etc. |
-| `GSM8K accuracy` | from stdout (or `eval.log` if you captured it with `tee`) |
-| `checkpoint?` | `YES — models/checkpoints/<run-id>/` or `no` |
-| `notes` | anything notable (known-bad, variant, etc.) |
+- write the per-run detail page `docs/experiments/<NN-exp>/<run-id>.md`
+  (hyperparameters from `command.sh`, results from `summary.json`),
+- add/update that run's row in `docs/experiments/<NN-exp>/runs.md`,
+- refresh the headline in [`docs/experiments.md`](experiments.md) if it's a new best.
 
-Also update the **Accuracy Summary** table at the bottom of `runs.md`.
+You author the narrative/notes; the numbers and links come from those two files. Before
+the first run of a new investigation, create the experiment folder under
+`docs/experiments/<NN-exp>/` by hand, following an existing one as a template.
 
 ---
 
@@ -201,7 +210,8 @@ Also update the **Accuracy Summary** table at the bottom of `runs.md`.
 
 - [`parameters.md`](parameters.md) — complete CLI flag reference, warm-start
   recipes, module/loss glossary
-- [`runs.md`](runs.md) — run manifest, naming convention, artifact layout
+- [`experiments.md`](experiments.md) — experiment index, per-experiment narrative,
+  per-run detail, artifact layout
 
 ## Future: MLflow
 
