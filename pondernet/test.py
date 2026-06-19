@@ -524,6 +524,9 @@ def evaluation(model_args, data_args, training_args):
             "avg_steps_used":   round(avg_steps, 3),
             "max_latent_steps": model.max_latent_steps,
             "threshold":        model.pondernet_inf_threshold,
+            "ckpt":             model_args.ckpt_dir,
+            "greedy":           bool(training_args.greedy),
+            "data_name":        data_args.data_name,
             "by_steps_used":    by_steps,
             "by_cot_steps":     by_cot,
         }
@@ -533,6 +536,18 @@ def evaluation(model_args, data_args, training_args):
     else:
         predictions_path = os.path.join(data_args.results_dir, "predictions.json")
         write_json({"ans": ans_pred_list}, predictions_path)
+        summary = {
+            "accuracy_pct":     round(100 * accuracy, 2),
+            "total_examples":   len(ans_pred_list),
+            "avg_steps_used":   None,
+            "max_latent_steps": model.max_latent_steps,
+            "threshold":        None,
+            "ckpt":             model_args.ckpt_dir,
+            "greedy":           bool(training_args.greedy),
+            "data_name":        data_args.data_name,
+        }
+        write_json(summary, os.path.join(data_args.results_dir, "summary.json"))
+        print(f"[fixed-K] Run summary saved to {os.path.join(data_args.results_dir, 'summary.json')}")
     if model_args.save_ablation:
         ablation_path = os.path.join(data_args.results_dir, f"{data_args.data_name}.jsonl")
         save_jsonl_line(ablation_path, {'model_name': model_args.ckpt_dir, 'data_name': data_args.data_name, 'soft_weight': model_args.soft_weight, 'acc.': accuracy})
