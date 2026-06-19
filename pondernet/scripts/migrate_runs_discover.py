@@ -16,6 +16,11 @@ EXPERIMENTS = [
 ]
 DEAD    = re.compile(r"joint|halthead")
 SCRATCH = re.compile(r"^fixcheck|^fixedk-diagnostic|^_|console|^simcot-pondernet-default$|driver")
+# Active / integrate-later experiments that MUST NOT be moved, renamed, or deleted
+# (docs/superpowers/specs/2026-06-10-repo-professionalization-design.md §"Active
+# experiments — do not touch"). The k_recipe sweep (both recipeA and recipeB) and
+# all Option-B (c-axis) trees are integrated separately once the sweeps complete.
+PROTECTED = re.compile(r"k_recipe_sweep|^optionb-")
 
 def strip_prefix(name):
     for p in ("simcot-pondernet-", "simcot-"):
@@ -24,14 +29,21 @@ def strip_prefix(name):
     return name
 
 def classify(name):
+    if PROTECTED.search(name):
+        return "protected", "", ""        # leave in place — dest == src
     if SCRATCH.search(name):
         return "scratch", "", ""
+    # The bare pre-gcfix 100k dir is train-only and superseded by the evaluated
+    # gcfix-100k keeper (which migrates to 03/100k). Archive the superseded copy.
+    if name == "simcot-pondernet-100k":
+        return "superseded", "", "100k-pre-gcfix"
     core = strip_prefix(name)
     if DEAD.search(core):
         return "dead", "", core
     for rx, exp in EXPERIMENTS:
         if rx.search(core):
-            run = re.sub(r"^(gammasweep-|k_recipe_sweep-)", "", core)
+            # gcfix-100k → run id "100k"; gammasweep-/k_recipe_sweep- prefixes stripped.
+            run = re.sub(r"^(gammasweep-|k_recipe_sweep-|gcfix-)", "", core)
             return "run", exp, run
     return "scratch", "", ""   # unknown → triage as scratch for manual review
 
@@ -47,7 +59,9 @@ def main():
             klass, exp, run = classify(entry)
             if klass == "run":
                 dest = f"{d}/{exp}/{run}"
-            elif klass == "dead":
+            elif klass == "protected":
+                dest = src   # do not move — active/integrate-later experiment
+            elif klass in ("dead", "superseded"):
                 dest = f"{d}/archive/{run or entry}"
             else:
                 dest = f"{d}/archive/scratch/{entry}"
