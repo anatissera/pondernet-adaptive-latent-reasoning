@@ -15,8 +15,17 @@
 
 set -euo pipefail
 
-SAVE_DIR="${SAVE_DIR:-../models/checkpoints/simcot-pondernet-default}"
-LOG_DIR="${LOG_DIR:-../outputs/simcot-pondernet-default}"
+# Experiment-scoped layout: EXP=<NN-name> RUN=<run-id> derive the artifact dirs.
+# Explicit SAVE_DIR/LOG_DIR still override (back-compat).
+EXP="${EXP:-}"
+RUN="${RUN:-}"
+if [[ -n "$EXP" && -n "$RUN" ]]; then
+    SAVE_DIR="${SAVE_DIR:-../models/checkpoints/$EXP/$RUN}"
+    LOG_DIR="${LOG_DIR:-../outputs/$EXP/$RUN}"
+else
+    SAVE_DIR="${SAVE_DIR:-../models/checkpoints/simcot-pondernet-default}"
+    LOG_DIR="${LOG_DIR:-../outputs/simcot-pondernet-default}"
+fi
 # GPT2_PATH MUST be a plain GPT-2 checkpoint. Do NOT set it to the SIM-CoT CODI
 # checkpoint -- that is a CODI wrapper (keys under codi.base_model.model.*), and loading
 # it here as a bare GPT2LMHeadModel silently random-inits the whole backbone. Warm-start
