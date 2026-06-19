@@ -10,10 +10,13 @@ por paso** (`c`): cada paso de razonamiento se construye como un bloque de hasta
 sub-vectores; el decoder de SIM-CoT reconstruye cada paso desde el bloque acumulado, y
 un MLP destila ese `L_step` por-ejemplo para decidir en inferencia cuándo el paso está
 "maduro". **El mecanismo funciona y recorta ~16–33 % del cómputo latente sin perder
-accuracy.** Pero el halting aprendido **no supera al azar a budget igualado**, y el MLP
-**no asigna más cómputo a los problemas más difíciles** → el eje `c` tiene **poco
-headroom explotable** en GSM8K-Aug con GPT-2. Es un resultado negativo limpio y
-reproducible: la maquinaria es correcta, la tarea no recompensa adaptar `c`.
+accuracy.** Pero el halting aprendido **no supera al azar ni al fijo c=2 a budget
+igualado** (2 runs, con y sin penalty), y el MLP **no asigna más cómputo a los problemas
+más difíciles**. La curva accuracy-vs-`c` satura fuerte en c=2 (c1=27.5 %, c2=39.4 %,
+c3=39.9 %): la `c` requerida es casi constante (~2) entre instancias → **poco headroom
+explotable** en GSM8K-Aug con GPT-2. El óptimo simple es **fijar c=2**. Resultado
+negativo limpio y reproducible: la maquinaria es correcta, la tarea no recompensa
+adaptar `c`. El axis con headroom real es el número de pasos `K` (Proposal C).
 
 ## Qué se construyó
 
@@ -96,10 +99,23 @@ y el adaptive (10 vec, 39.80 %) gasta más para lo mismo.
    `K` (número de pasos). Refuerza la premisa del proyecto: **el axis con headroom real
    es el número de pasos (Proposal C)**.
 
-**Último experimento (run2, λ_halt>0):** ¿puede la penalty enseñar al modelo a empujar
-el subconjunto resoluble-con-c=1 (≈27 % de los problemas) hacia 1 vector y bajar de 8
-vec manteniendo ~39 %? Es la única vía de valor que queda para Option-B. Resultado abajo
-cuando termine.
+### run2 — entrenado CON penalty (λ_halt=0.05)
+
+¿La penalty empuja el subconjunto resoluble-con-c=1 hacia 1 vector, bajando de 8 vec a
+~39 %? **No.** (GSM8K test completo)
+
+| run2 config        | avg vecs | acc(%) |
+|--------------------|----------|--------|
+| fijo c=3           | 12.00    | 39.58  |
+| **fijo c=2**       | 8.00     | **39.65** |
+| adaptive eps=0.15  | 9.19     | 39.95  |
+| adaptive eps=0.40  | 8.40     | 39.50  |
+| random             | 8.05     | 39.20  |
+
+La penalty NO desbloqueó eficiencia sub-c=2: incluso en eps=0.40 la distribución es
+prácticamente todo 2s (`2:4745, 3:531`, **cero 1s**). Solo recortó un poco el paso 0
+(s0=2.40). **Fijo c=2 (8 vec, 39.65 %) iguala o gana a todo el adaptive.** Confirma que
+la `c` requerida es ~constante en 2 y no hay subconjunto c=1 identificable que explotar.
 
 **Pivotes posibles** (si se quiere insistir en `c`): tareas con pasos más densos
 (multi-hop real, no aritmética GSM8K), backbones mayores, o presupuestos `c` más altos

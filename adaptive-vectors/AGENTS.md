@@ -257,10 +257,21 @@ con 33 % menos.
 incorrectos=10.01 (al revés de lo útil). Patrón posicional (s0=3 siempre, tardíos
 frenan), no por dificultad. El halting aprendido no captura señal per-instancia.
 
-**Resumen en `RESULTS.md`.** Conclusión: implementación validada; sin headroom para
-adaptividad inteligente de `c` en GSM8K-Aug/GPT-2; el axis con headroom real es `K`
-(Proposal C). Pendiente: curva accuracy-vs-`c` fijo (c=1/c=2) para confirmar si `c` es
-plano de raíz (run en `outputs/optionb-ccurve.log`).
+**Curva accuracy-vs-`c` fijo (full set):** c=1(4v)=27.52 %, c=2(8v)=39.42 %,
+c=3(12v)=39.88 %. Empinada 1→2, satura en c=2. → `c` importa pero su valor requerido es
+~constante (2); varianza per-instancia baja = sin headroom adaptativo. Óptimo: fijo c=2.
+
+**run2 (λ_halt=0.05, full set):** fijo c=2 = 39.65 % (8v); adaptive eps0.15 = 39.95 %
+(9.2v); adaptive eps0.40 = 39.50 % (8.4v); random = 39.20 % (8v). La penalty NO desbloqueó
+c=1 (eps0.40 → casi todo 2s, cero 1s). Fijo c=2 iguala/gana a todo.
+
+**CONCLUSIÓN FINAL.** Option-B: implementación correcta y validada (entrena, halta,
+recorta cómputo 16–33 % sin perder accuracy). Pero **sin headroom** para adaptividad
+inteligente de `c` en GSM8K-Aug/GPT-2: la `c` requerida satura uniformemente en 2;
+adaptive ≈ random ≈ fijo c=2 (todos 39.2–40.0 %, dentro del ruido); el MLP no detecta
+dificultad per-instancia; la penalty no cambia nada. Recomendación: **fijar c=2** y
+concentrar el esfuerzo de adaptividad en el eje `K` (Proposal C). Resumen completo en
+`RESULTS.md`. Investigación cerrada (2 runs de entrenamiento + barridos full-set).
 
 ### Fase 4 — Inferencia adaptativa
 _(pendiente)_
