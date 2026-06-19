@@ -152,6 +152,7 @@ class TrainingArguments(transformers.TrainingArguments):
     # All flags default to the inert (off) value so the inherited SIM-CoT path is
     # byte-for-byte unchanged until --option_b is passed.
     option_b: bool = field(default=False, metadata={"help": "Enable the Option-B adaptive-vectors-per-step path. Off = inherited SIM-CoT/PonderNet path untouched."})
+    ob_num_steps: int = field(default=4, metadata={"help": "K: number of reasoning steps (each built as a block of up to M sub-vectors). Total train-time latent forwards = K*M."})
     ob_subvectors_per_step: int = field(default=4, metadata={"help": "M: fixed number of sub-vectors generated per reasoning step during TRAINING (needed to compute per-sub-vector L_step targets in batch). Inference uses adaptive halting instead."})
     ob_mlp_hidden: int = field(default=256, metadata={"help": "Hidden width of the 2-layer ReLU MLP that predicts L_step from h_k."})
     ob_detach_hk: bool = field(default=True, metadata={"help": "If True, stop-gradient h_k into the MLP so the distillation head cannot corrupt the backbone representation (recommended for v1)."})
@@ -441,6 +442,7 @@ class CODI(torch.nn.Module):
         # --- Option-B: adaptive vectors-per-step (c) ---
         self.option_b = getattr(training_args, "option_b", False)
         if self.option_b:
+            self.ob_num_steps = training_args.ob_num_steps
             self.ob_subvectors_per_step = training_args.ob_subvectors_per_step
             self.ob_detach_hk = training_args.ob_detach_hk
             self.ob_lambda_ans = training_args.ob_lambda_ans
@@ -448,7 +450,13 @@ class CODI(torch.nn.Module):
             self.ob_lambda_dist = training_args.ob_lambda_dist
             self.ob_lambda_halt = training_args.ob_lambda_halt
             self.ob_probe = training_args.ob_probe
-            # NOTE: the MLP head (self.ob_mlp) is added in Phase 2, not here.
+            # MLP head: predicts per-example L_step from the latent hidden h_k.
+            # Survives inference (the decoder does not). Kept in float32; fed detached
+            # h_k by default (ob_detach_hk) so it cannot corrupt the backbone.
+            h = training_args.ob_mlp_hidden
+            self.ob_mlp = nn.Sequential(nn.Linear(self.dim, h), nn.ReLU(), nn.Linear(h, 1))
+            nn.init.zeros_(self.ob_mlp[-1].weight)
+            nn.init.constant_(self.ob_mlp[-1].bias, 1.0)  # start near a typical L_step scale
 
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
@@ -648,6 +656,184 @@ class CODI(torch.nn.Module):
             return torch.tensor(0.0, device=self.codi.device)
         return self.loss_fct(shift_logits, shift_labels)
 
+    def _block_step_loss(self, latent_block, steps_pad_list, step_idx):
+        """Per-example block-of-c reconstruction loss. Like _explain_loss_block but
+        returns (per_example_ce (B,), valid_mask (B,) bool). Used for training: the
+        MLP regresses to per_example_ce so it can discriminate easy/hard steps at
+        inference, and the kept SIM-CoT aux loss uses its masked mean."""
+        bz = len(steps_pad_list)
+        j = latent_block.size(1)
+        step_token_ids = []
+        for bz_idx in range(bz):
+            step_token_ids.append(steps_pad_list[bz_idx][step_idx])
+            step_token_ids = dedup_trailing_pads(step_token_ids, pad_id=self.tokenizer.pad_token_id)
+        indices = torch.tensor(step_token_ids, dtype=torch.long, device=self.codi.device)
+        explain_embds = self.get_embd(self.codi, self.model_name)(indices)
+        explain_embds = torch.concat([latent_block, explain_embds], dim=1)
+
+        prefix = torch.full((bz, j), -570, dtype=indices.dtype, device=indices.device)
+        indices_with_prefix = torch.cat([prefix, indices], dim=1)
+        explain_attention_mask = (indices_with_prefix != self.tokenizer.pad_token_id)
+        explain_labels = indices_with_prefix.clone()
+        explain_labels = explain_labels.masked_fill(
+            (explain_labels == -570) | (explain_labels == self.tokenizer.pad_token_id), -100)
+
+        if self.model_args.decoder_path:
+            explain_embds = self.pj_in(explain_embds)
+        with autocast('cuda', dtype=torch.bfloat16):
+            explain_outputs = self.decoder(inputs_embeds=explain_embds,
+                                           attention_mask=explain_attention_mask,
+                                           output_hidden_states=True)
+        explain_logits = explain_outputs.logits
+        if self.model_args.decoder_path:
+            explain_logits = self.pj_out(explain_logits)
+        shift_logits = explain_logits[..., :-1, :]
+        shift_labels = explain_labels[..., 1:]
+        tok_loss = F.cross_entropy(
+            shift_logits.reshape(-1, shift_logits.size(-1)).float(),
+            shift_labels.reshape(-1), ignore_index=-100, reduction="none",
+        ).view(shift_labels.size(0), -1)
+        valid = (shift_labels != -100).float()
+        denom = valid.sum(dim=1)
+        per_ex = (tok_loss * valid).sum(dim=1) / denom.clamp_min(1.0)   # (B,)
+        return per_ex, (denom > 0)
+
+    def _forward_option_b(self, encoder_input_ids=None, decoder_input_ids=None, ref_input_ids=None,
+                          labels=None, encoder_attention_mask=None, ref_answer_position=None,
+                          model_answer_position=None, ref_attention_mask=None, ref_labels=None):
+        """Option-B training forward: K reasoning steps, each a block of M latent
+        sub-vectors; the decoder reconstructs each step from its ACCUMULATED block
+        (block-of-c), an MLP distils per-example L_step, and a ponder penalty trims
+        vectors once a step looks mature. Self-contained: the inherited SIM-CoT path
+        is never entered when --option_b is set."""
+        if not self.fix_attn_mask:
+            ref_attention_mask = None
+        K = self.ob_num_steps
+        M = self.ob_subvectors_per_step
+
+        # --- encode the question ---
+        outputs = self.codi(input_ids=encoder_input_ids, use_cache=True, output_hidden_states=True,
+                            past_key_values=None, attention_mask=encoder_attention_mask)
+        past_key_values = outputs.past_key_values
+        latent_hidden = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
+        if self.use_prj:
+            with autocast('cuda', dtype=torch.bfloat16, enabled=True):
+                latent_hidden = self.prj(latent_hidden)
+
+        # --- per-step target texts (gpt2 token conventions, as in the base path) ---
+        steps_list = get_steps(ref_input_ids, K, start_ids=(16791, 9959), end_id=4211,
+                               eot_id=self.tokenizer.eos_token_id, pad_id=self.tokenizer.pad_token_id,
+                               stop_ids=(self.tokenizer.eos_token_id, self.tokenizer.pad_token_id))
+        steps_pad_list = pad_steps(steps_list, pad_id=self.tokenizer.pad_token_id)
+
+        # --- teacher (ref) pass for distillation + ref CE (kept from CODI) ---
+        with torch.no_grad():
+            ref_outputs = self.codi(input_ids=ref_input_ids, output_hidden_states=True, attention_mask=ref_attention_mask)
+        ref_outputs_with_grad = self.codi(input_ids=ref_input_ids, output_hidden_states=True, attention_mask=ref_attention_mask)
+        if "llama" in self.model_name.lower() or "qwen" in self.model_name.lower():
+            model_answer_position = model_answer_position + 1
+            ref_answer_position = ref_answer_position + 1
+        model_answer_position = model_answer_position - 1
+        ref_answer_position = ref_answer_position - 1
+
+        # --- nested block loop: K steps x M sub-vectors ---
+        l_step_sum = 0.0          # kept SIM-CoT aux loss (masked-mean per (k,j))
+        eff_cnt = 0
+        dist_terms = []           # (L_hat - sg(L_step))^2 over valid examples, per (k,j)
+        halt_terms = []           # sigmoid(-L_hat) over valid examples, per (k,j) -> ponder penalty
+        lhat_log, lstep_log = [], []
+        first = True
+        for step_idx in range(K):
+            block = []
+            for j in range(M):
+                if not first:
+                    with autocast('cuda', dtype=torch.bfloat16):
+                        outputs = self.codi(inputs_embeds=latent_hidden, use_cache=True,
+                                            output_hidden_states=True, past_key_values=past_key_values)
+                    past_key_values = outputs.past_key_values
+                    latent_hidden = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
+                    if self.use_prj:
+                        with autocast('cuda', dtype=torch.bfloat16, enabled=True):
+                            latent_hidden = self.prj(latent_hidden)
+                first = False
+                block.append(latent_hidden)
+                latent_block = torch.concat(block, dim=1)               # (B, j+1, dim)
+
+                per_ex, valid = self._block_step_loss(latent_block, steps_pad_list, step_idx)  # (B,),(B,)
+                # MLP prediction of per-example L_step from current hidden h_k
+                mlp_in = latent_hidden.squeeze(1).float()
+                if self.ob_detach_hk:
+                    mlp_in = mlp_in.detach()
+                l_hat = self.ob_mlp(mlp_in).squeeze(-1)                  # (B,)
+
+                if valid.any():
+                    # kept aux reconstruction loss (trains decoder+latents; enables early halt)
+                    l_step_sum = l_step_sum + per_ex[valid].mean()
+                    eff_cnt += 1
+                    # distil L_step into the MLP (target detached) over valid examples only.
+                    # SmoothL1 (Huber), not MSE: L_step is a heavy-tailed CE value and the
+                    # target is non-stationary (decoder still training) -> MSE blows up on
+                    # outliers and collapses to the mean. Huber is robust to both.
+                    dist_terms.append(F.smooth_l1_loss(l_hat[valid], per_ex[valid].detach()))
+                    halt_terms.append(torch.sigmoid(-l_hat[valid]).mean())
+                    lhat_log.append(l_hat[valid].mean().detach())
+                    lstep_log.append(per_ex[valid].mean().detach())
+
+        # --- decode the answer after the full latent sequence ---
+        embds = self.get_embd(self.codi, self.model_name)(decoder_input_ids)
+        with autocast('cuda', dtype=torch.bfloat16):
+            outputs = self.codi(inputs_embeds=embds, use_cache=True, output_hidden_states=True,
+                                past_key_values=past_key_values, attention_mask=None)
+        # distillation loss: student hidden at answer pos vs teacher hidden (all layers)
+        distill_loss = 0
+        for out, ref_out in zip(outputs.hidden_states, ref_outputs.hidden_states):
+            ref_sel = ref_out.gather(1, ref_answer_position.unsqueeze(-1).unsqueeze(-1).expand(-1, -1, ref_out.size(-1)))
+            out_sel = out.gather(1, model_answer_position.unsqueeze(-1).unsqueeze(-1).expand(-1, -1, out.size(-1)))
+            dt = self.distill_loss_fct(out_sel, ref_sel.detach())
+            if self.distill_loss_div_std:
+                if self.distill_loss_type == 'l2':
+                    dt = dt / ref_sel.std()
+                dt = dt / ref_sel.std()
+            distill_loss += dt
+        distill_loss = distill_loss / len(outputs.hidden_states)
+        distill_loss_total = distill_loss * self.distill_loss_factor
+
+        # answer CE
+        logits = outputs.logits
+        ce_loss = self.loss_fct(logits[:, :-1, :].reshape(-1, logits.size(-1)), labels[:, 1:].reshape(-1))
+
+        # teacher CE
+        ref_logits = ref_outputs_with_grad.logits
+        ref_ce_loss = self.loss_fct(ref_logits[:, :-1, :].reshape(-1, ref_logits.size(-1)),
+                                    ref_labels[:, 1:].reshape(-1)) * self.ref_loss_factor
+
+        # --- assemble Option-B objective ---
+        dev = ce_loss.device
+        l_step = (l_step_sum / max(1, eff_cnt)) * self.explain_loss_factor if eff_cnt > 0 else torch.tensor(0.0, device=dev)
+        l_dist = torch.stack(dist_terms).mean() if dist_terms else torch.tensor(0.0, device=dev)
+        l_halt_pen = torch.stack(halt_terms).mean() if halt_terms else torch.tensor(0.0, device=dev)
+        l_halt = l_dist + self.ob_lambda_halt * l_halt_pen
+
+        loss = (self.ob_lambda_ans * ce_loss
+                + distill_loss_total + ref_ce_loss
+                + self.ob_lambda_step * l_step
+                + self.ob_lambda_dist * l_halt)
+
+        if self.print_loss:
+            mean_lhat = torch.stack(lhat_log).mean().item() if lhat_log else 0.0
+            mean_lstep = torch.stack(lstep_log).mean().item() if lstep_log else 0.0
+            print(f"[OB] loss={loss.item():.4f} ce={ce_loss.item():.4f} distill={float(distill_loss_total):.4f} "
+                  f"ref_ce={float(ref_ce_loss):.4f} l_step={float(l_step):.4f} l_dist={float(l_dist):.4f} "
+                  f"halt_pen={float(l_halt_pen):.4f} | L_hat~{mean_lhat:.3f} L_step~{mean_lstep:.3f}", flush=True)
+
+        return {"loss": loss, "logits": logits,
+                "ce_loss": ce_loss.detach(),
+                "distill_loss": distill_loss_total.detach() if torch.is_tensor(distill_loss_total) else distill_loss_total,
+                "ref_ce_loss": ref_ce_loss.detach() if torch.is_tensor(ref_ce_loss) else ref_ce_loss,
+                "ob_l_step": l_step.detach() if torch.is_tensor(l_step) else l_step,
+                "ob_l_dist": l_dist.detach() if torch.is_tensor(l_dist) else l_dist,
+                "ob_halt_pen": l_halt_pen.detach() if torch.is_tensor(l_halt_pen) else l_halt_pen}
+
     def _ob_probe(self, encoder_input_ids, encoder_attention_mask, ref_input_ids):
         """Phase-1 GO/NO-GO diagnostic. For each reasoning step, generate M
         sub-vectors (re-feeding the hidden state) and log the decoder's L_step
@@ -725,6 +911,12 @@ class CODI(torch.nn.Module):
     ):
         if getattr(self, "option_b", False) and getattr(self, "ob_probe", False):
             return self._ob_probe(encoder_input_ids, encoder_attention_mask, ref_input_ids)
+        if getattr(self, "option_b", False):
+            return self._forward_option_b(
+                encoder_input_ids=encoder_input_ids, decoder_input_ids=decoder_input_ids,
+                ref_input_ids=ref_input_ids, labels=labels, encoder_attention_mask=encoder_attention_mask,
+                ref_answer_position=ref_answer_position, model_answer_position=model_answer_position,
+                ref_attention_mask=ref_attention_mask, ref_labels=ref_labels)
 
         if not self.fix_attn_mask:
             ref_attention_mask = None

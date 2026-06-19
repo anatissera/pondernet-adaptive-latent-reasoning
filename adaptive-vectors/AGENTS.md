@@ -157,11 +157,42 @@ vigilar: incluso tras reentrenar, el primer vector ya reconstruye bien cada paso
 para todo; el penalty de ponder y la evaluación acc-vs-budget lo medirán. Esto se
 re-planifica fuera del scaffold original de Fase 2/3 (ver plan de Option B abajo).
 
-### Fase 2 — MLP head + L_dist
-_(pendiente)_
+### Fases 2 + 3 — MLP head + L_dist + penalty (objetivo Option-B completo)
+**Fecha:** 2026-06-19 · GPU: RTX 3060
 
-### Fase 3 — Penalty de ponder + objetivo completo
-_(pendiente)_
+**Diseño elegido (rebuild self-contained).** En vez de cirugía sobre `forward()`,
+se agregó `_forward_option_b()` al que se entra temprano (`if self.option_b: return
+_forward_option_b(...)`). El camino SIM-CoT heredado **nunca** se ejecuta con
+`--option_b`. Loop anidado: K pasos × M sub-vectores; en cada `(k,j)` el decoder
+reconstruye el texto del paso desde el **bloque acumulado** (`_block_step_loss`,
+per-example). El `ob_mlp` (2×Linear+ReLU) predice `L_step` por-ejemplo desde `h_k`.
+Respuesta decodificada una vez tras todo el bloque (foco eje `c`, sin per-prefix
+answer loss — eso es eje K).
+
+Objetivo: `L = λ_ans·CE + distill + ref_ce + λ_step·L_step + λ_dist·(L_dist + λ_halt·Σσ(-L̂))`.
+Flags nuevos: `ob_num_steps` (K). MLP en float32, `h_k` detached por defecto
+(`ob_detach_hk`). `train.py`: warm-start permite `ob_mlp.*` newly-init; el grupo de
+LR rápido (`HALT_HEAD_LR`) ahora cubre `ob_mlp` además de `halt_head`.
+
+**Smoke (overfit 8 ej., 3060):**
+- ce 0.22→0.003, ref_ce 0.32→0.03, l_step 1.57→~0 → arquitectura y bloque OK.
+- **Bug encontrado:** con MSE, `L_dist` no convergía (target CE pesado/no-estacionario
+  → MLP colapsa a la media, picos de 12.4). **Fix:** SmoothL1 (Huber) para `L_dist`
+  (como el distill de CODI). Picos eliminados.
+- **Segundo issue:** el MLP (head crítico en inferencia) aprendía lento en el grupo
+  base-LR. **Fix:** sumar `ob_mlp` al grupo de LR rápido. Con `HALT_HEAD_LR=2e-3`:
+  `L_dist` 0.42→0.03, `L̂` sigue a `L_step`, `halt_pen` sube 0.27→0.45 (σ(-L̂) registra
+  madurez). Penalty-on (λ_halt=0.05) estable.
+
+**Nota (rethink pendiente):** el overfit colapsa todos los `L_step` a ~0, así que NO
+prueba si hay *headroom* (variación real de cuántos vectores necesita cada paso). Eso
+solo se ve con entrenamiento real → siguiente: entrenar corto y medir si en inferencia
+los vectores/paso VARÍAN entre instancias manteniendo accuracy. Si sale plano (todo
+madura en j=1) → no hay nada que adaptar → rethink/report (la usuaria pidió repensar
+si no hay resultados).
+
+### Fase 4 — Inferencia adaptativa
+_(en progreso)_
 
 ### Fase 4 — Inferencia adaptativa
 _(pendiente)_

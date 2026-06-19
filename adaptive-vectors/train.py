@@ -164,8 +164,10 @@ class CustomTrainer(Trainer):
         halt_lr, base_lr, wd = float(halt_lr), self.args.learning_rate, self.args.weight_decay
         decay = set(self.get_decay_parameter_names(self.model))
         named = [(n, p) for n, p in self.model.named_parameters() if p.requires_grad]
-        halt = [(n, p) for n, p in named if "halt_head" in n]
-        base = [(n, p) for n, p in named if "halt_head" not in n]
+        # "fast head" = from-scratch heads (Option-C halt_head, Option-B ob_mlp)
+        _fast = lambda n: ("halt_head" in n) or ("ob_mlp" in n)
+        halt = [(n, p) for n, p in named if _fast(n)]
+        base = [(n, p) for n, p in named if not _fast(n)]
         groups = [
             {"params": [p for n, p in base if n in decay],     "weight_decay": wd,  "lr": base_lr},
             {"params": [p for n, p in base if n not in decay],  "weight_decay": 0.0, "lr": base_lr},
@@ -278,12 +280,14 @@ def train():
                 f"SIM-CoT warm-start: {len(unexpected)} checkpoint tensors did not map onto the "
                 f"model (namespace mismatch). First few: {unexpected[:8]}"
             )
-        # The only params allowed to be newly-initialized are the new PonderNet halt head.
-        unexpected_missing = [k for k in missing if not k.startswith("halt_head")]
+        # The only params allowed to be newly-initialized are the new PonderNet halt
+        # head (Option-C) or the Option-B distillation MLP (ob_mlp.*).
+        _allowed_new = ("halt_head", "ob_mlp")
+        unexpected_missing = [k for k in missing if not k.startswith(_allowed_new)]
         if unexpected_missing:
             raise RuntimeError(
                 f"SIM-CoT warm-start: {len(unexpected_missing)} model params were NOT loaded from "
-                f"the checkpoint (expected only halt_head.*). First few: {unexpected_missing[:8]}"
+                f"the checkpoint (expected only halt_head.* / ob_mlp.*). First few: {unexpected_missing[:8]}"
             )
         # Sentinel check: the SIM-CoT latent-reasoning weights actually landed.
         for sentinel in ("codi.base_model.model.transformer.wte.weight",
