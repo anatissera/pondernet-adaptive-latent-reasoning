@@ -87,6 +87,7 @@ Baseline `--ob_random`: frena cada paso en `n_k ~ Uniforme[1, M_max]` (control a
 | `ob_lambda_ans/step/dist/halt` | 1/1/1/0.01 | pesos del objetivo |
 | `ob_probe` | False | diagnóstico Fase-1 (curva L_step por sub-vector) |
 | `ob_random` | False | baseline de halting aleatorio (eval) |
+| `ob_coarse_steps` | False | segmentación **gruesa**: agrupa las ops en `ob_num_steps` buckets parejos (vía `get_steps_coarse`) en vez de 1-op-por-paso → variación de complejidad por paso para el test sin sesgo del eje c. Solo training/probe; inferencia no se afecta. |
 
 ## 5. Scripts y artefactos (dónde mirar)
 

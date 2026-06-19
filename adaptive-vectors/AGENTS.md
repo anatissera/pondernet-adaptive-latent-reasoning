@@ -8,6 +8,41 @@ Cada fase registra **qué se decidió** y **qué se cambió**, con fecha. Léase
 
 ---
 
+## FASE NUEVA (2026-06-19) — Retrain SIN SESGO: cold-start + pasos gruesos
+
+**Por qué.** El resultado negativo (c satura en c=2) pudo estar sesgado por: (1)
+warm-start del checkpoint SIM-CoT c=1 + LoRA-only (base congelada) + solo 3 épocas →
+el modelo nunca salió del régimen c=1; (2) granularidad atómica: 1 op = 1 paso, cada
+paso trivial → 2 vectores saturan. Auditoría completa en `IMPLEMENTATION.md §6`.
+Decisión con la usuaria: **cold-start desde GPT-2 plano (sin checkpoint SIM-CoT,
+decoder fresco, ~30 épocas) + segmentación gruesa**, en una sola corrida. Trabajo en
+worktree dedicado `/home/tpnlp/alr-anapaula-optionb` (symlinks data/models/outputs/
+results al canónico; `.venv` symlinkeado al canónico, `UV_NO_SYNC=1` para no tocar el
+venv compartido). Todo en la 3060.
+
+**Cambios de código.**
+- `get_steps_coarse` (src/model.py): encuentra los segmentos por-op (igual que
+  `get_steps`) y los reparte en K buckets **parejos** (front-loaded) en vez de
+  1-op-por-paso + merge-en-el-último. Cada paso = concatenación de su bucket (un eot
+  final). `get_steps` heredado intacto. Verificado: 4 ops K=3 → [op0 op1][op2][op3]
+  (parejo) vs atómico [op0][op1][op2 op3].
+- Flag `ob_coarse_steps` (default False); `_forward_option_b` y `_ob_probe` eligen
+  `get_steps_coarse` cuando está activo. Inferencia no se toca (no reconstruye texto).
+- `scripts/train_gpt2_gsm8k_optionb_cold.sh`: GPT-2 plano, **sin `--simcot_ckpt` ni
+  `--decoder_path`**, LR 3e-3, LoRA r128, 30 épocas, K=3 M=3, coarse, BS8×ACCUM8, 15k.
+- `scripts/ob_smoke.sh`: env `COARSE` para smoke con pasos gruesos.
+
+**Smoke (coarse, overfit 8, warm-start, 3060):** ce 0.039→0.002, l_step 0.92→0.001,
+l_dist 0.14→0.04, L̂ sigue a L_step → wiring de segmentación gruesa correcto.
+
+**Sanity cold (64 ej.):** sin warm-start (no carga simcot), sin OOM, ~1.4 batch/s.
+
+**run en curso:** `optionb-cold-coarse` (tmux `ob-cold`), 7020 opt-steps (~11h),
+λ_halt=0. Eval pendiente al terminar (c-curve + adaptive vs random, comparar con el
+baseline warm+atómico).
+
+---
+
 ## Contexto (por qué existe esta rama)
 
 El proyecto hace adaptativo el presupuesto latente de SIM-CoT en dos ejes ortogonales:

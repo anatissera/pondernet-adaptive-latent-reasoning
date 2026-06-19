@@ -164,6 +164,7 @@ class TrainingArguments(transformers.TrainingArguments):
     ob_max_subvectors: int = field(default=4, metadata={"help": "Inference: hard cap on sub-vectors per step (analogous to K_max for the c axis)."})
     ob_probe: bool = field(default=False, metadata={"help": "Phase-1 diagnostic: generate ob_subvectors_per_step sub-vectors per step and log the true per-sub-vector L_step (no new params, no objective change). GO/NO-GO gate for whether L_step decreases within a step."})
     ob_random: bool = field(default=False, metadata={"help": "Eval baseline: ignore the MLP and halt each step at a random n_k ~ Uniform[1, ob_max_subvectors]. Matched-budget control to show the MLP's halting beats chance."})
+    ob_coarse_steps: bool = field(default=False, metadata={"help": "Use coarse step segmentation (group ops evenly into ob_num_steps buckets) instead of one-op-per-step. Manufactures per-step complexity variation for the c-axis. Training/probe only; inference unaffected."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -251,6 +252,84 @@ def get_steps(
                 steps_for_sample.append([pad_id])
 
         result.append(steps_for_sample)
+
+    return result
+
+def get_steps_coarse(
+    ref_input_ids: Union[torch.Tensor, Sequence[Sequence[int]]],
+    latent_num: int = 2,
+    start_ids: Iterable[int] = (2501, 1134),
+    end_id: int = 2511,
+    eot_id: int = 128009,
+    pad_id: int = 128256,
+    stop_ids: Iterable[int] = (128009, 128256),
+    trim_at_first_stop: bool = True,
+) -> List[List[List[int]]]:
+    """Coarse variant of get_steps for Option-B. Finds the per-op segments exactly like
+    get_steps, then distributes them into `latent_num` (=K) EVEN buckets instead of
+    1-op-per-step. Each returned step is the concatenation of its bucket's op segments
+    (one trailing eot per step), so steps are coarser and vary in complexity (a 3-op
+    bucket vs a 1-op problem). This manufactures the per-step difficulty variation the
+    c-axis needs. The inherited get_steps is left unchanged."""
+    if isinstance(ref_input_ids, torch.Tensor):
+        assert ref_input_ids.dim() == 2, "ref_input_ids must be a 2-D tensor [B, T]"
+        as_lists = ref_input_ids.detach().cpu().tolist()
+    else:
+        as_lists = ref_input_ids
+    B = len(as_lists)
+    start_set = set(start_ids)
+    stop_set = set(stop_ids)
+    K = latent_num
+
+    result: List[List[List[int]]] = []
+    for b in range(B):
+        seq: List[int] = list(as_lists[b])
+        if trim_at_first_stop:
+            for k, tok in enumerate(seq):
+                if tok in stop_set:
+                    seq = seq[:k]
+                    break
+        # --- find the per-op segments (same logic as get_steps) ---
+        segs: List[List[int]] = []
+        i = 0
+        n = len(seq)
+        while i < n:
+            tok = seq[i]
+            if tok in start_set:
+                j = i + 1
+                end_pos: Optional[int] = None
+                while j < n:
+                    if seq[j] == end_id:
+                        end_pos = j
+                        break
+                    if seq[j] in stop_set:
+                        break
+                    j += 1
+                if end_pos is not None:
+                    segs.append(seq[i:end_pos + 1] + [eot_id])
+                    i = end_pos + 1
+                    continue
+            i += 1
+        # --- distribute segments into K even buckets ---
+        N = len(segs)
+        groups: List[List[int]] = []
+        if N == 0:
+            groups = [[pad_id] for _ in range(K)]
+        else:
+            base, rem = N // K, N % K
+            idx = 0
+            for g in range(K):
+                take = base + (1 if g < rem else 0)   # front-loaded even split
+                if take == 0:
+                    groups.append([pad_id])
+                    continue
+                merged: List[int] = []
+                for s in segs[idx:idx + take]:
+                    merged.extend(s[:-1] if (len(s) > 0 and s[-1] == eot_id) else s)
+                merged.append(eot_id)
+                groups.append(merged)
+                idx += take
+        result.append(groups)
 
     return result
 
@@ -454,6 +533,7 @@ class CODI(torch.nn.Module):
             self.ob_eps = training_args.ob_eps                       # inference: halt a step when |L_hat_j - L_hat_{j-1}| < eps
             self.ob_max_subvectors = training_args.ob_max_subvectors  # inference: hard cap on sub-vectors per step
             self.ob_random = getattr(training_args, "ob_random", False)  # eval-only random-halting baseline
+            self.ob_coarse_steps = getattr(training_args, "ob_coarse_steps", False)  # coarse step segmentation (train/probe)
             # MLP head: predicts per-example L_step from the latent hidden h_k.
             # Survives inference (the decoder does not). Kept in float32; fed detached
             # h_k by default (ob_detach_hk) so it cannot corrupt the backbone.
@@ -725,9 +805,10 @@ class CODI(torch.nn.Module):
                 latent_hidden = self.prj(latent_hidden)
 
         # --- per-step target texts (gpt2 token conventions, as in the base path) ---
-        steps_list = get_steps(ref_input_ids, K, start_ids=(16791, 9959), end_id=4211,
-                               eot_id=self.tokenizer.eos_token_id, pad_id=self.tokenizer.pad_token_id,
-                               stop_ids=(self.tokenizer.eos_token_id, self.tokenizer.pad_token_id))
+        seg_fn = get_steps_coarse if getattr(self, "ob_coarse_steps", False) else get_steps
+        steps_list = seg_fn(ref_input_ids, K, start_ids=(16791, 9959), end_id=4211,
+                            eot_id=self.tokenizer.eos_token_id, pad_id=self.tokenizer.pad_token_id,
+                            stop_ids=(self.tokenizer.eos_token_id, self.tokenizer.pad_token_id))
         steps_pad_list = pad_steps(steps_list, pad_id=self.tokenizer.pad_token_id)
 
         # --- teacher (ref) pass for distillation + ref CE (kept from CODI) ---
@@ -851,9 +932,10 @@ class CODI(torch.nn.Module):
             M = self.ob_subvectors_per_step
             K = self.max_latent_steps
             # per-step target token ids — identical construction to the main path (gpt2)
-            steps_list = get_steps(ref_input_ids, K + 1, start_ids=(16791, 9959), end_id=4211,
-                                   eot_id=self.tokenizer.eos_token_id, pad_id=self.tokenizer.pad_token_id,
-                                   stop_ids=(self.tokenizer.eos_token_id, self.tokenizer.pad_token_id))
+            seg_fn = get_steps_coarse if getattr(self, "ob_coarse_steps", False) else get_steps
+            steps_list = seg_fn(ref_input_ids, K + 1, start_ids=(16791, 9959), end_id=4211,
+                                eot_id=self.tokenizer.eos_token_id, pad_id=self.tokenizer.pad_token_id,
+                                stop_ids=(self.tokenizer.eos_token_id, self.tokenizer.pad_token_id))
             steps_pad_list = pad_steps(steps_list, pad_id=self.tokenizer.pad_token_id)
 
             outputs = self.codi(input_ids=encoder_input_ids, use_cache=True,

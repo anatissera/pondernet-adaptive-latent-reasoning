@@ -34,6 +34,7 @@ uv run python train.py \
     --use_decoder True --decoder_path "$DECODER_PATH" --simcot_ckpt "$SIMCOT_CKPT" \
     --print_loss True --max_train_samples 8 \
     --option_b True --ob_num_steps "$K" --ob_subvectors_per_step "$M" \
+    --ob_coarse_steps "${COARSE:-False}" \
     --ob_lambda_ans 1.0 --ob_lambda_step 1.0 --ob_lambda_dist 1.0 --ob_lambda_halt "$LAMBDA_HALT" \
     2>&1 | tee "$LOG_DIR/smoke.log"
 
