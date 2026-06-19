@@ -129,6 +129,34 @@ curva se invierte); (B) repensar la señal de madurez / cuestionar si el eje `c`
 headroom (los datos sugieren que c=1 ya es casi óptimo por paso); (C) reformular qué
 es un "sub-vector" para acercarse al diseño real de bloques-de-`c` de SIM-CoT.
 
+#### Probe variante BLOCK (acumulación) — segundo run
+Para descartar que el resultado fuera un artefacto de medir solo el *último*
+sub-vector, se agregó `_explain_loss_block`: reconstruye el texto del paso desde el
+**bloque acumulado** de sub-vectores (B,j,dim), la medición estilo Option-B. El probe
+ahora imprime SINGLE y BLOCK lado a lado (10 batches, 3060).
+
+```
+                subvec  0      1      2      3
+SINGLE (media 10b):    ~0.51 -> 1.20 -> 1.34 -> 1.37   (sube)
+BLOCK  (media 10b):    ~0.50 -> 1.07 -> 1.16 -> 1.37   (sube; ≈ SINGLE)
+```
+
+BLOCK ≈ SINGLE: el decoder (entrenado con 1 latente) **no** aprovecha los vectores
+extra del bloque OOD. Confirma que el modelo preentrenado no da ventaja bajo ninguna
+medición.
+
+**Conclusión clave (validada con la usuaria):** como el checkpoint está fijado a
+**c=1**, cualquier `c≠1` es OOD y el probe sobre el modelo preentrenado es a lo sumo
+una pista débil — **reentrenar es obligatorio** se elija A o B. El probe no puede
+predecir si funcionará; solo el entrenamiento puede.
+
+**Dirección elegida:** **Option B (bloque-de-`c`, fiel a SIM-CoT) con reentrenamiento.**
+La usuaria prefiere el rebuild de B y acepta el costo de reentrenar. Riesgo honesto a
+vigilar: incluso tras reentrenar, el primer vector ya reconstruye bien cada paso
+(subvec0 ≈ 0.5), así que puede haber poco *headroom* y el modelo podría aprender c=1
+para todo; el penalty de ponder y la evaluación acc-vs-budget lo medirán. Esto se
+re-planifica fuera del scaffold original de Fase 2/3 (ver plan de Option B abajo).
+
 ### Fase 2 — MLP head + L_dist
 _(pendiente)_
 
