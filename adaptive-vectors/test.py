@@ -430,7 +430,8 @@ def evaluation(model_args, data_args, training_args):
                             if training_args.use_prj:
                                 latent_embd = model.prj(latent_embd)
                         first = False
-                        l_hat = model.ob_mlp(latent_embd.squeeze(1).float()).squeeze(-1)  # (B,)
+                        _mlp_dt = model.ob_mlp[0].weight.dtype  # bf16 in eval (model.to(bf16)), fp32 in train
+                        l_hat = model.ob_mlp(latent_embd.squeeze(1).to(_mlp_dt)).squeeze(-1).float()  # (B,)
                         for b in range(batch_size):
                             if bool(active[b]):
                                 n_per_step[b][k] += 1

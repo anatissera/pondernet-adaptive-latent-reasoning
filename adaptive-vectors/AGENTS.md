@@ -207,10 +207,43 @@ Script: `scripts/eval_gpt2_gsm8k_optionb.sh` (bs=1, 3060). `__init__` ahora expo
 `ob_eps`, `ob_max_subvectors`.
 
 ### Fase 5 — Entrenamiento + evaluación
-**Fecha:** 2026-06-19 — run1 lanzado (tmux `optionb-train`): K=4, M=3, BS=8×ACCUM4,
-3 épocas, 8000 ej., LR 2e-5, HALT_LR 1e-3, **λ_halt=0** (sin penalty, para medir
-headroom puro: ¿bajan las curvas de bloque tras entrenar?). 3060, ~2.9s/it, ~7.5GB.
-Eval pendiente al terminar.
+
+**run1** (tmux `optionb-train`): K=4, M=3, BS=8×ACCUM4, 3 épocas, 8000 ej., LR 2e-5,
+HALT_LR 1e-3, **λ_halt=0**. 3060, ~36 min. Loss 3.40→0.36. ckpt:
+`models/checkpoints/optionb-run1/default/gpt2/ep_3/lr_2e-05/seed_42/checkpoint-747`.
+
+**Bug en eval:** `model.to(bf16)` castea `ob_mlp` a bf16 pero le pasábamos `.float()`
+→ dtype mismatch. Fix: castear input al dtype del MLP (`ob_mlp[0].weight.dtype`).
+
+**Resultados sweep (300-subset, 3060):**
+
+| config            | avg vecs | acc(%) |
+|-------------------|----------|--------|
+| fixed c=3 (eps=0) | 12.00    | 41.00  |
+| adapt eps=0.02    | 10.69    | 41.00  |
+| adapt eps=0.05    | 10.18    | 41.33  |
+| adapt eps=0.15    | 9.23     | 41.00  |
+| adapt eps=0.40    | 8.43     | 40.67  |
+| **random**        | **8.01** | **41.00** |
+
+Patrón de vectores/paso (adapt eps=0.05): s0=3.00, s1=2.66, s2=2.30, s3=2.22 — los
+pasos tempranos usan más vectores; los tardíos frenan antes. Pero es mayormente un
+patrón **posicional** (paso 0 = más), no per-instancia.
+
+**Conclusión (HALLAZGO):**
+1. ✅ El mecanismo Option-B funciona: entrena, halta adaptativo, recorta cómputo
+   12→~9 vectores **sin pérdida de accuracy** (~41% vs baseline SIM-CoT ~39.5%).
+2. ❌ **La accuracy es PLANA (~41%) en todo el rango 8–12 vectores, y el random a
+   budget MENOR (8.0) iguala al adaptive.** El halting aprendido NO supera al random
+   a budget igualado → **el eje `c` tiene poco headroom explotable** en GSM8K-Aug con
+   GPT-2. Cada paso ya está casi saturado con 1 vector (lo anticipó el probe Fase 1).
+   La diferencia 40.67–41.33% está dentro del ruido (300 ej., SE~2.8%).
+
+Esto es exactamente el caso "rethink si no hay resultados" que pidió la usuaria: la
+maquinaria es correcta pero la tarea no recompensa la adaptividad de `c`. Pendiente:
+(a) confirmar con eval full-set (menos ruido), (b) opcional run2 con λ_halt>0 para ver
+si "concentrar info en menos vectores" mejora el budget bajo, (c) reportar y proponer
+pivote (el eje K / nº de pasos parece el axis con headroom real — proposal C).
 
 ### Fase 4 — Inferencia adaptativa
 _(pendiente)_
