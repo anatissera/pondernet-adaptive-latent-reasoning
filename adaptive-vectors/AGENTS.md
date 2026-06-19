@@ -240,10 +240,27 @@ patrón **posicional** (paso 0 = más), no per-instancia.
    La diferencia 40.67–41.33% está dentro del ruido (300 ej., SE~2.8%).
 
 Esto es exactamente el caso "rethink si no hay resultados" que pidió la usuaria: la
-maquinaria es correcta pero la tarea no recompensa la adaptividad de `c`. Pendiente:
-(a) confirmar con eval full-set (menos ruido), (b) opcional run2 con λ_halt>0 para ver
-si "concentrar info en menos vectores" mejora el budget bajo, (c) reportar y proponer
-pivote (el eje K / nº de pasos parece el axis con headroom real — proposal C).
+maquinaria es correcta pero la tarea no recompensa la adaptividad de `c`.
+
+**Confirmación full-set (GSM8K test, 1319 ej., bs=1):**
+
+| config            | avg vecs | acc(%) |
+|-------------------|----------|--------|
+| fijo c=3 (eps=0)  | 12.00    | 39.88  |
+| adaptive eps=0.05 | 10.12    | 39.80  |
+| random            | 8.05     | 39.35  |
+
+Spread 0.53 % (SE~1.35 %) → plano. Adaptive = fijo con 16 % menos cómputo; random = ambos
+con 33 % menos.
+
+**¿El MLP da más vectores a lo difícil? NO.** Media de vectores: correctos=10.28,
+incorrectos=10.01 (al revés de lo útil). Patrón posicional (s0=3 siempre, tardíos
+frenan), no por dificultad. El halting aprendido no captura señal per-instancia.
+
+**Resumen en `RESULTS.md`.** Conclusión: implementación validada; sin headroom para
+adaptividad inteligente de `c` en GSM8K-Aug/GPT-2; el axis con headroom real es `K`
+(Proposal C). Pendiente: curva accuracy-vs-`c` fijo (c=1/c=2) para confirmar si `c` es
+plano de raíz (run en `outputs/optionb-ccurve.log`).
 
 ### Fase 4 — Inferencia adaptativa
 _(pendiente)_
