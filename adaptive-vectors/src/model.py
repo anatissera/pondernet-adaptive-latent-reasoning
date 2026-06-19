@@ -163,6 +163,7 @@ class TrainingArguments(transformers.TrainingArguments):
     ob_eps: float = field(default=0.01, metadata={"help": "Inference: stop adding sub-vectors to a step once |L_hat_j - L_hat_{j-1}| < ob_eps (maturity converged)."})
     ob_max_subvectors: int = field(default=4, metadata={"help": "Inference: hard cap on sub-vectors per step (analogous to K_max for the c axis)."})
     ob_probe: bool = field(default=False, metadata={"help": "Phase-1 diagnostic: generate ob_subvectors_per_step sub-vectors per step and log the true per-sub-vector L_step (no new params, no objective change). GO/NO-GO gate for whether L_step decreases within a step."})
+    ob_random: bool = field(default=False, metadata={"help": "Eval baseline: ignore the MLP and halt each step at a random n_k ~ Uniform[1, ob_max_subvectors]. Matched-budget control to show the MLP's halting beats chance."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -452,6 +453,7 @@ class CODI(torch.nn.Module):
             self.ob_probe = training_args.ob_probe
             self.ob_eps = training_args.ob_eps                       # inference: halt a step when |L_hat_j - L_hat_{j-1}| < eps
             self.ob_max_subvectors = training_args.ob_max_subvectors  # inference: hard cap on sub-vectors per step
+            self.ob_random = getattr(training_args, "ob_random", False)  # eval-only random-halting baseline
             # MLP head: predicts per-example L_step from the latent hidden h_k.
             # Survives inference (the decoder does not). Kept in float32; fed detached
             # h_k by default (ob_detach_hk) so it cannot corrupt the backbone.

@@ -17,6 +17,7 @@ import logging
 import math
 import re
 import os
+import random
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Sequence
 
@@ -410,11 +411,15 @@ def evaluation(model_args, data_args, training_args):
                 K = model.ob_num_steps
                 Mmax = model.ob_max_subvectors
                 eps = model.ob_eps
+                use_random = getattr(model, "ob_random", False)
                 n_per_step = [[0] * K for _ in range(batch_size)]
                 first = True
                 for k in range(K):
                     prev_lhat = None
                     active = torch.ones(batch_size, dtype=torch.bool, device=device)  # rows still extending this step
+                    if use_random:
+                        # baseline: pre-sample each row's target n_k in [1, Mmax]
+                        target_nk = [random.randint(1, Mmax) for _ in range(batch_size)]
                     for j in range(Mmax):
                         if not first:
                             pos_ids = attn.sum(dim=1, keepdim=True).long()
@@ -429,7 +434,11 @@ def evaluation(model_args, data_args, training_args):
                         for b in range(batch_size):
                             if bool(active[b]):
                                 n_per_step[b][k] += 1
-                        if j >= 1:
+                        if use_random:
+                            reached = torch.tensor([(j + 1) >= target_nk[b] for b in range(batch_size)],
+                                                   device=device)
+                            active = active & (~reached)
+                        elif j >= 1:
                             mature = (l_hat - prev_lhat).abs() < eps
                             active = active & (~mature)
                         prev_lhat = l_hat
