@@ -98,8 +98,11 @@ TRAIN_CMD=(python train.py
     --print_loss False \
     --pondernet True \
     --pondernet_beta 1.0 \
-    --pondernet_gamma 0.01 \
+    --pondernet_gamma "${GAMMA:-0.01}" \
     --pondernet_geom_mean 3.0 \
+    --pondernet_adaptive_prior "${ADAPTIVE_PRIOR:-False}" \
+    --pondernet_prior_scale "${PRIOR_SCALE:-1.0}" \
+    --pondernet_prior_offset "${PRIOR_OFFSET:-1.5}" \
     --pondernet_halt_bias_init -2.0 \
     --pondernet_inf_threshold 0.5 \
     --max_train_samples 100000 \

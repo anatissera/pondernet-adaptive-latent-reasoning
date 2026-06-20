@@ -447,8 +447,8 @@ def evaluation(model_args, data_args, training_args):
                 steps_used_list.append(steps_used[mini_step])
                 _q = step * data_args.batch_size + mini_step
                 _rec = test_set[_q]
-                _cot = (_rec.get('cot', '') if isinstance(_rec, dict) else getattr(_rec, 'cot', ''))
-                cot_steps_list.append(_cot.count('<<') if _cot else None)
+                _cot = (_rec.get('cot') if isinstance(_rec, dict) else getattr(_rec, 'cot', None))
+                cot_steps_list.append(max(0, _cot.count('<<') - 1) if _cot else None)
                 decoded_pred = tokenizer.decode(pred_token, skip_special_tokens=True)
                 if do_print:
                     q_idx = step * data_args.batch_size + mini_step

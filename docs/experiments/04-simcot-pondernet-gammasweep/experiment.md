@@ -42,4 +42,14 @@ Accuracy-vs-steps frontier (best operating points, GSM8K test, greedy):
 Full per-checkpoint/per-threshold frontier data was at `results/gammasweep/summary.tsv`
 (now archived at `results/archive/scratch/_analysis/gammasweep/summary.tsv`).
 
+## Checkpoint pruning (2026-06-20)
+
+To reclaim disk (~28 GB), the saved weights were pruned to **one checkpoint per run — the
+best epoch tabulated in [runs.md](runs.md)** (g0.0→3112, g0.05→2334, g0.07→1556, g0.08→3112,
+g0.15→2334, g0.3→3112; g0.1/g0.12 kept the final ep5 model; fine-g0.02→1556). The other
+epochs' weights and **all** optimizer/scheduler/rng resume-state were deleted. Each kept
+checkpoint still carries its tokenizer, so every run is loadable for inference / re-eval at
+its best operating point. **All eval JSONs in `results/` are intact** — only the weights
+behind the non-best `checkpoint-NNNN` paths are gone, recoverable only by retraining.
+
 See [runs.md](runs.md) for the run table · artifacts under `<dir>/04-simcot-pondernet-gammasweep/`.

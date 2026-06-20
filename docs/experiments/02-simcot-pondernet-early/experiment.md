@@ -23,3 +23,9 @@ objective. Kept for the record; superseded by [03](../03-simcot-pondernet-gcfix/
 
 See [runs.md](runs.md) for the run table · artifacts under `<dir>/02-simcot-pondernet-early/`.
 Dead/aborted siblings (`halthead-ep40`, `joint-ep40`, `joint-warmstart`) live under `<dir>/archive/`.
+
+> **Weights deleted (2026-06-20).** All `models/checkpoints/02-simcot-pondernet-early/` and
+> `models/checkpoints/archive/` weights were removed to reclaim disk (~5 GB) — they were
+> known-bad (cache-bug objective) or dead/aborted, with zero scientific value. The findings
+> above and any eval logs in `results/` are preserved; only the weights are gone (recoverable
+> only by retraining, which there is no reason to do).

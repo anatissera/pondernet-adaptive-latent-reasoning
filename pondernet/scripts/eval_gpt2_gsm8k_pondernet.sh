@@ -18,6 +18,8 @@ else
     RESULTS_DIR="${RESULTS_DIR:-../results/simcot-pondernet-default}"
 fi
 THRESHOLD="${THRESHOLD:-0.5}"
+# Default to the augmented test set that carries the 'cot' field (needed for cot_steps).
+DATA_PATH="${DATA_PATH:-../data/gsm8k_aug/test.jsonl}"
 # Per-example halting is now faithful for batch>1 (see _slice_past_key_values in
 # test.py), so BATCH_SIZE>1 speeds eval without changing results. Default stays 1.
 BATCH_SIZE="${BATCH_SIZE:-1}"
@@ -37,6 +39,7 @@ EVAL_CMD=(python test.py
     --model_name_or_path "$GPT2_PATH"
     --ckpt_dir "$CKPT"
     --data_name gsm8k
+    --data_path "$DATA_PATH"
     --results_dir "$RESULTS_DIR"
     --batch_size "$BATCH_SIZE"
     --max_latent_steps 6
@@ -57,3 +60,5 @@ printf '%q ' "${EVAL_CMD[@]}" >> "$RESULTS_DIR/command.sh"; echo >> "$RESULTS_DI
 
 echo "[eval] results → $RESULTS_DIR"
 "${EVAL_CMD[@]}" 2>&1 | tee "$RESULTS_DIR/eval.log"
+
+python3 scripts/postprocess_eval.py "$RESULTS_DIR"
