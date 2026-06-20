@@ -15,6 +15,7 @@ entries' format.
 | 03 | [simcot-pondernet-gcfix](experiments/03-simcot-pondernet-gcfix/experiment.md) | gradient-checkpointing fix | **42.23%** @ ep2 | complete |
 | 04 | [simcot-pondernet-gammasweep](experiments/04-simcot-pondernet-gammasweep/experiment.md) | γ (KL-prior weight) vs accuracy/steps frontier | 40.2% @ 5.38 steps (γ=0.05) | complete |
 | 05 | [simcot-pondernet-adaptive-prior](experiments/05-simcot-pondernet-adaptive-prior/experiment.md) | per-instance geometric prior (geom_mean_i = α·n_i+β) vs global geom=3.0 | **40.49%** @ 5.262 avg_steps (thr0.8, ep4); Spearman +0.65 | complete |
+| 06 | [simcot-pondernet-trunc-k](experiments/06-simcot-pondernet-trunc-k/experiment.md) | per-instance truncated-K training (K_i=n_i) to break K=6 warm-start bias | — | active |
 
 **Headline:** best overall = `03-simcot-pondernet-gcfix/100k` **42.23%** @ ep2 (first trained
 run to beat the 39.5% baseline). Most efficient near-baseline point = `04/g0.05-gm3.0-ep5`
