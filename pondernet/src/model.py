@@ -144,6 +144,7 @@ class TrainingArguments(transformers.TrainingArguments):
     pondernet_prior_scale: float = field(default=1.0, metadata={"help": "Adaptive prior slope alpha in geom_mean_i = alpha*n_i + beta."})
     pondernet_prior_offset: float = field(default=1.5, metadata={"help": "Adaptive prior offset beta in geom_mean_i = alpha*n_i + beta. Must be >1 to avoid the degenerate g=1 point-mass prior; doubles as the z0/answer latent overhead."})
     pondernet_inf_threshold: float = field(default=0.5, metadata={"help": "Cumulative halting probability threshold for inference early-stopping. Stop when sum_k p_k > threshold."})
+    pondernet_trunc_k: bool = field(default=False, metadata={"help": "Per-instance truncated-K training (exp-06): stop the latent loop at K_i = max(1, n_i) steps per example instead of always running max_latent_steps. Requires pondernet=True and use_decoder=True."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -333,6 +334,17 @@ def adaptive_prior_mean(n_real, scale, offset, K, dtype=torch.float32, device=No
     return (scale * n + offset).clamp(min=offset, max=float(K))
 
 
+def build_active_mask(K_i_list, K_batch_max, device=None):
+    """Boolean mask (B, K_batch_max) where active[i, k] = (k < K_i_list[i]).
+
+    K_i_list: list (B,) of per-example step counts (clamped to [1, max_latent_steps]).
+    K_batch_max: int, max(K_i_list) — the loop iteration count for this batch.
+    """
+    k_idx = torch.arange(K_batch_max, device=device).unsqueeze(0)   # (1, K)
+    Ki_t = torch.tensor(K_i_list, device=device).unsqueeze(1)        # (B, 1)
+    return k_idx < Ki_t                                               # (B, K)
+
+
 class LowRankProjector(nn.Module):
     def __init__(self, input_dim, output_dim, rank=64):
         super(LowRankProjector, self).__init__()
@@ -482,6 +494,7 @@ class CODI(torch.nn.Module):
             self.pondernet_prior_scale = getattr(training_args, "pondernet_prior_scale", 1.0)
             self.pondernet_prior_offset = getattr(training_args, "pondernet_prior_offset", 1.5)
             self.pondernet_inf_threshold = training_args.pondernet_inf_threshold
+            self.pondernet_trunc_k = getattr(training_args, "pondernet_trunc_k", False)
 
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
@@ -747,6 +760,16 @@ class CODI(torch.nn.Module):
         ref_answer_position = ref_answer_position -1
       
         max_latent_steps = self.max_latent_steps
+
+        # Exp-06: per-instance truncated-K — shorten the loop per batch
+        active_mask = None
+        if self.pondernet and getattr(self, "pondernet_trunc_k", False) and self.model_args.use_decoder:
+            n_real = count_real_steps(steps_list, self.tokenizer.pad_token_id)
+            K_i_list = [max(1, min(n, self.max_latent_steps)) for n in n_real]
+            K_batch_max = max(K_i_list)
+            active_mask = build_active_mask(K_i_list, K_batch_max, device=self.codi.device)
+            max_latent_steps = K_batch_max
+
         pondernet_lambdas, pondernet_step_losses = [], []
         if self.max_latent_steps != 0:
             for i in range(max_latent_steps):
@@ -920,6 +943,13 @@ class CODI(torch.nn.Module):
 
             # L_pondernet = E_p[L_ans^(k)] = sum_k p_k * L_ans^(k), averaged over batch
             step_losses_tensor = torch.stack(pondernet_step_losses, dim=1)  # (B, K) in-graph
+
+            # Exp-06: per-instance mask — zero out halting mass and step losses beyond K_i
+            if active_mask is not None:
+                pondernet_p = pondernet_p * active_mask.float()
+                pondernet_p = pondernet_p / pondernet_p.sum(dim=1, keepdim=True).clamp_min(1e-8)
+                step_losses_tensor = step_losses_tensor * active_mask.float()
+
             l_pondernet = (pondernet_p * step_losses_tensor).sum(dim=1).mean()
 
             # KL_geom regularizer — penalises distributions far from geometric prior.
