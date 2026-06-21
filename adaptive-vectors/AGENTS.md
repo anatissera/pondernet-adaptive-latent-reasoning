@@ -308,8 +308,28 @@ dificultad per-instancia; la penalty no cambia nada. Recomendación: **fijar c=2
 concentrar el esfuerzo de adaptividad en el eje `K` (Proposal C). Resumen completo en
 `RESULTS.md`. Investigación cerrada (2 runs de entrenamiento + barridos full-set).
 
-### Fase 4 — Inferencia adaptativa
-_(pendiente)_
+### Fase 6 — Retrain sin sesgo (cold + coarse) + diagnóstico (2026-06-21)
 
-### Fase 5 — Entrenamiento + evaluación
-_(pendiente)_
+Para descartar que la saturación en c=2 fuera sesgo del warm-start, se reentrenó **cold
+desde GPT-2 plano + segmentación gruesa** (`get_steps_coarse`, K=3 M=3, 30 ep, `train15k`).
+- **Divergencia LR 3e-3** (receta CODI): explotó ep7→8 (loss 2.8→20). Fix: **LR 1e-3 +
+  grad_norm 0.5 + warmup 0.05** → descenso limpio 7.5→0.77, sin spikes. `checkpoint-7020`.
+- **Resultado: colapsó a ≈ azar.** c-curve full-set: c1=5.31, c2=5.46, c3=5.53 %.
+  Adaptive/random (sub300) todo ~8 %, adaptive≈random.
+
+**Diagnóstico (3 verificaciones):**
+1. **No es bug de carga** — keys idénticas al ckpt warm que da 39 % (404 keys, cero diff);
+   LoRA/prj/ob_mlp con pesos entrenados.
+2. **Aprendió formato, no razonamiento** — genera "The answer is: N" bien formado pero con
+   aritmética mal (3×3×60=540 → dice 360).
+3. **Latentes inertes** — `fixed_k_eval` plano k1..k9 (~6 %); agregar vectores no ayuda.
+   Contraste: warm SÍ usa latentes (c-curve sube 27.5→39.4).
+
+**Modo de falla:** shortcut — el decoder imita el hidden del teacher y emite un número
+plausible desde la pregunta sola, sin que los latentes se vuelvan load-bearing. CODI lo
+evita porque su warm-start ya trae latentes funcionales (40 ep cold con objetivo simple c=1).
+
+**Veredicto:** el ancla c=1 era **load-bearing, no solo sesgo**. El negativo del eje `c` es
+**robusto en ambos regímenes**. Causa raíz = la tarea (pasos triviales uniformes), no el init.
+**Próximo lever a explorar: densidad por-paso del dataset** (no el eje `c` del modelo).
+Detalle completo en `RESULTS.md` § "Retrain sin sesgo".

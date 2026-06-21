@@ -1,6 +1,7 @@
 # Option-B — Resultados (vectores por paso adaptativos, eje `c`)
 
-**Fecha:** 2026-06-19 · **GPU:** RTX 3060 · **Backbone:** GPT-2 + SIM-CoT/CODI warm-start
+**Fecha:** 2026-06-19 (actualizado 2026-06-21) · **GPU:** RTX 3060/5070/3090
+**Backbone:** GPT-2 (+ SIM-CoT/CODI warm-start en el baseline; cold-start en el retrain)
 **Datos:** GSM8K-Aug (train) / GSM8K test (1319 ej.)
 
 ## TL;DR
@@ -17,6 +18,15 @@ c3=39.9 %): la `c` requerida es casi constante (~2) entre instancias → **poco 
 explotable** en GSM8K-Aug con GPT-2. El óptimo simple es **fijar c=2**. Resultado
 negativo limpio y reproducible: la maquinaria es correcta, la tarea no recompensa
 adaptar `c`. El axis con headroom real es el número de pasos `K` (Proposal C).
+
+> **Update 2026-06-21 (retrain sin sesgo).** Para descartar que la saturación fuera sesgo
+> del warm-start c=1, se reentrenó **cold desde GPT-2 plano + segmentación gruesa**. Resultado:
+> el modelo cold **colapsa a ≈ azar** (c1=5.3/c2=5.5/c3=5.5 %). Diagnóstico (ver sección
+> "Retrain sin sesgo"): no es bug de carga; el modelo aprende el *formato* de la respuesta pero
+> los **latentes quedan inertes** (`fixed_k_eval` plano k1..k9 ≈ 6 %) — el razonamiento latente
+> no bootstrapea desde cero bajo el objetivo block-of-c. **El ancla c=1 era load-bearing, no
+> solo un sesgo.** El negativo del eje `c` es robusto: donde el modelo funciona (warm), `c` es
+> plano; el lever real es la **densidad por-paso del dataset**, no el eje `c`.
 
 ## Qué se construyó
 
@@ -108,7 +118,62 @@ con **c=1**. Los pasos se segmentan por marcadores de texto (`<<…>>`), supervi
 
 **Veredicto del análisis:** la saturación en c=2 es **mayormente la tarea** (pasos triviales y
 uniformes), con el warm-start/LoRA como ancla **secundaria**. Un retrain sin sesgo (puntos 1-3)
-es necesario para afirmarlo con rigor — es exactamente lo que se planifica a continuación.
+es necesario para afirmarlo con rigor — es exactamente lo que se hizo a continuación.
+
+## Retrain sin sesgo: cold + coarse (resultado + diagnóstico)
+
+**Fecha:** 2026-06-21 · **GPU:** RTX 5070 (training) + 3090 (eval). Plan: remover los sesgos
+controlables (#1 warm-start c=1, #2 granularidad atómica) en una sola corrida y volver a medir.
+
+**Setup:** GPT-2 plano (sin checkpoint SIM-CoT, decoder fresco) + segmentación **gruesa**
+(`get_steps_coarse`: agrupa las ops en K=3 buckets parejos → complejidad por-paso variable),
+K=3, M=3, 30 épocas, `train15k`. Script: `scripts/train_gpt2_gsm8k_optionb_cold.sh`.
+- **Divergencia con LR 3e-3** (la receta cold de CODI): explotó en la época 7→8 (loss 2.8→20,
+  se quedó en ~10). Re-lanzado con **LR 1e-3 + max_grad_norm 0.5 + warmup 0.05**: descenso
+  monótono limpio 7.5 → **0.77**, sin spikes. Checkpoint final: `checkpoint-7020`.
+
+**Resultado — c-curve (GSM8K test completo, 1319 ej., eps=0.0):**
+
+| c (M_max) | vecs/inst | acc (%) cold | acc (%) warm (baseline) |
+|-----------|-----------|--------------|--------------------------|
+| 1         | 3.00      | **5.31**     | 27.52                    |
+| 2         | 6.00      | **5.46**     | 39.42                    |
+| 3         | 9.00      | **5.53**     | 39.88                    |
+
+Adaptive/random (300-subset): **todo ~8 %**, adaptive ≈ random en todos los eps (el halting
+recorta vectores 9→6 pero la accuracy no se mueve). **El modelo cold colapsó a ≈ azar.**
+
+### Diagnóstico: por qué el cold-start falla (3 verificaciones)
+
+1. **No es bug de carga.** El checkpoint cold tiene **estructura de keys idéntica** (404 keys,
+   cero diff, cero mismatch de shape) al checkpoint warm que da 39 % por el mismo `test.py`.
+   Los pesos LoRA/prj/ob_mlp están entrenados (normas grandes, no init). El loss bajó a 0.77.
+2. **Aprendió el formato, no el razonamiento.** Las generaciones son respuestas **bien formadas**
+   ("The answer is: N") con números de magnitud plausible, pero la aritmética está mal
+   (16−3−4=9 ⇒ $18, dice 96; 3×3×60=540, dice 360). No es basura: es un modelo que da respuestas
+   format-correctas pero incorrectas.
+3. **Los latentes son inertes** (`fixed_k_eval`, decodifica la respuesta a cada prefijo k=1..9):
+
+   ```
+   accuracy@k (cold):  k1=7.3  k2=6.7  k3=6.0  k4=5.3  k5=5.7  k6=5.7  k7=6.0  k8=6.0  k9=5.7
+   ```
+   **Plana (incluso decreciente):** agregar vectores latentes no ayuda. La cadena de razonamiento
+   no transporta computación. Contraste: el modelo **warm SÍ usa los latentes** — su c-curve
+   **sube** (c1=27.5 → c2=39.4, +12 puntos al 2º vector).
+
+**Modo de falla (shortcut):** desde cero, bajo el objetivo block-of-c, la optimización encuentra
+un atajo — el decoder imita el hidden del teacher (`distill_loss`) y emite un número plausible
+*desde la pregunta sola*, sin que los latentes se vuelvan load-bearing. El `L_step` entrena los
+latentes a reconstruir el *texto* del paso, pero eso queda desacoplado de computar la respuesta.
+CODI evita esto porque su warm-start **ya trae latentes funcionales** (entrenados 40 épocas en
+cold con un objetivo simple: c=1, una reconstrucción).
+
+**Veredicto actualizado:** el ancla c=1 **no era solo un sesgo — era load-bearing**. No se puede
+separar "modelo que funciona" de "anclado en c=1" quitando el warm-start, porque el razonamiento
+latente no bootstrapea desde cero bajo este objetivo. El negativo del eje `c` es **robusto en los
+dos regímenes**: donde el modelo funciona (warm) `c` es plano; en cold no hay modelo funcional.
+La causa raíz no es el init sino **la tarea**: cada paso de GSM8K-Aug es una op trivial que 2
+vectores saturan. El lever real es la **densidad por-paso del dataset**, no el eje `c` del modelo.
 
 ## Conclusión y recomendación
 

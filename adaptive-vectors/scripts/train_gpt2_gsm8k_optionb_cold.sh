@@ -16,17 +16,20 @@ DATA_PATH="${DATA_PATH:-../data/gsm8k_aug/train15k.jsonl}"
 K="${K:-3}"; M="${M:-3}"                 # K coarse steps, up to M sub-vectors each
 BS="${BS:-8}"; ACCUM="${ACCUM:-8}"       # eff batch 64 (memory-safe on 12GB)
 EPOCHS="${EPOCHS:-30}"; MAXSAMPLES="${MAXSAMPLES:-15000}"
-LR="${LR:-3e-3}"                         # cold CODI LR
+LR="${LR:-1e-3}"                         # cold LR (3e-3 diverged at ep7 w/ block-of-c; lowered)
 LAMBDA_HALT="${LAMBDA_HALT:-0.0}"        # penalty off for the first cold run (headroom first)
-export HALT_HEAD_LR="${HALT_HEAD_LR:-3e-3}"
+export HALT_HEAD_LR="${HALT_HEAD_LR:-1e-3}"   # MLP/halt fast group; lowered in lockstep w/ LR
+GRADNORM="${GRADNORM:-0.5}"              # tighter clip than 1.0 to catch divergence spikes
+WARMUP="${WARMUP:-0.05}"                 # a bit more warmup for cold stability
 export UV_NO_SYNC=1                      # never let uv sync/wipe the shared venv
 
 mkdir -p "$SAVE_DIR" "$LOG_DIR"
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
-export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-2}"
+export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 echo "[cold] device:"; uv run python -c "import torch;print(' ', torch.cuda.get_device_name(0))"
-echo "[cold] COLD start (no warm-start), COARSE steps | K=$K M=$M BS=$BS ACCUM=$ACCUM EPOCHS=$EPOCHS N=$MAXSAMPLES LR=$LR"
+echo "[cold] COLD start (no warm-start), COARSE steps | K=$K M=$M BS=$BS ACCUM=$ACCUM EPOCHS=$EPOCHS N=$MAXSAMPLES"
+echo "[cold] LR=$LR HALT_HEAD_LR=$HALT_HEAD_LR GRADNORM=$GRADNORM WARMUP=$WARMUP LAMBDA_HALT=$LAMBDA_HALT"
 
 # NOTE: no --simcot_ckpt and no --decoder_path  => plain GPT-2 backbone + fresh decoder.
 uv run python train.py \
@@ -35,10 +38,10 @@ uv run python train.py \
     --seed 42 --model_max_length 384 --max_token_num 700 \
     --per_device_train_batch_size "$BS" --gradient_accumulation_steps "$ACCUM" \
     --gradient_checkpointing False --dataloader_num_workers 4 --bf16 \
-    --num_train_epochs "$EPOCHS" --learning_rate "$LR" --max_grad_norm 1.0 \
+    --num_train_epochs "$EPOCHS" --learning_rate "$LR" --max_grad_norm "$GRADNORM" \
     --use_lora True --lora_r 128 --lora_alpha 32 --lora_init \
-    --save_strategy epoch --save_total_limit 2 --save_safetensors False \
-    --weight_decay 0.1 --warmup_ratio 0.03 --lr_scheduler_type cosine \
+    --save_strategy epoch --save_total_limit 4 --save_safetensors False \
+    --weight_decay 0.1 --warmup_ratio "$WARMUP" --lr_scheduler_type cosine \
     --do_train --report_to tensorboard \
     --use_prj True --prj_dim 768 --prj_dropout 0.0 \
     --distill_loss_div_std True --remove_eos True \
