@@ -11,3 +11,10 @@ numpy==2.1.3
 tqdm==4.67.0
 PyYAML==6.0.2
 Pillow==11.3.0
+
+# Clasificador de k* (Option-A): encoder de oraciones congelado + ML clásico.
+# sentence-transformers 3.x es la última serie compatible con transformers
+# 4.46.2 (la 4.x se mantiene pineada por los wrappers CODI/Coconut; la 5.x
+# arrastra transformers>=4.52 y rompe la cache legacy de coconut.py).
+sentence-transformers==3.3.1
+scikit-learn==1.7.2
