@@ -140,6 +140,9 @@ class TrainingArguments(transformers.TrainingArguments):
     pondernet_beta: float = field(default=1.0, metadata={"help": "Weight of auxiliary decoder loss L_step in PonderNet mode."})
     pondernet_gamma: float = field(default=0.01, metadata={"help": "Weight of KL-geometric regularizer in PonderNet mode."})
     pondernet_geom_mean: float = field(default=3.0, metadata={"help": "Mean number of steps for the geometric prior used in KL_geom (controls compute pressure)."})
+    pondernet_adaptive_prior: bool = field(default=False, metadata={"help": "Per-instance geometric prior: geom_mean_i = affine remap of the example's real reasoning-step count (#expr-1 from get_steps). Off = global pondernet_geom_mean (exp <=04). Requires use_decoder."})
+    pondernet_prior_scale: float = field(default=1.0, metadata={"help": "Adaptive prior slope alpha in geom_mean_i = alpha*n_i + beta."})
+    pondernet_prior_offset: float = field(default=1.5, metadata={"help": "Adaptive prior offset beta in geom_mean_i = alpha*n_i + beta. Must be >1 to avoid the degenerate g=1 point-mass prior; doubles as the z0/answer latent overhead."})
     pondernet_inf_threshold: float = field(default=0.5, metadata={"help": "Cumulative halting probability threshold for inference early-stopping. Stop when sum_k p_k > threshold."})
 
 def print_trainable_parameters(model):
@@ -269,6 +272,66 @@ def dedup_trailing_pads(step_token_ids, pad_id=128256):
             break
 
     return [row[:max_len] for row in step_token_ids]
+
+
+def truncated_geometric_prior(geom_mean, K, dtype=torch.float32, device=None):
+    """Truncated-geometric halting prior q over steps 0..K-1.
+
+    g = 1/geom_mean; q_k = (1-g)^k * g for k < K-1, q_{K-1} = (1-g)^{K-1} (absorbing
+    boundary, matching the halting-distribution convention), renormalized to sum 1.
+
+    geom_mean: float (global prior, returns shape (K,)) OR tensor (B,) of per-example
+    means (returns shape (B, K), one prior per row).
+    """
+    k_idx = torch.arange(K, dtype=dtype, device=device)  # (K,)
+    if torch.is_tensor(geom_mean):
+        g = (1.0 / geom_mean.to(dtype)).unsqueeze(1)             # (B, 1)
+        q = (1.0 - g) ** k_idx.unsqueeze(0) * g                   # (B, K)
+        q[:, -1] = (1.0 - g.squeeze(1)) ** (K - 1)               # absorbing boundary
+        q = q / q.sum(dim=1, keepdim=True)
+    else:
+        g = 1.0 / geom_mean
+        q = (1.0 - g) ** k_idx * g                                # (K,)
+        q[-1] = (1.0 - g) ** (K - 1)
+        q = q / q.sum()
+    return q
+
+
+def kl_to_truncated_geometric(p_k, geom_mean):
+    """Per-row KL(p_k || q) where q is the truncated-geometric prior. Returns (B,).
+
+    geom_mean: float (global) or tensor (B,) (per-example). p_k: (B, K), rows sum to 1.
+    """
+    K = p_k.size(1)
+    q = truncated_geometric_prior(geom_mean, K, dtype=p_k.dtype, device=p_k.device)
+    log_q = torch.log(q.clamp_min(1e-8))
+    if log_q.dim() == 1:
+        log_q = log_q.unsqueeze(0)                                # (1, K) broadcast
+    log_p = torch.log(p_k.clamp_min(1e-8))
+    return (p_k * (log_p - log_q)).sum(dim=1)                     # (B,)
+
+
+def count_real_steps(steps_list, pad_id):
+    """Per-example count of real reasoning steps from get_steps output.
+
+    steps_list: list (B) of per-example step lists; padded slots are the [pad_id]
+    sentinel. Returns a python list (B) of counts (number of non-pad slots). The
+    caller clamps to a valid prior-mean range (>= 1).
+    """
+    return [sum(1 for step in ex if step != [pad_id]) for ex in steps_list]
+
+
+def adaptive_prior_mean(n_real, scale, offset, K, dtype=torch.float32, device=None):
+    """Affine remap of per-example reasoning-step counts to geometric-prior means.
+
+    geom_mean_i = clamp(scale * n_i + offset, offset, K). The offset (>= ~1.5) keeps the
+    prior off the degenerate g=1 point mass that geom_mean=n_i hits for the ~53% of
+    examples with n_i <= 1, while preserving a monotonic per-instance signal. n_real:
+    list/tensor (B,) of non-pad reasoning-step counts. Returns means (B,).
+    """
+    n = torch.as_tensor(n_real, dtype=dtype, device=device)
+    return (scale * n + offset).clamp(min=offset, max=float(K))
+
 
 class LowRankProjector(nn.Module):
     def __init__(self, input_dim, output_dim, rank=64):
@@ -415,6 +478,9 @@ class CODI(torch.nn.Module):
             self.pondernet_beta = training_args.pondernet_beta
             self.pondernet_gamma = training_args.pondernet_gamma
             self.pondernet_geom_mean = training_args.pondernet_geom_mean
+            self.pondernet_adaptive_prior = getattr(training_args, "pondernet_adaptive_prior", False)
+            self.pondernet_prior_scale = getattr(training_args, "pondernet_prior_scale", 1.0)
+            self.pondernet_prior_offset = getattr(training_args, "pondernet_prior_offset", 1.5)
             self.pondernet_inf_threshold = training_args.pondernet_inf_threshold
 
         if self.tokenizer.pad_token_id is None:
@@ -490,26 +556,17 @@ class CODI(torch.nn.Module):
         p = p / p.sum(dim=1, keepdim=True).clamp_min(1e-8)
         return p  # (B, K)
 
-    def _kl_geom(self, p_k):
-        """KL(p_k || q_k) where q_k is Geometric(g) truncated to K steps.
+    def _kl_geom(self, p_k, geom_mean=None):
+        """KL(p_k || q) to a truncated-geometric prior; scalar, mean over batch.
 
         p_k: (B, K) halting distribution (rows sum to 1).
-        g = 1 / geom_mean; q_k = (1-g)^{k-1} * g for k<K, q_K = (1-g)^{K-1}.
-        Returns scalar — mean over batch.
+        geom_mean: optional per-example means, tensor (B,). Defaults to the global
+        scalar ``self.pondernet_geom_mean`` (exp <=04 behavior). A per-example tensor
+        builds one prior per row (exp 05 adaptive-prior path).
         """
-        K = p_k.size(1)
-        g = 1.0 / self.pondernet_geom_mean
-        # Build geometric prior q: shape (K,)
-        k_idx = torch.arange(K, dtype=p_k.dtype, device=p_k.device)
-        q = (1.0 - g) ** k_idx * g
-        q[-1] = (1.0 - g) ** (K - 1)   # absorbing boundary matches p_k convention
-        q = q / q.sum()                 # renorm so q sums to 1 exactly
-
-        # KL = sum_k p_k * (log p_k - log q_k); use clamp for log stability
-        log_p = torch.log(p_k.clamp_min(1e-8))
-        log_q = torch.log(q.clamp_min(1e-8)).unsqueeze(0)  # (1, K) broadcast
-        kl = (p_k * (log_p - log_q)).sum(dim=1)            # (B,)
-        return kl.mean()
+        if geom_mean is None:
+            geom_mean = self.pondernet_geom_mean
+        return kl_to_truncated_geometric(p_k, geom_mean).mean()
 
     def _halting_lambda(self, hidden):
         """hidden: (B, 1, dim) latent state h_k -> lambda_k: (B,) in (0,1)."""
@@ -865,8 +922,22 @@ class CODI(torch.nn.Module):
             step_losses_tensor = torch.stack(pondernet_step_losses, dim=1)  # (B, K) in-graph
             l_pondernet = (pondernet_p * step_losses_tensor).sum(dim=1).mean()
 
-            # KL_geom regularizer — penalises distributions far from geometric prior
-            kl_geom = self._kl_geom(pondernet_p)
+            # KL_geom regularizer — penalises distributions far from geometric prior.
+            # Adaptive prior (exp 05): per-example mean = affine remap of the example's real
+            # reasoning-step count, geom_mean_i = alpha*n_i + beta clamped to [beta, K]; the
+            # offset keeps the prior off the degenerate g=1 point mass. Else global scalar.
+            if self.pondernet_adaptive_prior:
+                assert self.model_args.use_decoder, \
+                    "pondernet_adaptive_prior requires use_decoder (needs steps_list)"
+                K = pondernet_p.size(1)
+                n_real = count_real_steps(steps_list, self.tokenizer.pad_token_id)
+                geom_mean_i = adaptive_prior_mean(
+                    n_real, self.pondernet_prior_scale, self.pondernet_prior_offset, K,
+                    dtype=pondernet_p.dtype, device=pondernet_p.device,
+                )
+                kl_geom = self._kl_geom(pondernet_p, geom_mean=geom_mean_i)
+            else:
+                kl_geom = self._kl_geom(pondernet_p)
 
             # Assemble total loss:
             #   L_pondernet  replaces ce_loss_total (the fixed-K answer CE)
