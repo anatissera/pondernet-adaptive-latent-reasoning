@@ -296,10 +296,20 @@ def train():
         )
 
     if training_args.pondernet:
+        scope = getattr(training_args, "pondernet_train_scope", "lora")
         freeze_model(model)
-        for name, p in model.named_parameters():
-            if 'halt_head' in name or 'lora_' in name:
-                p.requires_grad = True
+        if scope == "full":
+            for name, p in model.named_parameters():
+                if not (name.startswith("decoder.") or name.startswith("pj_in")
+                        or name.startswith("pj_out")):
+                    p.requires_grad = True
+        else:
+            unfreeze_prj = (scope == "lora_prj")
+            for name, p in model.named_parameters():
+                if 'halt_head' in name or 'lora_' in name or (unfreeze_prj and name.startswith("prj")):
+                    p.requires_grad = True
+        if scope not in ("lora", "lora_prj", "full"):
+            raise ValueError(f"--pondernet_train_scope must be lora|lora_prj|full, got {scope!r}")
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(
             model_args.model_name_or_path,

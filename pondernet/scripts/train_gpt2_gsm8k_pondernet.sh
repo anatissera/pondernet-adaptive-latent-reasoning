@@ -105,6 +105,7 @@ TRAIN_CMD=(python train.py
     --pondernet_prior_offset "${PRIOR_OFFSET:-1.5}" \
     --pondernet_halt_bias_init -2.0 \
     --pondernet_inf_threshold 0.5 \
+    --pondernet_trunc_k "${TRUNC_K:-False}" \
     --max_train_samples 100000 \
     "$@"
 )
@@ -127,6 +128,7 @@ TRAIN_CMD=(python train.py
     echo "#   DATA_PATH=$DATA_PATH"
     echo "#   CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-<unset>}"
     echo "#   PYTORCH_CUDA_ALLOC_CONF=$PYTORCH_CUDA_ALLOC_CONF"
+    echo "#   TRUNC_K=${TRUNC_K:-False}"
     echo
     printf '%q ' "${TRAIN_CMD[@]}"
     echo
