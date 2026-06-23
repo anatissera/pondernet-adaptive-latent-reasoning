@@ -18,8 +18,11 @@ else
     RESULTS_DIR="${RESULTS_DIR:-../results/simcot-pondernet-default}"
 fi
 THRESHOLD="${THRESHOLD:-0.5}"
-# Default to the augmented test set that carries the 'cot' field (needed for cot_steps).
-DATA_PATH="${DATA_PATH:-../data/gsm8k_aug/test.jsonl}"
+# Default to the augmented VALIDATION set (carries the 'cot' field needed for cot_steps).
+# NOTE: was test.jsonl until 2026-06-23 — every 01–07 metric reported before then was
+# computed (and hyperparameters selected) on the test set. See docs/experiments.md
+# "Eval split / leakage note". The held-out test set is reserved for a single final report.
+DATA_PATH="${DATA_PATH:-../data/gsm8k_aug/validation.jsonl}"
 # Per-example halting is now faithful for batch>1 (see _slice_past_key_values in
 # test.py), so BATCH_SIZE>1 speeds eval without changing results. Default stays 1.
 BATCH_SIZE="${BATCH_SIZE:-1}"

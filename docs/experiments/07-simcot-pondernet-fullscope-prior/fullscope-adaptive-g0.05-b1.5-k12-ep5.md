@@ -2,15 +2,17 @@
 
 **Experiment:** [07-simcot-pondernet-fullscope-prior](runs.md)  **Date:** 2026-06-23  **Status:** ✅ done
 
+> ✅ **Re-validated 2026-06-23.** Metrics below are on the held-out validation split (500 ex, greedy); prior test-set numbers were optimistically biased. Only ep5 survived; ep1–ep4 were deleted. See [eval-split note](../../experiments.md#eval-split-and-leakage-note).
+
 ## Summary
 
 Combined the teammate's Recipe C (full backbone unfreeze, `scope=full`) with exp-05's per-instance
 adaptive prior (`geom_mean_i = n_i + 1.5`) and K_max=12 — the first run to test all three
-together. Best accuracy: **40.26% @ thr=0.8, 6.96 avg_steps (ep5)**. Best Spearman:
-**0.684 @ ep3/thr=0.5** — the highest difficulty-tracking correlation in the project.
-Accuracy sits between the two baselines (−0.23pp vs exp-05 thr0.8; −0.22pp vs teammate C-k12
-thr0.5), but Spearman is improved on both. The adaptive prior pushes avg_steps higher than
-Recipe C alone (4.46 vs 3.21 at thr0.5), trading compute efficiency for better step calibration.
+together. Re-validated (ep5, the only surviving checkpoint): **41.00% @ thr0.5 / 4.336 avg_steps**
+and **41.00% @ thr0.8 / 6.804 avg_steps** (validation, n=500) — at the 40.80% greedy validation
+baseline, so no accuracy win, but the run delivers the **strongest difficulty tracking in the
+project**: **Spearman +0.675 @ thr0.5** (ep5, validation). The old project-record Spearman
+(ep3 = 0.684, test) **cannot be re-validated** — ep1–ep4 checkpoints were deleted.
 
 ## Hyperparameters _(from `command.sh`)_
 
@@ -23,28 +25,44 @@ Recipe C alone (4.46 vs 3.21 at thr0.5), trading compute efficiency for better s
 | train scope | `full` (backbone LoRA + non-LoRA + halt_head; decoder frozen) |
 | TRUNC_K | False |
 
-## Results _(from `summary.json`)_
+## Results — re-validated (validation split, n=500, greedy)
 
-| epoch | threshold | accuracy | avg steps | Spearman r |
-|-------|-----------|----------|-----------|------------|
-| ep1 | 0.5 | 39.65% | 4.544 | 0.683 |
-| ep1 | 0.8 | 40.03% | 7.083 | 0.663 |
-| ep1 | 0.9 | 39.42% | 8.502 | 0.640 |
-| ep2 | 0.5 | 39.42% | 4.482 | 0.682 |
-| ep2 | 0.8 | 40.11% | 7.014 | 0.668 |
-| ep2 | 0.9 | 39.88% | 8.448 | 0.651 |
-| ep3 | 0.5 | 39.73% | 4.462 | **0.684** |
-| ep3 | 0.8 | 39.88% | 6.949 | 0.670 |
-| ep3 | 0.9 | 39.88% | 8.367 | 0.654 |
-| ep4 | 0.5 | 39.65% | 4.471 | 0.677 |
-| ep4 | 0.8 | 40.03% | 7.001 | 0.668 |
-| ep4 | 0.9 | 40.11% | 8.431 | 0.653 |
-| **ep5** | **0.5** | **40.11%** | **4.460** | 0.676 |
-| **ep5** | **0.8** | **40.26%** | **6.959** | 0.672 |
-| **ep5** | **0.9** | 40.03% | 8.375 | 0.655 |
+Only ep5 (`checkpoint-3890`) survived re-validation; ep1–ep4 checkpoints were deleted.
 
-**Winner: ep5 / thr=0.8 → 40.26% @ 6.96 avg_steps, Spearman 0.672**
-**Spearman record: ep3 / thr=0.5 → 0.684** (highest in the project)
+| checkpoint | thr 0.5 | thr 0.8 | thr 0.9 |
+|-----------|---------|---------|---------|
+| checkpoint-3890 (ep5) | 41.00% / 4.336 | 41.00% / 6.804 | 40.00% / 8.192 |
+
+(acc% / avg_steps; n=500 validation; prior numbers were on GSM8K test, 1319 ex, biased.)
+
+**Difficulty tracking** — Spearman(steps_used, #expr), validation, ep5: thr0.5 = **+0.675**, thr0.8 = +0.671, thr0.9 = +0.662 — the strongest difficulty tracking in the project (on validation).
+
+### Prior test-set numbers (biased; ep1–ep4 checkpoints deleted, not reconcilable)
+
+The full per-epoch×threshold grid below was on the GSM8K **test** set (leakage). Only **ep5**
+was re-validated (above); **ep1–ep4 cannot be re-validated** — their checkpoints were deleted,
+**including the old project-record Spearman ep3 = 0.684**.
+
+| epoch | threshold | accuracy | avg steps | Spearman r | source |
+|-------|-----------|----------|-----------|------------|--------|
+| ep1 | 0.5 | 39.65% | 4.544 | 0.683 | test, biased — ckpt deleted |
+| ep1 | 0.8 | 40.03% | 7.083 | 0.663 | test, biased — ckpt deleted |
+| ep1 | 0.9 | 39.42% | 8.502 | 0.640 | test, biased — ckpt deleted |
+| ep2 | 0.5 | 39.42% | 4.482 | 0.682 | test, biased — ckpt deleted |
+| ep2 | 0.8 | 40.11% | 7.014 | 0.668 | test, biased — ckpt deleted |
+| ep2 | 0.9 | 39.88% | 8.448 | 0.651 | test, biased — ckpt deleted |
+| ep3 | 0.5 | 39.73% | 4.462 | **0.684** | test, biased — ckpt deleted (UNREVALIDATABLE record) |
+| ep3 | 0.8 | 39.88% | 6.949 | 0.670 | test, biased — ckpt deleted |
+| ep3 | 0.9 | 39.88% | 8.367 | 0.654 | test, biased — ckpt deleted |
+| ep4 | 0.5 | 39.65% | 4.471 | 0.677 | test, biased — ckpt deleted |
+| ep4 | 0.8 | 40.03% | 7.001 | 0.668 | test, biased — ckpt deleted |
+| ep4 | 0.9 | 40.11% | 8.431 | 0.653 | test, biased — ckpt deleted |
+| ep5 | 0.5 | 40.11% | 4.460 | 0.676 | test, biased (re-validated above: 41.00% / 4.336, +0.675) |
+| ep5 | 0.8 | 40.26% | 6.959 | 0.672 | test, biased (re-validated above: 41.00% / 6.804, +0.671) |
+| ep5 | 0.9 | 40.03% | 8.375 | 0.655 | test, biased (re-validated above: 40.00% / 8.192, +0.662) |
+
+**avg_steps by n_expr bin (ep5, thr0.5, validation):** n0 = 1.83, n1 = 2.50, n2 = 2.86,
+n3 = 4.49, n4 = 5.43, n5+ = 6.41 — monotone, the project's clearest adaptive signal.
 
 ## Artifacts
 
@@ -54,20 +72,23 @@ Recipe C alone (4.46 vs 3.21 at thr0.5), trading compute efficiency for better s
 
 ## Notes
 
-**Comparison to baselines:**
+**Comparison to baselines (validation, n=500, greedy):**
 
-| model | acc (thr0.5) | acc (thr0.8) | avg_steps (thr0.5) | Spearman |
+| model | acc (thr0.5) | acc (thr0.8) | avg_steps (thr0.5) | Spearman (thr0.5) |
 |-------|------------|------------|-----------------|---------|
-| exp-05: adaptive prior, frozen backbone | 39.95% | 40.49% | 4.37 | 0.650 |
-| teammate C-k12: full scope, global prior, thr0.5 | 40.33% | — | 3.21 | — |
-| **exp-07 ep5 (this run)** | 40.11% | **40.26%** | 4.46 | **0.676** |
+| baseline-k6 (fixed K=6) | 40.80% | — | 6.00 | — |
+| exp-05: adaptive prior, frozen backbone (ep4) | 40.80% | 39.80% | 4.276 | 0.662 |
+| **exp-07 ep5 (this run)** | 41.00% | 41.00% | 4.336 | **0.675** |
 
-**Interpretation:** Full-scope unfreeze + adaptive prior + K_max=12 improved Spearman
-(+0.026 vs exp-05; project record at ep3 = 0.684) but did not exceed either baseline on
-accuracy. The adaptive prior targets `geom_mean_i = n_i + 1.5`, which for typical GSM8K
-problems (n_expr ≈ 2–4) means a target halting mean of 3.5–5.5 steps — higher than Recipe
-C's global geom_mean=3.0. This makes the model use more steps (4.46 vs 3.21 at thr0.5),
-improving per-difficulty calibration at the cost of compute efficiency.
+(teammate C-k12 was on the test set and is not re-validated here.)
+
+**Interpretation:** Full-scope unfreeze + adaptive prior + K_max=12 gives the **strongest
+difficulty tracking in the project** on validation (Spearman +0.675 @ thr0.5, vs +0.662 for
+exp-05) but sits **at the 40.80% greedy validation baseline on accuracy** — no accuracy win
+once the test-set bias is removed. The adaptive prior targets `geom_mean_i = n_i + 1.5`, which
+for typical GSM8K problems (n_expr ≈ 2–4) means a target halting mean of 3.5–5.5 steps; this
+trades compute efficiency for per-difficulty calibration. The old project-record Spearman
+(ep3 = 0.684, test set) **cannot be re-validated** — that checkpoint was deleted.
 
 **Accuracy is essentially flat across epochs** (39.42%–40.26%), suggesting full-scope training
 converged in step-count calibration quickly (ep1 Spearman already 0.683) while accuracy

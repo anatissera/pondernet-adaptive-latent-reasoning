@@ -55,13 +55,23 @@ Training data comes from HuggingFace dataset `zen-E/GSM8k-Aug`. The training
 script is pinned by default to the local subset:
 
 ```
-data/gsm8k_aug/train100k.jsonl   # 100,000 examples (default; --max_train_samples 100000)
+data/gsm8k_aug/subsamples/train100k.jsonl   # 100,000 examples (default; --max_train_samples 100000)
 ```
 
 Override with `DATA_PATH=/path/to/other.jsonl` or `--data_path` on the command
 line. When no `--data_path` is given, the script falls back to loading
-`zen-E/GSM8k-Aug` from the HF hub. Evaluation always reads the HuggingFace
-`gsm8k` dataset (`main` split) — no local copy is needed.
+`zen-E/GSM8k-Aug` from the HF hub.
+
+**Eval split / leakage note (2026-06-23).** The eval scripts now default
+`--data_path` to the local **validation** split `data/gsm8k_aug/validation.jsonl`
+(500 ex). Previously `eval_gpt2_gsm8k_pondernet.sh` defaulted to `test.jsonl` and
+`eval_gpt2_gsm8k_fixedk.sh` passed no `--data_path` (so it silently used the HF
+`gsm8k` **test** split) — so every experiment 01–07 metric reported before that
+date was computed, and its hyperparameters (γ / epoch / threshold) selected, on
+the test set. The held-out `test.jsonl` (1319 ex) is now reserved for a single
+final report after model selection. See
+[`experiments.md`](experiments.md#eval-split-and-leakage-note) for which runs were
+re-validated vs flagged.
 
 ---
 
@@ -168,7 +178,7 @@ evaluation. The eval script **self-logs** into `RESULTS_DIR` — no manual `tee`
 - `eval.log` — full stdout+stderr (accuracy + avg latent-steps)
 - `summary.json` — machine-readable metrics (`accuracy_pct`, `avg_steps_used`,
   `threshold`, `ckpt`, …); read when recording the run
-- `gsm8k.json` — predictions for every test instance
+- `gsm8k.json` — predictions for every eval instance
 - `gsm8k_pondernet_detail.json` — per-instance step count and correct flag
 
 ### Fixed-K baseline
@@ -185,8 +195,11 @@ pinning the model to exactly that many latent steps. Also uses `--greedy True`.
 
 ### Data source
 
-Both eval scripts read the HuggingFace `gsm8k` dataset (`main` split) — no
-local file needed. The training data is not touched during eval.
+Both eval scripts default `--data_path` to the local **validation** split
+`data/gsm8k_aug/validation.jsonl` (500 ex). Override with `DATA_PATH=` to point at
+another split — e.g. `DATA_PATH=../data/gsm8k_aug/test.jsonl` for the final,
+post-selection test report. The training data is not touched during eval. See the
+[Eval split / leakage note](#training-data--datagsm8k_aug-gitignored) above.
 
 ---
 

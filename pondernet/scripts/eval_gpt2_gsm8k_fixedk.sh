@@ -18,6 +18,10 @@ else
     RESULTS_DIR="${RESULTS_DIR:-../results/simcot-fixedk-default}"
 fi
 NUM_LATENT="${NUM_LATENT:-6}"
+# Default to the augmented VALIDATION set. Previously no --data_path was passed, so
+# test.py silently fell back to the HuggingFace gsm8k *test* split (leakage). See
+# docs/experiments.md "Eval split / leakage note" (2026-06-23).
+DATA_PATH="${DATA_PATH:-../data/gsm8k_aug/validation.jsonl}"
 
 mkdir -p "$RESULTS_DIR"
 
@@ -34,6 +38,7 @@ EVAL_CMD=(python test.py
     --model_name_or_path "$GPT2_PATH"
     --ckpt_dir "$CKPT"
     --data_name gsm8k
+    --data_path "$DATA_PATH"
     --results_dir "$RESULTS_DIR"
     --batch_size 1
     --max_latent_steps "$NUM_LATENT"
