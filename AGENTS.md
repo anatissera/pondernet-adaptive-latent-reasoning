@@ -85,7 +85,7 @@ discarded at inference. We make K **adaptive per instance** following PonderNet:
 python run.py args/gsm_coconut.yaml
 
 # PonderNet — adaptive halting variant (from pondernet/)
-# Trains on the pinned data/gsm8k_aug/train100k.jsonl (--max_train_samples 100000) by default.
+# Trains on the pinned data/gsm8k_aug/subsamples/train100k.jsonl (--max_train_samples 100000) by default.
 EXP=04-simcot-pondernet-gammasweep RUN=g0.05-gm3.0-ep5 \
   bash scripts/train_gpt2_gsm8k_pondernet.sh
 ```

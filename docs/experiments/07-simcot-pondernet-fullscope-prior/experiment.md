@@ -2,6 +2,13 @@
 
 **Status:** complete   **Dates:** 2026-06-23
 
+> ✅ **Re-validated 2026-06-23.** Only ep5 (`checkpoint-3890`) survived and was re-evaluated on
+> the held-out validation split (500 ex, greedy); ep1–ep4 were deleted. Prior test-set numbers
+> were optimistically biased. Accuracy sits at the 40.80% greedy validation baseline (no win);
+> the result is the project's strongest difficulty tracking (Spearman +0.675 @ thr0.5). The old
+> record ep3 = 0.684 **cannot be re-validated**. See
+> [eval-split note](../../experiments.md#eval-split-and-leakage-note).
+
 ## What's being tested
 
 **Hypothesis:** combining the teammate's Recipe C (full backbone unfreeze, `scope=full`)
@@ -58,16 +65,18 @@ bash scripts/train_gpt2_gsm8k_pondernet.sh \
 ## Findings
 
 **Run:** `fullscope-adaptive-g0.05-b1.5-k12-ep5` — completed 2026-06-23, trained 8h 54m on
-RTX 3090 (5 epochs / 3890 steps, bs=16 ga=8 eff-batch=128). Eval on RTX 3060, bs=16,
-thresholds 0.5/0.8/0.9, all 5 epochs evaluated.
+RTX 3090 (5 epochs / 3890 steps, bs=16 ga=8 eff-batch=128). **Re-validated 2026-06-23** on the
+validation split (500 ex, greedy); only ep5 survived (ep1–ep4 deleted).
 
-**Best accuracy: ep5 / thr=0.8 → 40.26% @ 6.96 avg_steps**
-**Best Spearman: ep3 / thr=0.5 → 0.684** (project record)
+**Re-validated accuracy: ep5 / thr0.5 → 41.00% @ 4.336 avg_steps; thr0.8 → 41.00% @ 6.804**
+(validation, n=500) — at the 40.80% greedy validation baseline (no accuracy win).
+**Best Spearman (validation): ep5 / thr0.5 → +0.675** — the project's strongest difficulty
+tracking. The old test-set record ep3 = 0.684 **cannot be re-validated** (checkpoint deleted).
 
 See [fullscope-adaptive-g0.05-b1.5-k12-ep5.md](fullscope-adaptive-g0.05-b1.5-k12-ep5.md) for the full epoch×threshold table, loss trend, and interpretation.
 
-**Verdict:** The combination improved step-difficulty calibration (Spearman +0.026 vs exp-05)
-but did not surpass either baseline on accuracy. The adaptive prior's higher target step count
-(geom_mean_i ≈ 3.5–5.5 for typical problems) trades compute efficiency for calibration quality
-relative to Recipe C's global geom_mean=3.0. Full-scope convergence appears to need more than
-5 epochs for accuracy to exceed exp-05's 40.49%.
+**Verdict:** On de-biased validation the combination delivers the **best difficulty calibration
+in the project** (Spearman +0.675 @ thr0.5, vs +0.662 for exp-05) but **does not beat the
+40.80% greedy validation baseline on accuracy**. The adaptive prior's higher target step count
+(geom_mean_i ≈ 3.5–5.5 for typical problems) trades compute efficiency for calibration quality.
+The accuracy advantages reported on the test set were leakage artifacts and do not survive.

@@ -2,6 +2,11 @@
 
 **Status:** complete   **Dates:** 2026-06-12 → 2026-06-12
 
+> ✅ **Re-validated 2026-06-23.** Surviving checkpoints (ep4/ep5) re-evaluated on the held-out
+> validation split (500 ex, greedy); prior test-set numbers were optimistically biased. The
+> headline ep2 = 42.23% checkpoint was **deleted and cannot be re-validated**. See
+> [eval-split note](../../experiments.md#eval-split-and-leakage-note).
+
 ## What's being tested
 The single change that turned PonderNet from "half the baseline" into "beats the baseline":
 disabling gradient checkpointing so the latent loop's KV cache works during training.
@@ -11,17 +16,21 @@ One keeper run (`100k`) trained on 100k examples with the fix.
 - Method: PonderNet adaptive halting on SIM-CoT, warm-started from the SIM-CoT CODI checkpoint.
 - ep=5, lr=2e-5, eff. batch=128 (`per_device 32` × `accum 4`), K_max=6, seed=42.
 - The one change vs [02](../02-simcot-pondernet-early/experiment.md): `--gradient_checkpointing False`.
-- Data: `train100k.jsonl` (`--max_train_samples 100000`). Eval: GSM8K test, greedy, 1 pass, thr=0.8.
+- Data: `train100k.jsonl` (`--max_train_samples 100000`). Eval: re-validated on the validation
+  split (500 ex, greedy, 1 pass) at thr 0.5/0.8/0.9; prior numbers were on GSM8K test (biased).
 
 ## Findings
-- **42.23%** best @ epoch 2 (`checkpoint-1556`) — the **first trained run to beat the 39.5%
-  baseline**. Per-epoch: 40.56 / **42.23** / 40.11 / 39.95 / 39.95%.
-- Accuracy peaks at ep2 then drifts back toward baseline by ep5 → **keep the best epoch, not
-  the last** (or train ~2 epochs).
-- Adaptivity is emerging but mild (avg 5.88/6 steps; 99 easy questions halt early at 78–88%
-  acc). Pushing real adaptivity is what [04](../04-simcot-pondernet-gammasweep/experiment.md) does.
-- Numbers are single greedy passes; older baselines are avg-of-5 — re-eval over 5 samples for
-  a strictly apples-to-apples comparison.
+- **~41% on validation** for the surviving epochs (ep4 41.00%, ep5 41.20% @ thr0.5; n=500,
+  greedy) — essentially on par with the 40.80% greedy validation baseline, confirming the fix
+  produces a clean training objective rather than a collapsed one. The fix's qualitative effect
+  (latent loop's KV cache works during training → loss no longer flat at ~2.5) is the durable
+  result; the accuracy gain over baseline is small/within-noise on validation.
+- The originally-reported **42.23%** @ ep2 (`checkpoint-1556`) was on the **test** set
+  (biased; data leakage) and its checkpoint has been **deleted, so it cannot be re-validated**.
+  Treat it as unreconcilable, not as a validated win.
+- Adaptivity is emerging but mild (avg ~5.9/6 steps at thr0.8); difficulty tracking on
+  validation is positive but weak: Spearman(n_expr, steps) = +0.456 @ thr0.5. Pushing real
+  adaptivity is what [04](../04-simcot-pondernet-gammasweep/experiment.md) does.
 
 ## Root Cause: why every pre-`gcfix` trained run failed
 

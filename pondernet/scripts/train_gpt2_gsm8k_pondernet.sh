@@ -47,7 +47,7 @@ SIMCOT_CKPT="${SIMCOT_CKPT-../models/pretrained/simcot-gpt2-codi/model-00001-of-
 # Fetch with: python scripts/fetch_simcot_decoder.py --out ../models/pretrained/simcot-gpt2-decoder
 DECODER_PATH="${DECODER_PATH:-../models/pretrained/simcot-gpt2-decoder}"
 DATA_DIR="${DATA_DIR:-../data}"
-DATA_PATH="${DATA_PATH:-$DATA_DIR/gsm8k_aug/train100k.jsonl}"
+DATA_PATH="${DATA_PATH:-$DATA_DIR/gsm8k_aug/subsamples/train100k.jsonl}"
 
 mkdir -p "$SAVE_DIR" "$LOG_DIR"
 

@@ -1,5 +1,7 @@
 # 06: per-instance truncated-K training (breaking the K=6 warm-start bias)
 
+> ⚠️ **Biased metric — test set, not reconcilable.** The numbers on this page were computed on the GSM8K **test** split (not the held-out validation set), and the checkpoint no longer exists, so they cannot be re-evaluated on validation. Treat them as historical/biased. See the [eval-split & leakage note](../../experiments.md#eval-split-and-leakage-note).
+
 **Status:** complete   **Dates:** 2026-06-20 → 2026-06-23
 
 ## What's being tested

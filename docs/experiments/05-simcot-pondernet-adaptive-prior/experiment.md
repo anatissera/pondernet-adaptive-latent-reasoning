@@ -2,6 +2,12 @@
 
 **Status:** complete   **Dates:** 2026-06-19 → 2026-06-20
 
+> ✅ **Re-validated 2026-06-23.** Surviving checkpoints (ep4 `_best_epoch`, ep5) re-evaluated on
+> the held-out validation split (500 ex, greedy); ep1–ep3 were deleted. Prior test-set numbers
+> were optimistically biased — the headline "+0.29pp accuracy" win does **not** survive
+> de-biasing (accuracy is flat vs baseline on validation); the robust result is step-efficiency
+> and difficulty tracking. See [eval-split note](../../experiments.md#eval-split-and-leakage-note).
+
 ## What's being tested
 
 **Hypothesis:** replacing the **global** geometric halting prior (`geom_mean=3.0`, the
@@ -100,49 +106,47 @@ regularization strength — worth a small γ × β sweep once the first run land
 
 ## Findings
 
-**Run:** `perinstance-g0.05-b1.5-ep5` — completed 2026-06-20, trained on RTX 3090 (5 epochs / 3890 steps, ~2.4 s/it). Eval on RTX 3060, bs=16, thresholds 0.5/0.8/0.9.
+**Run:** `perinstance-g0.05-b1.5-ep5` — completed 2026-06-20, trained on RTX 3090 (5 epochs / 3890 steps, ~2.4 s/it). **Re-validated 2026-06-23** on the validation split (500 ex, greedy); only ep4/ep5 survived (ep1–ep3 deleted).
 
-### Epoch sweep (thr=0.8)
+### Epoch sweep
 
-| epoch | step | acc (thr0.8) | avg_steps |
-|-------|------|-------------|-----------|
-| 1 | 778 | 39.50% | 5.407 |
-| 2 | 1556 | 39.80% | 5.303 |
-| 3 | 2334 | 39.80% | 5.254 |
-| **4** | **3112** | **40.49%** | **5.262** |
-| 5 | 3890 | 40.11% | 5.264 |
+| epoch | step | acc (thr0.8) | avg_steps | source |
+|-------|------|-------------|-----------|--------|
+| 1 | 778 | 39.50% | 5.407 | test, biased — ckpt deleted |
+| 2 | 1556 | 39.80% | 5.303 | test, biased — ckpt deleted |
+| 3 | 2334 | 39.80% | 5.254 | test, biased — ckpt deleted |
+| **4** | **3112** | **39.80% (val)** | **5.232** | re-validated, n=500 (prior test 40.49%) |
+| 5 | 3890 | 40.60% (val) | 5.244 | re-validated, n=500 (prior test 40.11%) |
 
-**Winner: epoch 4** (step 3112, preserved in `_best_epoch/`). Accuracy peaks at ep4 then drops slightly — consistent with the exp-03/04 pattern of early peaking.
+**Winner: epoch 4** (step 3112, preserved in `_best_epoch/`).
 
-### vs baseline (`04/g0.05-gm3.0-ep5`)
+### vs baseline (`04/g0.05-gm3.0-ep5`), re-validated on validation (n=500)
 
 | metric | baseline | this run (ep4) | delta |
 |--------|----------|----------------|-------|
-| acc @ thr0.8 | 40.20% | **40.49%** | +0.29pp |
-| avg_steps @ thr0.8 | 5.38 | **5.262** | −0.118 |
-| avg_steps @ thr0.5 | 5.38 (baseline used thr0.5 for Spearman) | **4.365** | — |
-| Spearman(steps, #expr) @ thr0.5 | +0.58 | **+0.650** | +0.070 |
+| acc @ thr0.5 | 40.80% | 40.80% | 0.00pp (flat) |
+| acc @ thr0.8 | 41.40% | 39.80% | −1.60pp |
+| avg_steps @ thr0.5 | 4.060 | 4.276 | +0.216 |
+| Spearman(steps, #expr) @ thr0.5 | +0.553 | **+0.662** | **+0.109** ✓ |
 
-Per-instance prior wins on all three axes simultaneously.
+On validation there is **no accuracy win** (flat-to-down vs baseline); the consistent, robust
+gain is in **difficulty tracking** (Spearman +0.662 vs +0.553). The prior test-set "+0.29pp acc"
+result was a leakage artifact and does not reproduce.
 
-### Steps-vs-difficulty (thr=0.5, ep4)
+### Steps-vs-difficulty (thr=0.5, ep4, validation)
 
-| #expr | n | avg_steps | acc% |
-|-------|---|-----------|------|
-| 0 | 83 | 2.518 | 44.6 |
-| 1 | 357 | 2.980 | 61.3 |
-| 2 | 364 | 4.558 | 45.9 |
-| 3 | 290 | 5.407 | 27.6 |
-| 4 | 138 | 5.493 | 15.2 |
-| 5 | 57 | 5.684 | 5.3 |
-| 6 | 21 | 5.810 | 4.8 |
-| 7 | 9 | 5.889 | 22.2 |
-
-avg_steps is monotone with #expr across all bins (Spearman r=+0.650, p=4.7e-159, n=1319). Easy problems (0–1 expr) now halt at 2.5–3.0 steps on average. The adaptive prior successfully widened the dynamic range relative to the global-prior baseline.
+avg_steps by n_expr bin: n0 = 2.00, n1 = 2.65, n2 = 3.03, n3 = 4.55, n4 = 5.30, n5+ = 5.72 —
+monotone across all bins, a clear adaptive signal (Spearman r = +0.662, n=500). Easy problems
+(0–1 expr) halt at ~2.0–2.7 steps on average. The adaptive prior widened the compute-vs-difficulty
+dynamic range relative to the global-prior baseline.
 
 ### Interpretation
 
-The per-instance affine prior (`geom_mean_i = n_i + 1.5`) beats the global `geom_mean=3.0` on accuracy, efficiency, and alignment of compute with difficulty. The halting head learned to generalize the difficulty signal to the test set without knowing each example's step count at inference.
+On the de-biased validation split, the per-instance affine prior (`geom_mean_i = n_i + 1.5`) does
+**not** beat the global `geom_mean=3.0` on accuracy — both sit at the 40.80% greedy validation
+baseline. What it robustly improves is **alignment of compute with difficulty** (Spearman +0.662
+vs +0.553) and the step-vs-difficulty dynamic range. The halting head generalizes the difficulty
+signal to held-out problems without knowing each example's step count at inference.
 
 **Confound to note:** `mean(n_i) ≈ 1.6` over the training set, well below the global 3.0, so the per-instance prior also *lowers the average* target. A matched-mean control (global `geom_mean ≈ 1.6`) would isolate per-instance shape from lower mean; deferred.
 

@@ -38,7 +38,7 @@ by checkpoint convention.
 | `--data_name` | `None` | HuggingFace dataset name / local path identifier for training data. |
 | `--debug_data` | `False` | Enable a tiny debug dataset to quickly verify the training pipeline end-to-end. |
 | `--batch_size` | `1` | Batch size for inference (not the trainer batch size; see `--per_device_train_batch_size`). |
-| `--data_path` | `""` | Local path to a training/eval JSON file. If empty, data is loaded from HuggingFace. |
+| `--data_path` | `""` | Local path to a training/eval JSON file. If empty, data is loaded from HuggingFace. The eval scripts (`eval_gpt2_gsm8k_{pondernet,fixedk}.sh`) default this to the **validation** split `data/gsm8k_aug/validation.jsonl`; the test split is reserved for a single final report after model selection (see [pipeline.md eval-split note](pipeline.md) — prior to 2026-06-23 eval defaulted to the test set, biasing 01–07). |
 | `--results_dir` | `"../results"` | Directory for evaluation output JSON files (relative to repo root, outside the module). |
 | `--max_train_samples` | `None` | If set, truncate the training set to this many samples (useful for fast ablations). |
 
