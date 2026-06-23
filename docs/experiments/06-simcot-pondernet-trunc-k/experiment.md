@@ -1,6 +1,6 @@
 # 06: per-instance truncated-K training (breaking the K=6 warm-start bias)
 
-**Status:** active   **Dates:** 2026-06-20 → —
+**Status:** complete   **Dates:** 2026-06-20 → 2026-06-23
 
 ## What's being tested
 
@@ -124,5 +124,11 @@ However, accuracy regressed ~4pp. Two confounds make attribution uncertain:
 3. **Truncation may be too aggressive for hard examples.** With K_i = n_i, the model only sees `n_i` latent steps during training for examples where the answer requires more reasoning than the raw expression count suggests. A relaxed truncation (e.g. K_i = n_i + 2) might preserve accuracy better.
 
 **Next steps:** (a) run more epochs (ep6–10) from the ep5 checkpoint to see if accuracy recovers; (b) try a relaxed truncation `K_i = n_i + 2` to give the model more breathing room; (c) match eff-batch=128 with bs=32 ga=4 on a larger GPU once available.
+
+### ep10 run update (2026-06-23)
+
+`trunc-ki-fullscope-g0.05-b1.5-ep10` — 8 real training epochs (OOM at ep3 forced bs=16/accum=8 resume from ep2 checkpoint; see [run log](trunc-ki-fullscope-g0.05-b1.5-ep10.md) for full timeline). Best at ep8 (step 3890): **36.54% @ thr0.5, 35.94% @ thr0.8**, Spearman 0.592 (thr0.5). Accuracy barely improved over the ep5 run (ep8 thr0.8 = 35.94% vs ep5 thr0.8 = 36.32%) and remains ~4.5pp below exp-05. The avg_steps plateau (~3.76 @ thr0.5 from ep3 onward) confirms the halting head converged fast but the backbone is still learning. The per-n_expr step signal (2.1 → 6.0 steps across n_expr 1–8, Spearman 0.592) is the sharpest adaptive signal measured so far.
+
+**Conclusion:** Trunc-K successfully teaches the model *when* to stop per difficulty, but the accuracy cost remains ~4pp and does not recover within 8–10 epochs. Root causes are likely (a) the cosine LR schedule is misaligned with the OOM+resume trajectory, (b) K_i = n_i may be too aggressive (no breathing room for hard examples), and (c) full-scope training needs more epochs to converge.
 
 See [runs.md](runs.md) for the run table · artifacts under `<dir>/06-simcot-pondernet-trunc-k/`.
