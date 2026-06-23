@@ -28,6 +28,15 @@ adaptar `c`. El axis con headroom real es el número de pasos `K` (Proposal C).
 > solo un sesgo.** El negativo del eje `c` es robusto: donde el modelo funciona (warm), `c` es
 > plano; el lever real es la **densidad por-paso del dataset**, no el eje `c`.
 
+> **Update 2026-06-21 (warm + coarse — REVIERTE/MATIZA el negativo).** El negativo era
+> **granularidad-específico**, no una propiedad de Option-B. Con warm-start (modelo funcional)
+> + segmentación **gruesa** (pasos de 2-3 ops → densidad variable): el c-curve recupera headroom
+> (Δc2→c3 = **+3.7** vs +0.5 atómico) y **adaptive bate a random en 2.7σ** (eps0.15 38.8 % @ 7.2
+> vec vs random 35.2 % @ 6.1 vec) — algo que NO pasaba en atómico. Sobre la asignación uniforme
+> el adaptive gana **+0.6–1.0** (modesto). La señal per-instancia **existe** cuando la densidad
+> por-paso varía. Ver sección "Warm + coarse". → próximo: **dataset sintético de densidad
+> controlada** para amplificar y medir el headroom vs varianza-de-densidad.
+
 ## Qué se construyó
 
 - `_forward_option_b` (training): K pasos × M sub-vectores; reconstrucción por bloque
@@ -174,6 +183,48 @@ latente no bootstrapea desde cero bajo este objetivo. El negativo del eje `c` es
 dos regímenes**: donde el modelo funciona (warm) `c` es plano; en cold no hay modelo funcional.
 La causa raíz no es el init sino **la tarea**: cada paso de GSM8K-Aug es una op trivial que 2
 vectores saturan. El lever real es la **densidad por-paso del dataset**, no el eje `c` del modelo.
+
+## Warm + coarse: el negativo era granularidad-específico (HALLAZGO CENTRAL)
+
+**Fecha:** 2026-06-21. La celda que faltaba del 2×2 (init × granularidad): mantener el
+**warm-start** (modelo funcional, latentes que computan) pero con **segmentación gruesa**
+(K=3 buckets de 2-3 ops → densidad por-paso variable). Aísla la granularidad sobre un modelo
+que anda. Script: `scripts/train_gpt2_gsm8k_optionb_warmcoarse.sh` (LR 2e-5, 3 ep, penalty off).
+Loss 1.8→0.33 (sano). Checkpoint: `optionb-warm-coarse/.../checkpoint-747`.
+
+| init × granularidad | c=1 | c=2 | c=3 | **Δ c2→c3** |
+|---------------------|-----|-----|-----|-------------|
+| warm + atómico (baseline) | 27.5 | 39.4 | 39.9 | **+0.5** (saturado) |
+| **warm + coarse** | 25.5 | 36.6 | 40.3 | **+3.7** (sigue subiendo) |
+| cold + coarse | 5.3 | 5.5 | 5.5 | modelo roto |
+
+**1. El c-curve recupera headroom.** Con pasos densos el 3er vector aporta +3.7 (≈7× el +0.5
+atómico, ~49 ej. sobre 1319, fuera de ruido). El eje `c` deja de saturar en 2.
+
+**2. Adaptive vs random vs uniforme (full test 1319 ej., budget igualado):**
+
+| config | acc (%) | vecs | vs línea uniforme* |
+|--------|---------|------|--------------------|
+| adaptive eps0.05 | 39.58 | 7.93 | +0.6 |
+| adaptive eps0.15 | 38.82 | 7.18 | +0.7 |
+| adaptive eps0.30 | 38.51 | 6.73 | +1.0 |
+| **random** | **35.18** | **6.07** | **−1.5** |
+
+*\*línea uniforme = interpolar la c-curve fija al mismo budget (qué da repartir c igual a todos).*
+
+- **Adaptive >> random: +3.6 pts (eps0.15 vs random) ≈ 2.7σ.** El halting del MLP no es
+  patológico y reparte budget mucho mejor que el azar. **Esto NO pasaba en atómico** (ahí
+  adaptive ≈ random ≈ fijo): la señal per-instancia **existe** cuando la densidad varía.
+- **Adaptive > uniforme-fija: +0.6 a +1.0, consistente (3/3, replicado en sub300)** pero <1σ
+  por punto → headroom **real pero modesto** en GSM8K-Aug-coarse.
+- eps0.05 alcanza 98% del techo c=3 (39.6 vs 40.3) con 7.9 vec en vez de 9.
+
+**Veredicto actualizado del proyecto:** el negativo del eje `c` era **específico de la
+granularidad atómica** de GSM8K-Aug, no una propiedad de Option-B. Agrupar ops triviales ya
+revive una señal per-instancia real (adaptive bate random 2.7σ) aunque modesta sobre uniforme.
+Motiva el **dataset sintético de densidad controlada**: si 2-3 ops agrupadas dan señal, un
+dataset con varianza de densidad por-paso *grande y controlada* debería amplificar el gap
+adaptive-vs-uniforme. Es el próximo experimento.
 
 ## Conclusión y recomendación
 

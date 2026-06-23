@@ -330,6 +330,26 @@ plausible desde la pregunta sola, sin que los latentes se vuelvan load-bearing. 
 evita porque su warm-start ya trae latentes funcionales (40 ep cold con objetivo simple c=1).
 
 **Veredicto:** el ancla c=1 era **load-bearing, no solo sesgo**. El negativo del eje `c` es
-**robusto en ambos regímenes**. Causa raíz = la tarea (pasos triviales uniformes), no el init.
-**Próximo lever a explorar: densidad por-paso del dataset** (no el eje `c` del modelo).
+**robusto en ambos regímenes** cold/warm-atómico. Causa raíz = la tarea (pasos triviales),
+no el init. **Próximo lever a explorar: densidad por-paso del dataset.**
 Detalle completo en `RESULTS.md` § "Retrain sin sesgo".
+
+### Fase 7 — Warm + coarse: el negativo era granularidad-específico (2026-06-21)
+
+La celda que faltaba del 2×2 (init × granularidad): **warm-start + segmentación gruesa**
+(K=3 buckets de 2-3 ops). Mantiene el modelo funcional, agrega densidad por-paso variable.
+Script `train_gpt2_gsm8k_optionb_warmcoarse.sh` (LR 2e-5, 3 ep, penalty off; loss 1.8→0.33).
+
+**Resultado — el negativo del eje `c` era específico de la granularidad atómica:**
+- c-curve full-test: c1=25.5, c2=36.6, **c3=40.3** → Δc2→c3 = **+3.7** (vs +0.5 atómico).
+  El 3er vector vuelve a aportar; `c` deja de saturar en 2.
+- **Adaptive vs random (full test, budget igualado):** adaptive eps0.15 = 38.8 % @ 7.2 vec;
+  random = 35.2 % @ 6.1 vec → **+3.6 pts ≈ 2.7σ**. En atómico adaptive ≈ random; acá NO.
+  La señal per-instancia existe cuando la densidad varía.
+- Sobre la línea uniforme (interpolar c-curve fija): adaptive gana +0.6–1.0, consistente
+  (3/3 eps, replicado en sub300) pero <1σ → headroom real pero **modesto**.
+
+**Veredicto del proyecto:** el negativo era granularidad-específico, no de Option-B. Agrupar
+ops triviales ya revive señal per-instancia (adaptive>random 2.7σ). → **próximo: dataset
+sintético de densidad controlada** para amplificar el gap adaptive-vs-uniforme y medir headroom
+vs varianza-de-densidad. Detalle en `RESULTS.md` § "Warm + coarse".

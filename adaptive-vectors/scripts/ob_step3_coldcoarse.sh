@@ -20,7 +20,7 @@ CKPT="${CKPT:-$(ls -d "$CKPT_ROOT"/checkpoint-* 2>/dev/null | sed 's/.*checkpoin
 [ -d "$CKPT" ] || { echo "[step3] no checkpoint found under $CKPT_ROOT" >&2; exit 1; }
 
 K="${K:-3}"; M="${M:-3}"
-SUB="${SUB:-../results/gsm8k_test_sub300.json}"
+SUB="${SUB:-/home/tpnlp/adaptive-latent-reasoning/results/archive/scratch/_analysis/gsm8k_test_sub300.json}"
 OUT="${OUT:-../results/optionb-cold-coarse}"
 mkdir -p "$OUT"
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
