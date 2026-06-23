@@ -131,4 +131,28 @@ However, accuracy regressed ~4pp. Two confounds make attribution uncertain:
 
 **Conclusion:** Trunc-K successfully teaches the model *when* to stop per difficulty, but the accuracy cost remains ~4pp and does not recover within 8–10 epochs. Root causes are likely (a) the cosine LR schedule is misaligned with the OOM+resume trajectory, (b) K_i = n_i may be too aggressive (no breathing room for hard examples), and (c) full-scope training needs more epochs to converge.
 
+## Next steps
+
+**Informed by the k-recipe sweep (teammate, `feat/adaptive-k-from-scratch`):** The sweep crossed warm-start recipe × K_max and found that Recipe C (full backbone unfreeze, `scope=full`) with K_max=12 achieves 40.33% @ 3.21 avg steps — the best result in the project. Exp-06 already uses `scope=full` (same as Recipe C), so the training recipe is not the gap. Two specific findings translate directly:
+
+**1. Increase K_max to 12.**
+The teammate's sweep shows C-k12 (40.33%) > C-k8 (40.03%) > C-k6 (39.88%) even though all three halt at ~3.2 steps. The mechanism: a larger K_max widens the geometric KL prior's pressure over more steps during training, which calibrates the early halting probabilities more sharply and gives hard examples (n_expr ≥ 6) real inference headroom. Exp-06 used K_max=8; switching to 12 keeps the same training setup but may reduce the accuracy regression.
+
+**2. Relaxed truncation K_i = n_i + 2.**
+Already noted above, now better motivated: the teammate's fixed-K diagnostic showed that even Recipe C's z₃ accuracy is 37.5%, meaning 3 steps is not yet "answer-complete" for many problems. K_i = n_i + 2 gives the model 2 extra latent steps of breathing room per example while still forcing early convergence relative to K_max=12.
+
+**Recommended synthesis run (exp-07 or extension):**
+
+```bash
+EXP=07-... RUN=trunc-ki-k12-relaxed2-g0.05-b1.5-ep5 \
+ADAPTIVE_PRIOR=True GAMMA=0.05 PRIOR_OFFSET=1.5 PRIOR_SCALE=1.0 \
+TRUNC_K=True TRUNC_K_OFFSET=2 \
+bash scripts/train_gpt2_gsm8k_pondernet.sh \
+  --pondernet_train_scope full \
+  --max_latent_steps 12 \
+  --per_device_train_batch_size 16 --gradient_accumulation_steps 8
+```
+
+This combines: trunc-K with K_i = n_i + 2, adaptive prior, full scope, K_max=12. Also fix eff-batch to 128 on a clean run (no OOM resume) to eliminate the batch-size confound.
+
 See [runs.md](runs.md) for the run table · artifacts under `<dir>/06-simcot-pondernet-trunc-k/`.
