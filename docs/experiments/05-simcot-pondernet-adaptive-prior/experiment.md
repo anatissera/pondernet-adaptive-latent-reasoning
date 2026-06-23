@@ -149,3 +149,21 @@ The per-instance affine prior (`geom_mean_i = n_i + 1.5`) beats the global `geom
 **Next:** a γ × β sweep (per-instance γ may be slightly strong at 0.05 given sharper KL) and the matched-mean ablation are the natural follow-ups if this result needs further attribution.
 
 See [runs.md](runs.md) for the run table · artifacts under `<dir>/05-simcot-pondernet-adaptive-prior/`.
+
+## Next steps
+
+**Informed by the k-recipe sweep (teammate, `feat/adaptive-k-from-scratch`):** Recipe C showed that unfreezing the full backbone (`--pondernet_train_scope full`) gives +0.83pp at 3.21 avg steps, because it allows the backbone to reorganize representations so that early latent states (z₂–z₃) become answer-ready. Exp-05 trained with the frozen backbone (LoRA-only, effectively Recipe A), so the per-instance KL targets were issued to a backbone that still carries the K=6 structural bias and cannot redistribute signal toward earlier steps.
+
+**Recommended: re-run exp-05 with full scope (exp-07 or extension).**
+Combine the adaptive prior (exp-05) with the full backbone unfreeze (teammate Recipe C). This targets both failure modes simultaneously: the prior shape nudges the halting head, and the unfrozen backbone can actually rewire z₂–z₃ to carry complete reasoning. Suggested flags:
+
+```bash
+EXP=07-... RUN=perinstance-full-g0.05-b1.5-k12-ep5 \
+ADAPTIVE_PRIOR=True GAMMA=0.05 PRIOR_OFFSET=1.5 PRIOR_SCALE=1.0 \
+bash scripts/train_gpt2_gsm8k_pondernet.sh \
+  --pondernet_train_scope full \
+  --max_latent_steps 12 \
+  --per_device_train_batch_size 16 --gradient_accumulation_steps 8
+```
+
+Use K_max=12 rather than 6: the teammate's sweep found C-k12 (40.33%) > C-k6 (39.88%) despite both halting at ~3.2 steps — the larger budget sharpens the training-time KL pressure toward early halting and covers the hard-problem tail. The existing γ × β sweep and matched-mean ablation remain relevant follow-ups once this run lands.
