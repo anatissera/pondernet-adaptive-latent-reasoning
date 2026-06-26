@@ -49,9 +49,18 @@ BS="${BS:-16}"                                  # exp-08 proven-clean batch sequ
 ACCUM="${ACCUM:-8}"                             # ... eff. batch = BS*ACCUM = 128
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Hyperparameters aligned to the upstream CODI GPT-2 recipe so the base is a faithful
+# SIM-CoT (baselines/CODI/scripts/train_gpt2_gsm8k-aug-decoder-2.sh): model_max_length 512
+# and max_grad_norm 2.0 (our main script defaults 384 / 1.0). LoRA (r128/α32/dropout0.1/
+# c_attn,c_proj,c_fc/init), lr 3e-3, 40 ep, eff. batch 128, wd 0.1, warmup 0.03, cosine,
+# prj_dim 768, distill_loss_div_std all already match. Deliberate deviations from the CODI
+# base: K_max=12 (vs fixed num_latent=6 — the whole point is adaptive halting) and seed 42
+# (our experiment convention vs upstream 11).
 exec bash "$SCRIPT_DIR/train_gpt2_gsm8k_pondernet.sh" \
   --pondernet_train_scope full_dec \
   --max_latent_steps 12 \
+  --model_max_length 512 \
+  --max_grad_norm 2.0 \
   --num_train_epochs "$EPOCHS" \
   --per_device_train_batch_size "$BS" \
   --gradient_accumulation_steps "$ACCUM" \

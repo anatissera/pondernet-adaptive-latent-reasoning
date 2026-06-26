@@ -29,6 +29,7 @@ with PonderNet adaptive halting layered on top.
 | learning rate | 2e-5 | **3e-3** | CODI GPT-2 from-scratch LR (Table E.3); 2e-5 barely moves a cold model |
 | epochs | 5 | **40** | CODI GPT-2 budget (Table E.3) |
 | training data | train100k subsample | **full GSM8k-Aug `train.jsonl` (385,620 ex)** | faithful SIM-CoT data budget (Table E.3 is 40 ep on the full set) |
+| `model_max_length` / `max_grad_norm` | 384 / 1.0 | **512 / 2.0** | align to the upstream CODI base recipe (see parity table) |
 | eff. batch, prior, seed, K_max | 128, γ0.10/α0.6/β1.5, 42, 12 | **identical** | hold the method fixed |
 
 ### Code change required (committed)
@@ -38,6 +39,52 @@ No existing `--pondernet_train_scope` trains the auxiliary decoder — all of `l
 A from-scratch SIM-CoT run must learn its own decoder, so a new scope **`full_dec`** was
 added (`train.py` scope block; `model.py` help text): `full` + unfreeze `decoder.*`.
 Verified the decoder's 124.4M params become trainable only under `full_dec`.
+
+## Hyperparameter parity with upstream CODI
+
+The base recipe is matched to the upstream CODI GPT-2 SIM-CoT script
+(`baselines/CODI/scripts/train_gpt2_gsm8k-aug-decoder-2.sh`) so that what we train *is* a
+faithful SIM-CoT, with only the adaptive-halting additions on top. The wrapper sets
+`model_max_length 512` and `max_grad_norm 2.0` explicitly because our main training script
+defaults to 384 / 1.0; everything else already coincides.
+
+| hyperparameter | upstream CODI GPT-2 | this run | match? |
+|---|---|---|---|
+| backbone | `gpt2` | `gpt2` | ✓ |
+| LoRA r / α / dropout | 128 / 32 / 0.1 | 128 / 32 / 0.1 | ✓ (same `LoraConfig` code) |
+| LoRA target modules | `c_attn, c_proj, c_fc` | `c_attn, c_proj, c_fc` | ✓ |
+| LoRA init | `lora_init` (zero/gaussian) | `lora_init` | ✓ |
+| learning rate | 3e-3 | 3e-3 | ✓ |
+| epochs | 40 | 40 | ✓ |
+| eff. batch | 64 × 2 = 128 | 16 × 8 = 128 | ✓ (same effective) |
+| weight_decay / warmup / sched | 0.1 / 0.03 / cosine | 0.1 / 0.03 / cosine | ✓ |
+| `model_max_length` | 512 | 512 | ✓ (wrapper override) |
+| `max_grad_norm` | 2.0 | 2.0 | ✓ (wrapper override) |
+| prj_dim / prj_dropout | 768 / 0.0 | 768 / 0.0 | ✓ |
+| `distill_loss_div_std` / `remove_eos` / `use_decoder` | True / True / True | True / True / True | ✓ |
+| training data | full GSM8k-Aug | full `train.jsonl` (385,620 ex) | ✓ |
+| **latent steps K** | **fixed `num_latent=6`** | **`max_latent_steps=12` (adaptive K_max)** | ✗ **intentional** — this is the method |
+| **seed** | 11 | 42 | ✗ our experiment convention |
+| **halting head + KL-geom prior** | — | added (Run-C: γ0.10/α0.6/β1.5) | ✗ **intentional** — our contribution |
+
+So the **only** departures from a stock SIM-CoT base are the three method pieces we are
+actually evaluating: the halting head, the adaptive K_max=12 (vs fixed 6), and the geometric
+halting prior. Everything that defines the SIM-CoT base — LoRA, optimizer, schedule, decoder,
+distillation, data — is held identical.
+
+## How to recreate it, step by step
+
+1. **Clone + env.** On the target machine: `git checkout experiment/10-fromscratch-gpt2`,
+   then `uv sync`. Activate the venv (`source .venv/bin/activate`) so bare `python` resolves.
+2. **Stage the data** (gitignored — see the box below): place `train.jsonl`,
+   `validation.jsonl`, `test.jsonl` under `data/gsm8k_aug/`.
+3. **Train** from vanilla GPT-2 (one command — the wrapper assembles the SIM-CoT base recipe
+   + `full_dec` + Run-C halting; see *Launch* below). This builds the SIM-CoT CODI model
+   (LoRA-adapted GPT-2 backbone + prj + trained aux decoder, self-distilled against the
+   explicit-CoT teacher) **and** trains the halting head jointly, all from scratch.
+4. **Select** the best epoch/threshold on `validation` (bs=1, greedy) — see *Eval*.
+5. **Report** one final number on `test`, alongside the SIM-CoT/CODI baseline (exp-01) and
+   exp-08 Run C, so the warm-start contribution is quantified.
 
 ## Launch (on the external machine)
 
