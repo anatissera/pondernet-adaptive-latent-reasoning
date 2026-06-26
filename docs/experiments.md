@@ -44,6 +44,7 @@ average of 5 *sampled* passes on test.
 | 06 | [simcot-pondernet-trunc-k](experiments/06-simcot-pondernet-trunc-k/experiment.md) | per-instance truncated-K training (K_i=n_i) to break K=6 warm-start bias | 36.54%/35.94% _(test, biased — not reconcilable; ckpt deleted)_ | superseded |
 | 07 | [simcot-pondernet-fullscope-prior](experiments/07-simcot-pondernet-fullscope-prior/experiment.md) | full backbone unfreeze (Recipe C) + per-instance adaptive prior + K_max=12 | 41.00% @ thr0.8 ep5; Spearman **+0.675** (ep5 thr0.5) _(old record 0.684@ep3 unrevalidatable)_ | complete |
 | 08 | [simcot-pondernet-gamma-frontier](experiments/08-simcot-pondernet-gamma-frontier/experiment.md) | γ↑ (0.05→0.10) + prior reshaping to push the accuracy–steps frontier left | Run B ep5 **41.0% @ 3.64** (thr0.5); Run C ep5 **40.6% @ 2.93** (thr0.5, −32% steps vs baseline) | complete |
+| 10 | [simcot-pondernet-fromscratch](experiments/10-simcot-pondernet-fromscratch/experiment.md) | fair-comparison: replicate exp-08 Run C **from vanilla GPT-2** (no SIM-CoT warm-start; train aux decoder via new `full_dec` scope; lr 3e-3, 40 ep, full 385k GSM8k-Aug) | _(to run on external machine)_ | planned |
 
 **Headline (validation).** The greedy fixed-K baseline is **40.80%** (K=6). On the
 held-out set the adaptive runs cluster around it — best validated accuracy is

@@ -145,7 +145,7 @@ class TrainingArguments(transformers.TrainingArguments):
     pondernet_prior_offset: float = field(default=1.5, metadata={"help": "Adaptive prior offset beta in geom_mean_i = alpha*n_i + beta. Must be >1 to avoid the degenerate g=1 point-mass prior; doubles as the z0/answer latent overhead."})
     pondernet_inf_threshold: float = field(default=0.5, metadata={"help": "Cumulative halting probability threshold for inference early-stopping. Stop when sum_k p_k > threshold."})
     pondernet_trunc_k: bool = field(default=False, metadata={"help": "Per-instance truncated-K training (exp-06): stop the latent loop at K_i = max(1, n_i) steps per example instead of always running max_latent_steps. Requires pondernet=True and use_decoder=True."})
-    pondernet_train_scope: str = field(default="lora", metadata={"help": "Which params train in PonderNet mode: 'lora' (lora_* + halt_head, the warm-started default), 'lora_prj' (also unfreeze prj.* — required for a cold backbone where prj is randomly initialized), or 'full' (whole codi backbone + prj + halt_head; decoder frozen)."})
+    pondernet_train_scope: str = field(default="lora", metadata={"help": "Which params train in PonderNet mode: 'lora' (lora_* + halt_head, the warm-started default), 'lora_prj' (also unfreeze prj.* — required for a cold backbone where prj is randomly initialized), 'full' (whole codi backbone + prj + halt_head; decoder frozen), or 'full_dec' (full + the auxiliary decoder too — for a from-scratch SIM-CoT run where the decoder is vanilla GPT-2 and must learn step supervision)."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
