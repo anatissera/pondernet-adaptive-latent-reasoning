@@ -48,3 +48,22 @@ Faithful bs=1 eval on validation n=500, greedy. Artifacts: `results/08-.../fulls
 - thr0.4: **+0.2pp accuracy, −18% steps** (3.10 vs 3.78) ✅
 - thr0.5: **+0.2pp accuracy, −16% steps** (3.64 vs 4.34 exp-07-thr0.5)
 - thr0.3: 40.0% @ 2.55 — aggressive but near-baseline accuracy at half the steps.
+
+---
+
+## Pondernet replication — Run B (`fullscope-adaptive-g0.10-b1.5-k12-ep5`)
+
+**Codebase:** `pondernet` branch (adaptive prior ported from exp-08 in commit `0c6aff9c`).
+**Setup:** same recipe as original Run B — γ=0.10, α=1.0, β=1.5, K_max=12, scope=full, 5 epochs,
+train100k, lr 2e-5, bs=16 accum=8, seed 42, GPU 1 (RTX 3090). Eval: validation n=500, greedy, bs=16
+(faithful via `_slice_past_key_values`). Artifacts: `results/08-.../fullscope-adaptive-g0.10-b1.5-k12-ep5/ep5-bs16/thr<T>/`.
+
+| threshold | original Run B | **pondernet replication** | Δ acc | Δ steps |
+|----------:|:--------------:|:-------------------------:|:-----:|:-------:|
+| 0.3 | 40.0% @ 2.55 | **40.2% @ 2.55** | +0.2pp | ≈0 |
+| 0.4 | 40.6% @ 3.10 | **40.6% @ 3.10** | =0 | ≈0 |
+| 0.5 | 41.0% @ 3.64 | **41.2% @ 3.64** | +0.2pp | ≈0 |
+| 0.8 | 41.2% @ 6.23 | **41.0% @ 6.24** | −0.2pp | ≈0 |
+
+**Conclusion:** replication is exact within noise (≤0.2pp, <0.02 steps at every threshold).
+Confirms the adaptive prior port to the pondernet codebase is correct.
