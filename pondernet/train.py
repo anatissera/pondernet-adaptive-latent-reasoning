@@ -1,6 +1,7 @@
 # Modified from https://github.com/tatsu-lab/stanford_alpaca/blob/main/train.py
 """Training entrypoint for the PonderNet adaptive-halting latent-CoT model (CODI backbone)."""
 import copy
+import glob
 import logging
 import os
 import re
@@ -113,6 +114,79 @@ class DualProgressCallback(TrainerCallback):
     def on_log(self, args, state, control, **kwargs):
         # Swallow log dicts so they never print to the console (TensorBoard still gets them).
         return
+
+
+class CheckpointPruneCallback(TrainerCallback):
+    """Cap checkpoint disk growth without losing anything needed for analysis.
+
+    HF writes a full ~1.2 GB checkpoint per epoch: model weights (~0.58 GB) +
+    optimizer (~0.66 GB) + scheduler + rng + small json/config/tokenizer files.
+    The optimizer/scheduler/rng state is only needed to *resume* training; the
+    model weights + jsons are what you need to *evaluate* an epoch and plot
+    accuracy-vs-steps. So after every save we:
+
+      * keep the `keep_full` most-recent checkpoints fully intact (latest +
+        previous by default) so training can always resume cleanly, and
+      * from every older checkpoint delete only the resume-only files
+        (optimizer.pt, scheduler.pt, rng_state*.pth) -- the single biggest one is
+        the optimizer (~0.66 GB/epoch) -- while KEEPING pytorch_model.bin and all
+        the json/config/tokenizer files, so each epoch stays evaluable + graphable.
+
+    Result with the defaults: 2 fully-resumable checkpoints at any time + a light,
+    still-evaluable artifact for every other epoch (~0.58 GB each instead of 1.2).
+
+    Knobs (env, read where the callback is constructed):
+      * CKPT_KEEP_FULL    (default 2)  -- how many newest stay fully resumable.
+      * CKPT_KEEP_WEIGHTS (default -1) -- if >=0, ALSO drop pytorch_model.bin from
+            checkpoints older than the newest CKPT_KEEP_WEIGHTS, keeping only the
+            jsons (training-curve data). -1 = never drop weights (every epoch
+            remains evaluable). Use e.g. 10 if you only need to eval the last ~10
+            epochs and want minimal disk.
+    """
+
+    RESUME_ONLY = ("optimizer.pt", "scheduler.pt")
+    RESUME_ONLY_GLOBS = ("rng_state*.pth",)
+    WEIGHT_FILES = ("pytorch_model.bin", "model.safetensors")
+
+    def __init__(self, keep_full: int = 2, keep_weights: int = -1):
+        self.keep_full = max(1, int(keep_full))
+        self.keep_weights = int(keep_weights)
+
+    @staticmethod
+    def _rm(path):
+        try:
+            size = os.path.getsize(path)
+            os.remove(path)
+            return size
+        except OSError:
+            return 0
+
+    def on_save(self, args, state, control, **kwargs):
+        if not state.is_world_process_zero:
+            return
+        ckpts = sorted(
+            (d for d in glob.glob(os.path.join(args.output_dir, "checkpoint-*")) if os.path.isdir(d)),
+            key=lambda p: int(os.path.basename(p).split("-")[-1]),
+        )
+        n = len(ckpts)
+        freed = 0
+        for i, ck in enumerate(ckpts):
+            rank = (n - 1) - i  # 0 = newest
+            if rank < self.keep_full:
+                continue  # keep these fully resumable
+            # older than the full window: drop resume-only state (keep weights + jsons)
+            for name in self.RESUME_ONLY:
+                freed += self._rm(os.path.join(ck, name))
+            for pat in self.RESUME_ONLY_GLOBS:
+                for f in glob.glob(os.path.join(ck, pat)):
+                    freed += self._rm(f)
+            # optional aggressive mode: also drop weights beyond the keep_weights window
+            if self.keep_weights >= 0 and rank >= self.keep_weights:
+                for name in self.WEIGHT_FILES:
+                    freed += self._rm(os.path.join(ck, name))
+        if freed:
+            logging.info(f"[ckpt-prune] freed {freed/1e9:.2f} GB (kept {self.keep_full} newest full; "
+                         f"older keep weights+jsons{' until -%d' % self.keep_weights if self.keep_weights >= 0 else ''}).")
 
 
 class CustomTrainer(Trainer):
@@ -588,6 +662,12 @@ def train():
     trainer = CustomTrainer(model=model, tokenizer=tokenizer, args=training_args, **data_module)
     trainer.remove_callback(transformers.trainer_callback.PrinterCallback)
     trainer.add_callback(DualProgressCallback())
+    # Cap checkpoint disk: keep the newest CKPT_KEEP_FULL fully resumable, strip resume-only
+    # state from older ones but keep weights+jsons so every epoch stays evaluable/graphable.
+    trainer.add_callback(CheckpointPruneCallback(
+        keep_full=int(os.environ.get("CKPT_KEEP_FULL", "2")),
+        keep_weights=int(os.environ.get("CKPT_KEEP_WEIGHTS", "-1")),
+    ))
 
     last_checkpoint = None
     if os.path.isdir(training_args.output_dir):
