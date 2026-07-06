@@ -141,7 +141,8 @@ cd pondernet
 python scripts/prep_gsm8k_aug.py     # downloads zen-E/GSM8k-Aug -> ../data/gsm8k_aug/train.jsonl (385,620 ex)
 ```
 This is the only data the A100 needs (training). Eval data (`validation.jsonl`, `test.jsonl`)
-is separate and only needed if you also evaluate here — see step 7.
+is **already tracked in git** at `data/gsm8k_aug/` — it comes with the clone (run `git pull`
+if `validation.jsonl` is missing; it may land in a later commit). See step 7 to evaluate here.
 
 ### 4. Launch the run (one command)
 ```bash
@@ -209,8 +210,11 @@ fresh run. The checkpoints are most reliably used for (a) evidence the recipe is
 (b) evaluating an intermediate epoch (step 7).
 
 ### 7. (OPTIONAL) Evaluate here instead of shipping checkpoints back
-Eval needs `validation.jsonl` (model selection) and `test.jsonl` (single final number) under
-`data/gsm8k_aug/` — these are **not** in the HF dataset; get them from Ana / the team data.
+Eval needs `validation.jsonl` (model selection, 500 ex) and `test.jsonl` (single final
+number, 1319 ex) under `data/gsm8k_aug/` — both are **tracked in git** and ship with the
+clone (`git pull` if `validation.jsonl` is missing). Per-epoch model selection goes on
+**validation only**; touch `test.jsonl` exactly once, at the end, with the chosen
+(epoch, threshold). The eval script already defaults `--data_path` to the validation split.
 ```bash
 EXP=10-simcot-pondernet-fromscratch RUN=<run> CKPT=<path-to-checkpoint-dir> \
 CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \

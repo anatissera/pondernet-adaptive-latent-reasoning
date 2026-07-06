@@ -45,3 +45,12 @@ superpowers/
 
 # MLflow tracking (reserved for future use)
 mlruns/
+
+# Eval splits tracked in git so the A100 hand-off is self-contained
+# (negations must re-include each parent level of an ignored dir)
+!data/
+data/*
+!data/gsm8k_aug/
+data/gsm8k_aug/*
+!data/gsm8k_aug/test.jsonl
+!data/gsm8k_aug/validation.jsonl

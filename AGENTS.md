@@ -13,7 +13,7 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
   - `checkpoints/<NN-exp>/<run-id>/` — our trained runs, grouped under a numbered experiment
 - `outputs/` — training logs and TensorBoard events (gitignored); `<NN-exp>/<run-id>/` per run
 - `results/` — evaluation outputs (gitignored); `<NN-exp>/<run-id>/` per run
-- `data/` — datasets (gitignored); `gsm8k_aug/` holds the GSM8k-Aug jsonl, training is pinned to `train15k.jsonl` by default
+- `data/` — datasets (gitignored), **except the eval splits `data/gsm8k_aug/{validation,test}.jsonl`, which are tracked in git** (validation = 500 ex for model selection; test = 1319 ex, reserved for one final report). `gsm8k_aug/` holds the GSM8k-Aug jsonl; materialize training data with `pondernet/scripts/prep_gsm8k_aug.py`. Never regenerate `validation.jsonl` — it's a team-made split; a different sample breaks comparability across experiments.
 - Runs are grouped into numbered **experiments**: a `<NN-exp>/<run-id>` pair names the same run across `models/checkpoints/`, `outputs/`, and `results/` (see `docs/experiments.md`). Dead/scratch runs live under `<dir>/archive/`.
 - `docs/pipeline.md` — end-to-end training/eval workflow + diagram; **read this first to train a model**
 - `docs/parameters.md` — CLI flag reference, warm-start recipes, and the kept-name glossary

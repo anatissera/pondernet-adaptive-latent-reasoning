@@ -122,7 +122,7 @@ def evaluation(model_args, data_args, training_args):
     try:
         state_dict = load_file(os.path.join(model_args.ckpt_dir, "model.safetensors"))
     except Exception:
-        state_dict = torch.load(os.path.join(model_args.ckpt_dir, "pytorch_model.bin"))
+        state_dict = torch.load(os.path.join(model_args.ckpt_dir, "pytorch_model.bin"), map_location="cpu")
     
     # new_state_dict = { k.replace("coconut", "codi"): v for k, v in state_dict.items() }
     # torch.save(new_state_dict, "/scratch/prj/inf_multimodal_qa/scratch_tmp/transfer/pytorch_model.bin")
@@ -144,9 +144,9 @@ def evaluation(model_args, data_args, training_args):
         if tokenizer.pad_token_id is None: # error handling
             tokenizer.pad_token_id = tokenizer.convert_tokens_to_ids('[PAD]')
 
-    device = "cuda"
-    model = model.to('cuda')
-    model.to(torch.bfloat16)
+    model = model.to(device)
+    if device.type == "cuda":
+        model.to(torch.bfloat16)
     ######################
     #      dataset       #
     ######################
@@ -257,12 +257,12 @@ def evaluation(model_args, data_args, training_args):
         """
         bs = attn.size(0)
         if training_args.remove_eos:
-            eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id], dtype=torch.long, device='cuda')).unsqueeze(0).to(device)
+            eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id], dtype=torch.long, device=device)).unsqueeze(0).to(device)
         else:
-            eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id, tokenizer.eos_token_id], dtype=torch.long, device='cuda')).unsqueeze(0).to(device)
+            eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id, tokenizer.eos_token_id], dtype=torch.long, device=device)).unsqueeze(0).to(device)
         output = eot_emb.expand(bs, -1, -1)
 
-        finished = torch.zeros(bs, dtype=torch.bool, device="cuda")  # Track EOS for each sequence
+        finished = torch.zeros(bs, dtype=torch.bool, device=device)  # Track EOS for each sequence
         pred_tokens = [[] for _ in range(bs)]
         for _ in range(gen_kwargs["max_new_tokens"]):
             # position ids for the token(s) appended this step = running count of real

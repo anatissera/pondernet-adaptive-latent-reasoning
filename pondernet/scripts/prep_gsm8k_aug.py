@@ -12,9 +12,12 @@ Run from the repo root or from pondernet/:
 Schema written per line: {"question": str, "cot": str, "answer": str}
 (This is what train.py's `icot` loader reads; --data_name icot.)
 
-NOTE: this only produces the TRAINING split. Eval (model selection + final number)
-needs validation.jsonl / test.jsonl, which are NOT in this HF dataset — get those
-from the team (they ship with the project data), see the experiment doc.
+Eval data: test.jsonl (1319 ex, held-out final report) and validation.jsonl
+(500 ex, model selection) are TRACKED IN GIT at data/gsm8k_aug/ — a fresh clone
+already has them; `git pull` if validation.jsonl is missing. test.jsonl is the
+GSM8k-Aug HF test split, so `--split test` can regenerate it; validation.jsonl
+is a team-made 500-ex split (disjoint from test) that HF does not carry — never
+regenerate it from scratch or numbers stop being comparable across experiments.
 """
 import argparse
 import json
@@ -28,15 +31,19 @@ def main() -> None:
     # so it works whether you launch from repo root or from pondernet/.
     here = os.path.dirname(os.path.abspath(__file__))            # .../pondernet/scripts
     repo_root = os.path.dirname(os.path.dirname(here))           # repo root
-    default_out = os.path.join(repo_root, "data", "gsm8k_aug", "train.jsonl")
 
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", default=default_out, help="output .jsonl path")
+    ap.add_argument("--split", default="train", choices=["train", "test"],
+                    help="HF split to materialize (default: train)")
+    ap.add_argument("--out", default=None,
+                    help="output .jsonl path (default: <repo>/data/gsm8k_aug/<split>.jsonl)")
     ap.add_argument("--dataset", default="zen-E/GSM8k-Aug", help="HF dataset id")
     args = ap.parse_args()
+    if args.out is None:
+        args.out = os.path.join(repo_root, "data", "gsm8k_aug", f"{args.split}.jsonl")
 
-    print(f"[prep] downloading {args.dataset} (train split) ...")
-    ds = load_dataset(args.dataset)["train"]
+    print(f"[prep] downloading {args.dataset} ({args.split} split) ...")
+    ds = load_dataset(args.dataset)[args.split]
     print("[prep] FIELDS:", list(ds.features.keys()))
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
