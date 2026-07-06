@@ -111,6 +111,58 @@ stability), and the seed. Everything defining the SIM-CoT base is identical.
 
 ---
 
+## Evaluation protocol: match SIM-CoT / CODI (train on all of train, evaluate on test)
+
+**What SIM-CoT and CODI actually do** — verified in the vendored upstream code under
+`baselines/CODI/` (identical to the official [InternLM/SIM-CoT](https://github.com/InternLM/SIM-CoT)
+release) and in both papers:
+
+- **Training data = the entire GSM8k-Aug train split (385,620 ex).** No validation split is
+  carved out. The upstream GPT-2 script
+  (`baselines/CODI/scripts/train_gpt2_gsm8k-aug-decoder-2.sh`) feeds the whole train set with
+  `eval_dataset=None`, `--save_strategy "no"`, `--save_total_limit 1` — i.e. **no held-out
+  set, no per-epoch evaluation, no intermediate checkpoints.** They train 40 epochs (one
+  continuous cosine) and keep only the final model.
+- **Evaluation = the GSM8K test set, once.** `baselines/CODI/test.py` defaults to
+  `load_dataset("gsm8k","main")["test"]` (1319 ex). Every SIM-CoT / CODI GSM8K number in the
+  papers is a **test** number from that final model — there is no dev-set model selection.
+- **The two "splits" are the same 1319 problems.** We verified empirically that
+  `zen-E/GSM8k-Aug["test"]` **is** the official `openai/gsm8k` test set: 1319/1319 questions
+  identical, same order, same answers. "GSM8k-Aug test" and "GSM8K test" are one set.
+
+**Therefore, for exp-10 (a fair comparison to SIM-CoT) the protocol is:**
+
+1. **Train on all of `train.jsonl` (385,620 ex), 40 epochs, one continuous cosine** — exactly
+   what the hand-off below already does. There is no separate training split to obtain: "the
+   same split they trained on" *is* the full train set.
+2. **Report the final model (epoch 40) evaluated once on `test.jsonl` (1319 ex), at the fixed
+   Run-C threshold 0.5.** No per-epoch or per-threshold search for the headline: the recipe
+   (K_max=12, γ0.10 / α0.6 / β1.5, thr 0.5) is inherited from exp-08 Run C and frozen a priori,
+   so exp-10 tunes nothing and its test number is a clean forward evaluation, directly
+   comparable to the published SIM-CoT / CODI test numbers.
+
+**Why this is not the exp 01–07 leakage mistake.** Exps 01–07 *selected* hyperparameters
+(γ, epoch, threshold) **on the test set**, which inflates the reported number — that is what
+the held-out `validation.jsonl` fixed. Exp-10 selects nothing: it takes a frozen recipe and the
+final checkpoint and evaluates once. Evaluating a pre-committed model on test is precisely the
+SIM-CoT protocol; leakage is *tuning* on test, which we do not do here.
+
+**What `validation.jsonl` (500 ex) is for now — optional analysis only, never the headline.**
+PonderNet adds a halting threshold that fixed-K SIM-CoT doesn't have, so the validation split
+is handy for *transparency* plots kept separate from the comparison number: the
+accuracy-vs-threshold curve, per-epoch halting dynamics, the Spearman compute-adaptivity
+signal. None of these feed the headline. (This also sidesteps a second issue: exp-10 trains on
+the *full* train, but the 500-ex validation set was sampled from train back when experiments
+used the 100k subsample — so for exp-10 those 500 examples were seen in training and can't be a
+clean held-out set anyway. One more reason the headline lives on test, not validation.)
+
+> Comparability caveat for the write-up: the exp-01 baseline (40.80%) and exp-08 Run C (40.6%)
+> reference points in "Reporting" below are **validation** numbers. For an apples-to-apples bar
+> against exp-10's **test** headline, re-evaluate those two reference checkpoints on `test.jsonl`
+> too (same 1319 ex, same fixed recipe) before putting all three in one table.
+
+---
+
 ## Hand-off: run the full 40-epoch job on an A100 (READ THIS)
 
 **Goal:** one clean from-scratch run — cold GPT-2 → 40 epochs at the corrected stable recipe
@@ -210,21 +262,24 @@ fresh run. The checkpoints are most reliably used for (a) evidence the recipe is
 (b) evaluating an intermediate epoch (step 7).
 
 ### 7. (OPTIONAL) Evaluate here instead of shipping checkpoints back
-Eval needs `validation.jsonl` (model selection, 500 ex) and `test.jsonl` (single final
-number, 1319 ex) under `data/gsm8k_aug/` — both are **tracked in git** and ship with the
-clone (`git pull` if `validation.jsonl` is missing). Per-epoch model selection goes on
-**validation only**; touch `test.jsonl` exactly once, at the end, with the chosen
-(epoch, threshold). The eval script already defaults `--data_path` to the validation split.
+Both `test.jsonl` (1319 ex, the headline set) and `validation.jsonl` (500 ex, optional
+analysis) are **tracked in git** and ship with the clone (`git pull` if either is missing).
+Per the **Evaluation protocol** section above, the headline is the *final* checkpoint
+(epoch 40) on **test** at the fixed Run-C threshold 0.5 — no per-epoch/per-threshold search.
 ```bash
-EXP=10-simcot-pondernet-fromscratch RUN=<run> CKPT=<path-to-checkpoint-dir> \
+# HEADLINE: final checkpoint, on test, fixed threshold 0.5 (mirrors SIM-CoT/CODI)
+EXP=10-simcot-pondernet-fromscratch RUN=<run> CKPT=<final-checkpoint-dir> \
+DATA_PATH=../data/gsm8k_aug/test.jsonl \
 CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
-bash scripts/eval_gpt2_gsm8k_pondernet.sh --max_latent_steps 12 --batch_size 1
+bash scripts/eval_gpt2_gsm8k_pondernet.sh --max_latent_steps 12 --batch_size 1 --pondernet_inf_threshold 0.5
 ```
 - **`--max_latent_steps 12` is required** — the eval script defaults to 6, but this model is
   K_max=12; without the override you cap the adaptive range.
 - **`--batch_size 1` is mandatory** for faithful adaptive halting (see the repo AGENTS.md gotcha).
-- Select the best epoch/threshold on **validation**, then report **one** number on **test**
-  (do not select on test — the exp 01–07 leakage lesson). Run C's headline threshold is 0.5.
+- **Do not select the epoch or threshold on test.** The recipe is frozen a priori, so this is a
+  clean forward evaluation, not the exp 01–07 leakage. If you want threshold-sensitivity or
+  per-epoch dynamics for the write-up, run those against `validation.jsonl` (the eval script's
+  default `--data_path`) and keep them clearly separate from the headline test number.
 
 ### 8. Ship results back
 Send Ana the per-epoch checkpoints (`models/checkpoints/10-simcot-pondernet-fromscratch/<RUN>/.../checkpoint-*`)
@@ -253,10 +308,18 @@ than the old 100k subsample) before touching data size; set `EPOCHS=<n>` on the 
 
 ## Reporting (for the presentation)
 
-Compare three points on GSM8K (validation, greedy, bs=1):
-- **SIM-CoT / CODI baseline** (fixed K=6) — exp-01 `baseline-k6` = 40.80%.
-- **exp-08 Run C** (warm-start + adaptive) — 40.6% @ 2.93 steps.
+The exp-10 headline is on **GSM8K test** (1319 ex, greedy, bs=1), final checkpoint, threshold
+0.5 — matching the SIM-CoT / CODI protocol (see **Evaluation protocol** above). Compare three
+points, **all on the same test set**:
+- **SIM-CoT / CODI baseline** (fixed K=6) — exp-01 `baseline-k6`, re-evaluate on test
+  (currently recorded as 40.80% on the 500-ex validation split).
+- **exp-08 Run C** (warm-start + adaptive) — 40.6% @ 2.93 steps, likewise a validation number;
+  re-evaluate on test for the comparison.
 - **this run** (from-scratch + adaptive) — the honest "we trained the whole method from GPT-2"
-  number; its gap to exp-08 Run C quantifies how much the warm-start was contributing.
+  test number; its gap to exp-08 Run C quantifies how much the warm-start was contributing.
+
+⚠️ The two reference points above are validation numbers today; put all three on **test** before
+publishing the table (see the comparability caveat in **Evaluation protocol**). Validation-set
+plots (threshold sweep, per-epoch dynamics, Spearman) are secondary/transparency, not the headline.
 
 See [runs.md](runs.md) once results land · artifacts under `<dir>/10-simcot-pondernet-fromscratch/`.
