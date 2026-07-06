@@ -46,11 +46,14 @@ superpowers/
 # MLflow tracking (reserved for future use)
 mlruns/
 
-# Eval splits tracked in git so the A100 hand-off is self-contained
+# Eval split tracked in git so the A100 hand-off is self-contained. validation.jsonl
+# is deliberately NOT excepted here — this experiment trains on the entire train set,
+# so the team's validation.jsonl (sampled from train) would be contaminated for it.
+# See docs/experiments/10-simcot-pondernet-fromscratch/experiment.md -> "Evaluation
+# protocol" before adding it back.
 # (negations must re-include each parent level of an ignored dir)
 !data/
 data/*
 !data/gsm8k_aug/
 data/gsm8k_aug/*
 !data/gsm8k_aug/test.jsonl
-!data/gsm8k_aug/validation.jsonl

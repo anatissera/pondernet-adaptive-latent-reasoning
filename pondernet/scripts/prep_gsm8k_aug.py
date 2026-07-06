@@ -12,12 +12,15 @@ Run from the repo root or from pondernet/:
 Schema written per line: {"question": str, "cot": str, "answer": str}
 (This is what train.py's `icot` loader reads; --data_name icot.)
 
-Eval data: test.jsonl (1319 ex, held-out final report) and validation.jsonl
-(500 ex, model selection) are TRACKED IN GIT at data/gsm8k_aug/ — a fresh clone
-already has them; `git pull` if validation.jsonl is missing. test.jsonl is the
-GSM8k-Aug HF test split, so `--split test` can regenerate it; validation.jsonl
-is a team-made 500-ex split (disjoint from test) that HF does not carry — never
-regenerate it from scratch or numbers stop being comparable across experiments.
+Eval data: test.jsonl (1319 ex, this experiment's ONLY eval set) is TRACKED IN GIT
+at data/gsm8k_aug/test.jsonl — a fresh clone already has it. It is the GSM8k-Aug
+HF test split, so `--split test` can regenerate it if needed.
+
+There is NO validation.jsonl for this experiment (do not fetch or add one): the
+team's 500-ex validation split (used in exps 01-07) was sampled from train.jsonl,
+and this experiment trains on the ENTIRE train set, so those 500 examples are
+inside its training data. See docs/experiments/10-simcot-pondernet-fromscratch/
+experiment.md -> "Evaluation protocol" for the full reasoning.
 """
 import argparse
 import json

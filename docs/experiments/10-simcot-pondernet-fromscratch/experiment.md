@@ -147,14 +147,15 @@ the held-out `validation.jsonl` fixed. Exp-10 selects nothing: it takes a frozen
 final checkpoint and evaluates once. Evaluating a pre-committed model on test is precisely the
 SIM-CoT protocol; leakage is *tuning* on test, which we do not do here.
 
-**What `validation.jsonl` (500 ex) is for now — optional analysis only, never the headline.**
-PonderNet adds a halting threshold that fixed-K SIM-CoT doesn't have, so the validation split
-is handy for *transparency* plots kept separate from the comparison number: the
-accuracy-vs-threshold curve, per-epoch halting dynamics, the Spearman compute-adaptivity
-signal. None of these feed the headline. (This also sidesteps a second issue: exp-10 trains on
-the *full* train, but the 500-ex validation set was sampled from train back when experiments
-used the 100k subsample — so for exp-10 those 500 examples were seen in training and can't be a
-clean held-out set anyway. One more reason the headline lives on test, not validation.)
+**`validation.jsonl` is NOT used for exp-10 — do not fetch or add it.** The 500-ex set the
+team used in exps 01–07 (threshold sweeps, per-epoch dynamics, Spearman) was sampled from
+`train.jsonl`. Exp-10 trains on the **entire** train set, so those 500 examples are inside
+exp-10's training data — using it as a "held-out" set for this experiment would silently
+evaluate on train. The headline lives entirely on `test.jsonl`, which the training data never
+touches. If threshold-sensitivity or per-epoch plots are wanted for the write-up, they can be
+computed on `test.jsonl` itself as a **post-hoc diagnostic** — this doesn't leak because the
+headline threshold (0.5) is fixed *before* looking at test and doesn't move based on the curve;
+it's just showing what the pre-committed model does at other thresholds, not selecting among them.
 
 > Comparability caveat for the write-up: the exp-01 baseline (40.80%) and exp-08 Run C (40.6%)
 > reference points in "Reporting" below are **validation** numbers. For an apples-to-apples bar
@@ -192,9 +193,10 @@ source .venv/bin/activate      # the training script calls bare `python`
 cd pondernet
 python scripts/prep_gsm8k_aug.py     # downloads zen-E/GSM8k-Aug -> ../data/gsm8k_aug/train.jsonl (385,620 ex)
 ```
-This is the only data the A100 needs (training). Eval data (`validation.jsonl`, `test.jsonl`)
-is **already tracked in git** at `data/gsm8k_aug/` — it comes with the clone (run `git pull`
-if `validation.jsonl` is missing; it may land in a later commit). See step 7 to evaluate here.
+This is the only data the A100 needs (training). Eval data (`test.jsonl`, 1319 ex) is
+**already tracked in git** at `data/gsm8k_aug/test.jsonl` — it comes with the clone. See
+step 7 to evaluate here. (There is no `validation.jsonl` for this experiment and there won't
+be one — see **Evaluation protocol** above for why.)
 
 ### 4. Launch the run (one command)
 ```bash
@@ -262,10 +264,11 @@ fresh run. The checkpoints are most reliably used for (a) evidence the recipe is
 (b) evaluating an intermediate epoch (step 7).
 
 ### 7. (OPTIONAL) Evaluate here instead of shipping checkpoints back
-Both `test.jsonl` (1319 ex, the headline set) and `validation.jsonl` (500 ex, optional
-analysis) are **tracked in git** and ship with the clone (`git pull` if either is missing).
-Per the **Evaluation protocol** section above, the headline is the *final* checkpoint
-(epoch 40) on **test** at the fixed Run-C threshold 0.5 — no per-epoch/per-threshold search.
+`test.jsonl` (1319 ex, the headline set) is **tracked in git** and ships with the clone. Per
+the **Evaluation protocol** section above, the headline is the *final* checkpoint (epoch 40)
+on **test** at the fixed Run-C threshold 0.5 — no per-epoch/per-threshold search. **You must
+pass `DATA_PATH` explicitly** — the eval script's own default (`validation.jsonl`) is not used
+for this experiment and is not in the repo (see Evaluation protocol for why).
 ```bash
 # HEADLINE: final checkpoint, on test, fixed threshold 0.5 (mirrors SIM-CoT/CODI)
 EXP=10-simcot-pondernet-fromscratch RUN=<run> CKPT=<final-checkpoint-dir> \
@@ -277,9 +280,10 @@ bash scripts/eval_gpt2_gsm8k_pondernet.sh --max_latent_steps 12 --batch_size 1 -
   K_max=12; without the override you cap the adaptive range.
 - **`--batch_size 1` is mandatory** for faithful adaptive halting (see the repo AGENTS.md gotcha).
 - **Do not select the epoch or threshold on test.** The recipe is frozen a priori, so this is a
-  clean forward evaluation, not the exp 01–07 leakage. If you want threshold-sensitivity or
-  per-epoch dynamics for the write-up, run those against `validation.jsonl` (the eval script's
-  default `--data_path`) and keep them clearly separate from the headline test number.
+  clean forward evaluation, not the exp 01–07 leakage. If threshold-sensitivity or per-epoch
+  dynamics are wanted for the write-up, run those against `test.jsonl` too (varying
+  `--pondernet_inf_threshold`) as a post-hoc diagnostic — the headline number is already fixed
+  at threshold 0.5 regardless of what the curve shows.
 
 ### 8. Ship results back
 Send Ana the per-epoch checkpoints (`models/checkpoints/10-simcot-pondernet-fromscratch/<RUN>/.../checkpoint-*`)
