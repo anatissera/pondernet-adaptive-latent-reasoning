@@ -26,6 +26,11 @@ activate.sh
 
 # Entornos virtuales
 .venv/
+.venv-option-a/
+SIM-CoT/.venv/
+
+# Local agent tooling (hooks/scaffolding); not published
+.claude/
 
 # Python
 __pycache__/
