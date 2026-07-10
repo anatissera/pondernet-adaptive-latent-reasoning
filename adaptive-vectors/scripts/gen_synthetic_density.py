@@ -99,6 +99,8 @@ def build_split(level: str, n: int, K: int, seed: int, exclude: set):
         if q in seen or q in exclude:
             continue
         seen.add(q); rows.append(inst)
+    if len(rows) < n:
+        raise RuntimeError(f"build_split({level!r}) produced only {len(rows)}/{n} unique rows (collision-bound); raise the guard or reduce n")
     return rows, seen
 
 

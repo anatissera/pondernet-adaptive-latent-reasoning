@@ -55,7 +55,7 @@ def test_plus_respects_max_val():
 
 def test_level_means():
     import statistics
-    for lvl in ["L0", "L1", "L2", "L3"]:
+    for lvl in ["L0", "L1", "L2", "L3", "train"]:
         rng = random.Random(42)
         ds = [d for _ in range(4000) for d in g.sample_depths(lvl, 4, rng)]
         assert abs(statistics.mean(ds) - 2.5) < 0.1, (lvl, statistics.mean(ds))
@@ -72,6 +72,10 @@ def test_build_split_unique_and_disjoint():
     test, qtest = g.build_split("L2", 200, 4, seed=1, exclude=qtrain)
     assert len({r["question"] for r in train}) == len(train)
     assert qtrain.isdisjoint(qtest)
+
+def test_build_split_returns_exactly_n():
+    rows, _ = g.build_split("L3", 300, 4, seed=5, exclude=set())
+    assert len(rows) == 300
 
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
