@@ -1,147 +1,157 @@
-# Option-B — Resultados (vectores por paso adaptativos, eje `c`)
+# Option B: Results (adaptive vectors per step, the `c` axis)
 
-**Fecha:** 2026-06-19 (actualizado 2026-06-21) · **GPU:** RTX 3060/5070/3090
-**Backbone:** GPT-2 (+ SIM-CoT/CODI warm-start en el baseline; cold-start en el retrain)
-**Datos:** GSM8K-Aug (train) / GSM8K test (1319 ej.)
+**Date:** 2026-06-19 (updated 2026-06-21) | **GPU:** RTX 3060/5070/3090
+**Backbone:** GPT-2 (+ SIM-CoT/CODI warm-start in the baseline; cold-start in the retrain)
+**Data:** GSM8K-Aug (train) / GSM8K test (1319 examples)
 
 ## TL;DR
 
-Option-B implementa y entrena de punta a punta la adaptividad del **número de vectores
-por paso** (`c`): cada paso de razonamiento se construye como un bloque de hasta `M`
-sub-vectores; el decoder de SIM-CoT reconstruye cada paso desde el bloque acumulado, y
-un MLP destila ese `L_step` por-ejemplo para decidir en inferencia cuándo el paso está
-"maduro". **El mecanismo funciona y recorta ~16–33 % del cómputo latente sin perder
-accuracy.** Pero el halting aprendido **no supera al azar ni al fijo c=2 a budget
-igualado** (2 runs, con y sin penalty), y el MLP **no asigna más cómputo a los problemas
-más difíciles**. La curva accuracy-vs-`c` satura fuerte en c=2 (c1=27.5 %, c2=39.4 %,
-c3=39.9 %): la `c` requerida es casi constante (~2) entre instancias → **poco headroom
-explotable** en GSM8K-Aug con GPT-2. El óptimo simple es **fijar c=2**. Resultado
-negativo limpio y reproducible: la maquinaria es correcta, la tarea no recompensa
-adaptar `c`. El axis con headroom real es el número de pasos `K` (Proposal C).
+Option B implements and trains end to end the adaptivity of the **number of vectors per
+step** (`c`): each reasoning step is built as a block of up to `M` sub-vectors; the
+SIM-CoT decoder reconstructs each step from the accumulated block, and an MLP distills
+that per-example `L_step` to decide at inference when the step is "mature". **The
+mechanism works and trims ~16-33% of the latent compute without losing accuracy.** But
+the learned halting **does not beat random or fixed c=2 at matched budget** (2 runs,
+with and without penalty), and the MLP **does not allocate more compute to harder
+problems**. The accuracy-vs-`c` curve saturates hard at c=2 (c1=27.5%, c2=39.4%,
+c3=39.9%): the required `c` is nearly constant (~2) across instances, so there is
+**little exploitable headroom** on GSM8K-Aug with GPT-2. The simple optimum is **fixed
+c=2**. A clean, reproducible negative result: the machinery is correct, the task does
+not reward adapting `c`. The axis with real headroom is the number of steps `K`
+(Proposal C).
 
-> **Update 2026-06-21 (retrain sin sesgo).** Para descartar que la saturación fuera sesgo
-> del warm-start c=1, se reentrenó **cold desde GPT-2 plano + segmentación gruesa**. Resultado:
-> el modelo cold **colapsa a ≈ azar** (c1=5.3/c2=5.5/c3=5.5 %). Diagnóstico (ver sección
-> "Retrain sin sesgo"): no es bug de carga; el modelo aprende el *formato* de la respuesta pero
-> los **latentes quedan inertes** (`fixed_k_eval` plano k1..k9 ≈ 6 %) — el razonamiento latente
-> no bootstrapea desde cero bajo el objetivo block-of-c. **El ancla c=1 era load-bearing, no
-> solo un sesgo.** El negativo del eje `c` es robusto: donde el modelo funciona (warm), `c` es
-> plano; el lever real es la **densidad por-paso del dataset**, no el eje `c`.
+> **Update 2026-06-21 (unbiased retrain).** To rule out the saturation being warm-start
+> c=1 bias, the model was retrained **cold from plain GPT-2 + coarse segmentation**.
+> Result: the cold model **collapses to ~chance** (c1=5.3/c2=5.5/c3=5.5%). Diagnosis
+> (see the "Unbiased retrain" section): not a loading bug; the model learns the answer
+> *format* but the **latents stay inert** (`fixed_k_eval` flat k1..k9 at ~6%), so latent
+> reasoning does not bootstrap from scratch under the block-of-c objective. **The c=1
+> anchor was load-bearing, not just a bias.** The `c` axis negative is robust: where the
+> model works (warm), `c` is flat; the real lever is the **per-step density of the
+> dataset**, not the model's `c` axis.
 
-> **Update 2026-06-21 (warm + coarse — REVIERTE/MATIZA el negativo).** El negativo era
-> **granularidad-específico**, no una propiedad de Option-B. Con warm-start (modelo funcional)
-> + segmentación **gruesa** (pasos de 2-3 ops → densidad variable): el c-curve recupera headroom
-> (Δc2→c3 = **+3.7** vs +0.5 atómico) y **adaptive bate a random en 2.7σ** (eps0.15 38.8 % @ 7.2
-> vec vs random 35.2 % @ 6.1 vec) — algo que NO pasaba en atómico. Sobre la asignación uniforme
-> el adaptive gana **+0.6–1.0** (modesto). La señal per-instancia **existe** cuando la densidad
-> por-paso varía. Ver sección "Warm + coarse". → próximo: **dataset sintético de densidad
-> controlada** para amplificar y medir el headroom vs varianza-de-densidad.
+> **Update 2026-06-21 (warm + coarse: REVERSES/QUALIFIES the negative).** The negative
+> was **granularity-specific**, not a property of Option B. With warm-start (functional
+> model) + **coarse** segmentation (steps of 2-3 ops, so variable density): the c-curve
+> recovers headroom (delta c2->c3 = **+3.7** vs +0.5 atomic) and **adaptive beats random
+> by 2.7 sigma** (eps0.15 38.8% @ 7.2 vec vs random 35.2% @ 6.1 vec), which did NOT
+> happen in the atomic setting. Over the uniform allocation line, adaptive wins by
+> **+0.6 to +1.0** (modest). The per-instance signal **exists** when per-step density
+> varies. See the "Warm + coarse" section. Next: a **synthetic dataset with controlled
+> density** to amplify and measure headroom vs density variance.
 
-## Qué se construyó
+## What was built
 
-- `_forward_option_b` (training): K pasos × M sub-vectores; reconstrucción por bloque
-  acumulado (`_block_step_loss`, per-ejemplo); `ob_mlp` destila `L_step` (SmoothL1);
-  penalty de ponder `λ·Σσ(-L̂)`. Camino SIM-CoT heredado intacto (gateado por `--option_b`).
-- Inferencia adaptativa (`test.py`): por cada paso agrega sub-vectores hasta que
-  `|L̂_j−L̂_{j−1}| < eps` o `M_max`; decodifica la respuesta tras K pasos. Fiel a bs=1.
-- Baseline de halting **aleatorio** (`--ob_random`) para comparar a budget igualado.
-- Diagnóstico Fase-1 (`--ob_probe`): mide si `L_step` baja dentro de un paso.
+- `_forward_option_b` (training): K steps x M sub-vectors; reconstruction from the
+  accumulated block (`_block_step_loss`, per-example); `ob_mlp` distills `L_step`
+  (SmoothL1); ponder penalty `lambda * sum sigmoid(-L_hat)`. Inherited SIM-CoT path
+  intact (gated by `--option_b`).
+- Adaptive inference (`test.py`): for each step, add sub-vectors until
+  `|L_hat_j - L_hat_{j-1}| < eps` or `M_max`; decode the answer after K steps. Faithful
+  at bs=1.
+- **Random** halting baseline (`--ob_random`) for matched-budget comparison.
+- Phase-1 diagnostic (`--ob_probe`): measures whether `L_step` goes down within a step.
 
-## Fase 1 — Probe (modelo preentrenado)
+## Phase 1: Probe (pretrained model)
 
-Sobre el checkpoint SIM-CoT (fijado a c=1), `L_step` **no baja** al agregar sub-vectores
-dentro de un paso (sube, tanto en medición SINGLE como BLOCK). Confirmó que cualquier
-`c≠1` es OOD y que **reentrenar es obligatorio**. (No es un go/no-go definitivo; solo
-dice que el preentrenado no da ventaja.)
+On the SIM-CoT checkpoint (pinned to c=1), `L_step` does **not** go down when adding
+sub-vectors within a step (it goes up, in both the SINGLE and BLOCK measurements). This
+confirmed that any `c != 1` is OOD and that **retraining is mandatory**. (Not a
+definitive go/no-go; it only says the pretrained model gives no advantage.)
 
-## Fase 5 — Entrenamiento + evaluación
+## Phase 5: Training + evaluation
 
-**run1:** K=4, M=3, 3 épocas, 8 000 ej., LR 2e-5, HALT_LR 1e-3, **λ_halt=0**.
-Loss 3.40 → 0.36. ckpt `…/optionb-run1/…/checkpoint-747`.
+**run1:** K=4, M=3, 3 epochs, 8000 examples, LR 2e-5, HALT_LR 1e-3, **lambda_halt=0**.
+Loss 3.40 -> 0.36. ckpt `.../optionb-run1/.../checkpoint-747`.
 
-### Adaptive vs fijo vs azar (GSM8K test completo, 1319 ej., bs=1)
+### Adaptive vs fixed vs random (full GSM8K test, 1319 examples, bs=1)
 
-| config              | avg vectores | accuracy |
-|---------------------|--------------|----------|
-| fijo c=3 (eps=0)    | 12.00        | 39.88 %  |
-| **adaptive** eps=0.05 | 10.12      | 39.80 %  |
-| **random** halting  | 8.05         | 39.35 %  |
+| config                | avg vectors | accuracy |
+|-----------------------|-------------|----------|
+| fixed c=3 (eps=0)     | 12.00       | 39.88%   |
+| **adaptive** eps=0.05 | 10.12       | 39.80%   |
+| **random** halting    | 8.05        | 39.35%   |
 
-Spread = 0.53 % en todo el rango (SE ≈ 1.35 % con 1319 ej.) → **estadísticamente plano**.
-Adaptive iguala a fijo con 16 % menos cómputo; random iguala a ambos con 33 % menos.
+Spread = 0.53% across the whole range (SE ~1.35% with 1319 examples), so
+**statistically flat**. Adaptive matches fixed with 16% less compute; random matches
+both with 33% less.
 
-### Barrido de eps (300-subset) — tradeoff budget/accuracy
+### eps sweep (300-subset): budget/accuracy tradeoff
 
-| eps   | avg vectores | accuracy |
-|-------|--------------|----------|
-| 0.00  | 12.00 | 41.00 % |
-| 0.02  | 10.69 | 41.00 % |
-| 0.05  | 10.18 | 41.33 % |
-| 0.15  | 9.23  | 41.00 % |
-| 0.40  | 8.43  | 40.67 % |
+| eps   | avg vectors | accuracy |
+|-------|-------------|----------|
+| 0.00  | 12.00 | 41.00% |
+| 0.02  | 10.69 | 41.00% |
+| 0.05  | 10.18 | 41.33% |
+| 0.15  | 9.23  | 41.00% |
+| 0.40  | 8.43  | 40.67% |
 
-### ¿El MLP da más vectores a lo difícil? — NO
+### Does the MLP give more vectors to hard problems? NO
 
-Media de vectores usados: **correctos = 10.28, incorrectos = 10.01** (¡al revés de lo
-útil, y diferencia despreciable!). El patrón de vectores/paso es **posicional**
-(s0=3.00 siempre; pasos tardíos frenan antes: s1≈2.7, s2≈2.3, s3≈2.2), no por dificultad
-de la instancia. → El halting aprendido no captura una señal per-instancia.
+Mean vectors used: **correct = 10.28, incorrect = 10.01** (the reverse of what would be
+useful, and a negligible difference). The vectors-per-step pattern is **positional**
+(s0=3.00 always; later steps stop earlier: s1~2.7, s2~2.3, s3~2.2), not driven by
+instance difficulty. The learned halting does not capture a per-instance signal.
 
-### Curva accuracy-vs-`c` fijo (GSM8K test completo)
+### Fixed-`c` accuracy curve (full GSM8K test)
 
-¿Importa `c` para nada? Forzando un `c` fijo por paso:
+Does `c` matter at all? Forcing a fixed `c` per step:
 
-| c fijo | vectores totales | accuracy |
-|--------|------------------|----------|
-| c=1    | 4   | **27.52 %** |
-| c=2    | 8   | **39.42 %** |
-| c=3    | 12  | 39.88 %     |
+| fixed c | total vectors | accuracy |
+|---------|---------------|----------|
+| c=1     | 4   | **27.52%** |
+| c=2     | 8   | **39.42%** |
+| c=3     | 12  | 39.88%     |
 
-**Hallazgo clave:** la curva es **empinada de 1→2 (+11.9 %) y plana de 2→3 (+0.46 %)**.
-Satura fuerte en **c=2**. Así que `c` SÍ importa, pero la `c` *requerida* es **casi
-constante (~2)** entre instancias: casi todo problema necesita 2 vectores y ninguno se
-beneficia de 3. Por eso no hay headroom adaptativo — no porque `c` sea irrelevante, sino
-porque su varianza per-instancia es muy baja. El óptimo es **fijo c=2** (8 vec, 39.42 %),
-y el adaptive (10 vec, 39.80 %) gasta más para lo mismo.
+**Key finding:** the curve is **steep from 1 to 2 (+11.9%) and flat from 2 to 3
+(+0.46%)**. It saturates hard at **c=2**. So `c` DOES matter, but the *required* `c` is
+**nearly constant (~2)** across instances: almost every problem needs 2 vectors and
+none benefits from 3. That is why there is no adaptive headroom: not because `c` is
+irrelevant, but because its per-instance variance is very low. The optimum is **fixed
+c=2** (8 vec, 39.42%), and adaptive (10 vec, 39.80%) spends more for the same result.
 
-## ¿Por qué satura en c=2? ¿Es sesgo o es la tarea?
+## Why does it saturate at c=2? Bias or the task?
 
-Pregunta clave: ¿`c` satura de verdad, o nuestro setup lo sesgó a saturar? Auditoría
-(detalle e implementación en `IMPLEMENTATION.md` §6):
+Key question: does `c` really saturate, or did our setup bias it into saturating?
+Audit (detail and implementation in `IMPLEMENTATION.md`, section 6):
 
-**Contexto de los papers (agente de investigación):** CODI (el código base) usa **1 vector
-por paso**; los papers SIM-CoT/Coconut usan `c_thought=2` (`SIM-CoT/Coconut/args/*.yaml`).
-El checkpoint del que hicimos warm-start (`models/pretrained/simcot-gpt2-codi`) fue entrenado
-con **c=1**. Los pasos se segmentan por marcadores de texto (`<<…>>`), supervisados desde el CoT.
+**Paper context (research agent):** CODI (the code base) uses **1 vector per step**;
+the SIM-CoT/Coconut papers use `c_thought=2` (`SIM-CoT/Coconut/args/*.yaml`). The
+checkpoint we warm-started from (`models/pretrained/simcot-gpt2-codi`) was trained with
+**c=1**. Steps are segmented by text markers (`<<...>>`), supervised from the CoT.
 
-**Sesgos en nuestro setup (a remover para un test limpio):**
-1. **Warm-start c=1 + LoRA-only (base congelada).** El modelo arranca en el régimen c=1 y solo
-   LoRA(r=128) lo adapta; la circuitería de razonamiento del backbone sigue siendo la de c=1.
-   → **El usuario tiene razón: no deberíamos usar el checkpoint SIM-CoT; hay que reentrenar sin
-   ese ancla** (cold start / full fine-tune desde GPT-2 plano).
-2. **Granularidad: 1 operación aritmética = 1 paso.** En GSM8K-Aug cada paso es un `<<a op b=c>>`
-   trivial → 2 vectores lo saturan. La **varianza de la tarea está en el nº de pasos (1–6 ops),
-   no en la complejidad por paso**. Por eso el eje `c` es plano y el eje `K` tiene headroom.
-3. **La respuesta se entrena solo a budget máximo (M/paso).** El answer head nunca aprende a
-   responder con menos vectores → sesga contra c bajo y contra que la adaptividad pague.
+**Biases in our setup (to remove for a clean test):**
+1. **c=1 warm-start + LoRA-only (frozen base).** The model starts in the c=1 regime and
+   only LoRA(r=128) adapts it; the backbone's reasoning circuitry remains c=1.
+   For a clean test, do not use the SIM-CoT checkpoint: retrain without that anchor
+   (cold start / full fine-tune from plain GPT-2).
+2. **Granularity: 1 arithmetic operation = 1 step.** In GSM8K-Aug each step is a
+   trivial `<<a op b=c>>`, so 2 vectors saturate it. The **task's variance is in the
+   number of steps (1-6 ops), not in per-step complexity**. That is why the `c` axis is
+   flat and the `K` axis has headroom.
+3. **The answer is only trained at maximum budget (M per step).** The answer head never
+   learns to answer with fewer vectors, biasing against low c and against adaptivity
+   paying off.
 
-**Veredicto del análisis:** la saturación en c=2 es **mayormente la tarea** (pasos triviales y
-uniformes), con el warm-start/LoRA como ancla **secundaria**. Un retrain sin sesgo (puntos 1-3)
-es necesario para afirmarlo con rigor — es exactamente lo que se hizo a continuación.
+**Verdict of the analysis:** the c=2 saturation is **mostly the task** (trivial,
+uniform steps), with warm-start/LoRA as a **secondary** anchor. An unbiased retrain
+(points 1-3) is needed to state it rigorously, which is exactly what was done next.
 
-## Retrain sin sesgo: cold + coarse (resultado + diagnóstico)
+## Unbiased retrain: cold + coarse (result + diagnosis)
 
-**Fecha:** 2026-06-21 · **GPU:** RTX 5070 (training) + 3090 (eval). Plan: remover los sesgos
-controlables (#1 warm-start c=1, #2 granularidad atómica) en una sola corrida y volver a medir.
+**Date:** 2026-06-21 | **GPU:** RTX 5070 (training) + 3090 (eval). Plan: remove the
+controllable biases (#1 c=1 warm-start, #2 atomic granularity) in a single run and
+measure again.
 
-**Setup:** GPT-2 plano (sin checkpoint SIM-CoT, decoder fresco) + segmentación **gruesa**
-(`get_steps_coarse`: agrupa las ops en K=3 buckets parejos → complejidad por-paso variable),
-K=3, M=3, 30 épocas, `train15k`. Script: `scripts/train_gpt2_gsm8k_optionb_cold.sh`.
-- **Divergencia con LR 3e-3** (la receta cold de CODI): explotó en la época 7→8 (loss 2.8→20,
-  se quedó en ~10). Re-lanzado con **LR 1e-3 + max_grad_norm 0.5 + warmup 0.05**: descenso
-  monótono limpio 7.5 → **0.77**, sin spikes. Checkpoint final: `checkpoint-7020`.
+**Setup:** plain GPT-2 (no SIM-CoT checkpoint, fresh decoder) + **coarse** segmentation
+(`get_steps_coarse`: groups the ops into K=3 even buckets, so per-step complexity
+varies), K=3, M=3, 30 epochs, `train15k`. Script:
+`scripts/train_gpt2_gsm8k_optionb_cold.sh`.
+- **Divergence at LR 3e-3** (CODI's cold recipe): blew up at epoch 7-8 (loss 2.8 -> 20,
+  stuck at ~10). Relaunched with **LR 1e-3 + max_grad_norm 0.5 + warmup 0.05**: clean
+  monotonic descent 7.5 -> **0.77**, no spikes. Final checkpoint: `checkpoint-7020`.
 
-**Resultado — c-curve (GSM8K test completo, 1319 ej., eps=0.0):**
+**Result: c-curve (full GSM8K test, 1319 examples, eps=0.0):**
 
 | c (M_max) | vecs/inst | acc (%) cold | acc (%) warm (baseline) |
 |-----------|-----------|--------------|--------------------------|
@@ -149,116 +159,126 @@ K=3, M=3, 30 épocas, `train15k`. Script: `scripts/train_gpt2_gsm8k_optionb_cold
 | 2         | 6.00      | **5.46**     | 39.42                    |
 | 3         | 9.00      | **5.53**     | 39.88                    |
 
-Adaptive/random (300-subset): **todo ~8 %**, adaptive ≈ random en todos los eps (el halting
-recorta vectores 9→6 pero la accuracy no se mueve). **El modelo cold colapsó a ≈ azar.**
+Adaptive/random (300-subset): **everything ~8%**, adaptive ~ random at every eps (the
+halting trims vectors 9 -> 6 but accuracy does not move). **The cold model collapsed to
+~chance.**
 
-### Diagnóstico: por qué el cold-start falla (3 verificaciones)
+### Diagnosis: why the cold start fails (3 checks)
 
-1. **No es bug de carga.** El checkpoint cold tiene **estructura de keys idéntica** (404 keys,
-   cero diff, cero mismatch de shape) al checkpoint warm que da 39 % por el mismo `test.py`.
-   Los pesos LoRA/prj/ob_mlp están entrenados (normas grandes, no init). El loss bajó a 0.77.
-2. **Aprendió el formato, no el razonamiento.** Las generaciones son respuestas **bien formadas**
-   ("The answer is: N") con números de magnitud plausible, pero la aritmética está mal
-   (16−3−4=9 ⇒ $18, dice 96; 3×3×60=540, dice 360). No es basura: es un modelo que da respuestas
-   format-correctas pero incorrectas.
-3. **Los latentes son inertes** (`fixed_k_eval`, decodifica la respuesta a cada prefijo k=1..9):
+1. **Not a loading bug.** The cold checkpoint has an **identical key structure** (404
+   keys, zero diff, zero shape mismatches) to the warm checkpoint that scores 39%
+   through the same `test.py`. The LoRA/prj/ob_mlp weights are trained (large norms,
+   not init). The loss went down to 0.77.
+2. **It learned the format, not the reasoning.** Generations are **well-formed** answers
+   ("The answer is: N") with plausible magnitudes, but the arithmetic is wrong
+   (16-3-4=9 => $18, it says 96; 3x3x60=540, it says 360). Not garbage: a model giving
+   format-correct but incorrect answers.
+3. **The latents are inert** (`fixed_k_eval`, decoding the answer at every prefix
+   k=1..9):
 
    ```
    accuracy@k (cold):  k1=7.3  k2=6.7  k3=6.0  k4=5.3  k5=5.7  k6=5.7  k7=6.0  k8=6.0  k9=5.7
    ```
-   **Plana (incluso decreciente):** agregar vectores latentes no ayuda. La cadena de razonamiento
-   no transporta computación. Contraste: el modelo **warm SÍ usa los latentes** — su c-curve
-   **sube** (c1=27.5 → c2=39.4, +12 puntos al 2º vector).
+   **Flat (even decreasing):** adding latent vectors does not help. The reasoning chain
+   carries no computation. Contrast: the **warm model DOES use the latents**; its
+   c-curve **rises** (c1=27.5 -> c2=39.4, +12 points from the 2nd vector).
 
-**Modo de falla (shortcut):** desde cero, bajo el objetivo block-of-c, la optimización encuentra
-un atajo — el decoder imita el hidden del teacher (`distill_loss`) y emite un número plausible
-*desde la pregunta sola*, sin que los latentes se vuelvan load-bearing. El `L_step` entrena los
-latentes a reconstruir el *texto* del paso, pero eso queda desacoplado de computar la respuesta.
-CODI evita esto porque su warm-start **ya trae latentes funcionales** (entrenados 40 épocas en
-cold con un objetivo simple: c=1, una reconstrucción).
+**Failure mode (shortcut):** from scratch, under the block-of-c objective, optimization
+finds a shortcut: the decoder imitates the teacher's hidden state (`distill_loss`) and
+emits a plausible number *from the question alone*, without the latents becoming
+load-bearing. `L_step` trains the latents to reconstruct the step *text*, but that
+stays decoupled from computing the answer. CODI avoids this because its warm-start
+**already brings functional latents** (trained 40 epochs cold with a simple objective:
+c=1, one reconstruction).
 
-**Veredicto actualizado:** el ancla c=1 **no era solo un sesgo — era load-bearing**. No se puede
-separar "modelo que funciona" de "anclado en c=1" quitando el warm-start, porque el razonamiento
-latente no bootstrapea desde cero bajo este objetivo. El negativo del eje `c` es **robusto en los
-dos regímenes**: donde el modelo funciona (warm) `c` es plano; en cold no hay modelo funcional.
-La causa raíz no es el init sino **la tarea**: cada paso de GSM8K-Aug es una op trivial que 2
-vectores saturan. El lever real es la **densidad por-paso del dataset**, no el eje `c` del modelo.
+**Updated verdict:** the c=1 anchor was **not just a bias, it was load-bearing**. You
+cannot separate "working model" from "anchored at c=1" by removing the warm-start,
+because latent reasoning does not bootstrap from scratch under this objective. The `c`
+axis negative is **robust in both regimes**: where the model works (warm), `c` is flat;
+in cold there is no working model. The root cause is not the init but **the task**:
+each GSM8K-Aug step is a trivial op that 2 vectors saturate. The real lever is the
+**per-step density of the dataset**, not the model's `c` axis.
 
-## Warm + coarse: el negativo era granularidad-específico (HALLAZGO CENTRAL)
+## Warm + coarse: the negative was granularity-specific (CENTRAL FINDING)
 
-**Fecha:** 2026-06-21. La celda que faltaba del 2×2 (init × granularidad): mantener el
-**warm-start** (modelo funcional, latentes que computan) pero con **segmentación gruesa**
-(K=3 buckets de 2-3 ops → densidad por-paso variable). Aísla la granularidad sobre un modelo
-que anda. Script: `scripts/train_gpt2_gsm8k_optionb_warmcoarse.sh` (LR 2e-5, 3 ep, penalty off).
-Loss 1.8→0.33 (sano). Checkpoint: `optionb-warm-coarse/.../checkpoint-747`.
+**Date:** 2026-06-21. The missing cell of the 2x2 (init x granularity): keep the
+**warm-start** (functional model, latents that compute) but with **coarse**
+segmentation (K=3 buckets of 2-3 ops, so variable per-step density). Isolates
+granularity on a model that works. Script:
+`scripts/train_gpt2_gsm8k_optionb_warmcoarse.sh` (LR 2e-5, 3 ep, penalty off).
+Loss 1.8 -> 0.33 (healthy). Checkpoint: `optionb-warm-coarse/.../checkpoint-747`.
 
-| init × granularidad | c=1 | c=2 | c=3 | **Δ c2→c3** |
-|---------------------|-----|-----|-----|-------------|
-| warm + atómico (baseline) | 27.5 | 39.4 | 39.9 | **+0.5** (saturado) |
-| **warm + coarse** | 25.5 | 36.6 | 40.3 | **+3.7** (sigue subiendo) |
-| cold + coarse | 5.3 | 5.5 | 5.5 | modelo roto |
+| init x granularity | c=1 | c=2 | c=3 | **delta c2->c3** |
+|--------------------|-----|-----|-----|------------------|
+| warm + atomic (baseline) | 27.5 | 39.4 | 39.9 | **+0.5** (saturated) |
+| **warm + coarse** | 25.5 | 36.6 | 40.3 | **+3.7** (still rising) |
+| cold + coarse | 5.3 | 5.5 | 5.5 | broken model |
 
-**1. El c-curve recupera headroom.** Con pasos densos el 3er vector aporta +3.7 (≈7× el +0.5
-atómico, ~49 ej. sobre 1319, fuera de ruido). El eje `c` deja de saturar en 2.
+**1. The c-curve recovers headroom.** With dense steps the 3rd vector adds +3.7 (about
+7x the atomic +0.5, ~49 examples out of 1319, outside noise). The `c` axis stops
+saturating at 2.
 
-**2. Adaptive vs random vs uniforme (full test 1319 ej., budget igualado):**
+**2. Adaptive vs random vs uniform (full test, 1319 examples, matched budget):**
 
-| config | acc (%) | vecs | vs línea uniforme* |
-|--------|---------|------|--------------------|
+| config | acc (%) | vecs | vs uniform line* |
+|--------|---------|------|------------------|
 | adaptive eps0.05 | 39.58 | 7.93 | +0.6 |
 | adaptive eps0.15 | 38.82 | 7.18 | +0.7 |
 | adaptive eps0.30 | 38.51 | 6.73 | +1.0 |
-| **random** | **35.18** | **6.07** | **−1.5** |
+| **random** | **35.18** | **6.07** | **-1.5** |
 
-*\*línea uniforme = interpolar la c-curve fija al mismo budget (qué da repartir c igual a todos).*
+*\*uniform line = interpolating the fixed c-curve at the same budget (what giving
+everyone the same c yields).*
 
-- **Adaptive >> random: +3.6 pts (eps0.15 vs random) ≈ 2.7σ.** El halting del MLP no es
-  patológico y reparte budget mucho mejor que el azar. **Esto NO pasaba en atómico** (ahí
-  adaptive ≈ random ≈ fijo): la señal per-instancia **existe** cuando la densidad varía.
-- **Adaptive > uniforme-fija: +0.6 a +1.0, consistente (3/3, replicado en sub300)** pero <1σ
-  por punto → headroom **real pero modesto** en GSM8K-Aug-coarse.
-- eps0.05 alcanza 98% del techo c=3 (39.6 vs 40.3) con 7.9 vec en vez de 9.
+- **Adaptive >> random: +3.6 pts (eps0.15 vs random), about 2.7 sigma.** The MLP's
+  halting is not pathological and allocates budget much better than chance. **This did
+  NOT happen in the atomic setting** (there adaptive ~ random ~ fixed): the
+  per-instance signal **exists** when density varies.
+- **Adaptive > fixed-uniform: +0.6 to +1.0, consistent (3/3, replicated on sub300)**
+  but <1 sigma per point, so the headroom is **real but modest** on GSM8K-Aug-coarse.
+- eps0.05 reaches 98% of the c=3 ceiling (39.6 vs 40.3) with 7.9 vec instead of 9.
 
-**Veredicto actualizado del proyecto:** el negativo del eje `c` era **específico de la
-granularidad atómica** de GSM8K-Aug, no una propiedad de Option-B. Agrupar ops triviales ya
-revive una señal per-instancia real (adaptive bate random 2.7σ) aunque modesta sobre uniforme.
-Motiva el **dataset sintético de densidad controlada**: si 2-3 ops agrupadas dan señal, un
-dataset con varianza de densidad por-paso *grande y controlada* debería amplificar el gap
-adaptive-vs-uniforme. Es el próximo experimento.
+**Updated project verdict:** the `c` axis negative was **specific to GSM8K-Aug's atomic
+granularity**, not a property of Option B. Grouping trivial ops already revives a real
+per-instance signal (adaptive beats random at 2.7 sigma), though modest over uniform.
+This motivates the **synthetic controlled-density dataset**: if grouping 2-3 ops gives
+signal, a dataset with *large, controlled* per-step density variance should amplify the
+adaptive-vs-uniform gap. That is the next experiment.
 
-## Conclusión y recomendación
+## Conclusion and recommendation
 
-1. **Implementación validada.** Option-B entrena, halta adaptativo por paso, y baja el
-   cómputo latente ~16–33 % sin costo de accuracy. Competitivo con el baseline SIM-CoT
-   (~39.5 %).
-2. **Sin headroom para adaptividad *inteligente* de `c`.** La accuracy satura en c=2 de
-   forma casi uniforme; adaptive ≈ random ≈ fijo c=2 a budget igualado; el MLP no asigna
-   más cómputo a lo difícil (correctos 10.28 vs incorrectos 10.01). El óptimo simple es
-   **fijar c=2**.
-3. **Por qué.** Cada paso de razonamiento de CODI satura en ~2 vectores de forma pareja;
-   el eje `c` tiene varianza per-instancia baja, a diferencia del rango dinámico del eje
-   `K` (número de pasos). Refuerza la premisa del proyecto: **el axis con headroom real
-   es el número de pasos (Proposal C)**.
+1. **Implementation validated.** Option B trains, halts adaptively per step, and cuts
+   latent compute by ~16-33% at no accuracy cost. Competitive with the SIM-CoT baseline
+   (~39.5%).
+2. **No headroom for *smart* `c` adaptivity in the atomic setting.** Accuracy saturates
+   at c=2 almost uniformly; adaptive ~ random ~ fixed c=2 at matched budget; the MLP
+   does not allocate more compute to hard problems (correct 10.28 vs incorrect 10.01).
+   The simple optimum is **fixed c=2**.
+3. **Why.** Each CODI reasoning step saturates at ~2 vectors evenly; the `c` axis has
+   low per-instance variance, unlike the dynamic range of the `K` axis (number of
+   steps). This reinforces the project premise: **the axis with real headroom is the
+   number of steps (Proposal C)**. The warm + coarse follow-up qualifies this: with
+   variable per-step density the signal reappears, modestly.
 
-### run2 — entrenado CON penalty (λ_halt=0.05)
+### run2: trained WITH the penalty (lambda_halt=0.05)
 
-¿La penalty empuja el subconjunto resoluble-con-c=1 hacia 1 vector, bajando de 8 vec a
-~39 %? **No.** (GSM8K test completo)
+Does the penalty push the solvable-with-c=1 subset toward 1 vector, dropping below 8
+vec at ~39%? **No.** (full GSM8K test)
 
 | run2 config        | avg vecs | acc(%) |
 |--------------------|----------|--------|
-| fijo c=3           | 12.00    | 39.58  |
-| **fijo c=2**       | 8.00     | **39.65** |
+| fixed c=3          | 12.00    | 39.58  |
+| **fixed c=2**      | 8.00     | **39.65** |
 | adaptive eps=0.15  | 9.19     | 39.95  |
 | adaptive eps=0.40  | 8.40     | 39.50  |
 | random             | 8.05     | 39.20  |
 
-La penalty NO desbloqueó eficiencia sub-c=2: incluso en eps=0.40 la distribución es
-prácticamente todo 2s (`2:4745, 3:531`, **cero 1s**). Solo recortó un poco el paso 0
-(s0=2.40). **Fijo c=2 (8 vec, 39.65 %) iguala o gana a todo el adaptive.** Confirma que
-la `c` requerida es ~constante en 2 y no hay subconjunto c=1 identificable que explotar.
+The penalty did NOT unlock sub-c=2 efficiency: even at eps=0.40 the distribution is
+practically all 2s (`2:4745, 3:531`, **zero 1s**). It only trimmed step 0 a bit
+(s0=2.40). **Fixed c=2 (8 vec, 39.65%) matches or beats all of adaptive.** Confirms the
+required `c` is ~constant at 2 and there is no identifiable c=1 subset to exploit.
 
-**Pivotes posibles** (si se quiere insistir en `c`): tareas con pasos más densos
-(multi-hop real, no aritmética GSM8K), backbones mayores, o presupuestos `c` más altos
-donde la saturación por-paso varíe. Pero la evidencia recomienda concentrar el esfuerzo
-de adaptividad en `K`.
+**Possible pivots** (to keep pushing on `c`): tasks with denser steps (real multi-hop,
+not GSM8K arithmetic), larger backbones, or higher `c` budgets where per-step
+saturation varies. But the evidence recommends concentrating the adaptivity effort
+on `K`.
