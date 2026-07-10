@@ -554,7 +554,11 @@ class CODI(torch.nn.Module):
           For k = K: p_K = prod_{j<K}(1 - lambda_j)  [absorbing boundary, lambda_K = 1]
         Rows sum to 1 by construction (no renormalization needed beyond fp precision).
         """
-        lambdas = torch.stack(lambdas_list, dim=1)  # (B, K)
+        # Cast to float32: BF16 lambda values near 1 produce (1-lambda)≈0 that underflow to
+        # exactly 0 in BF16. CumprodBackward0 has a zero-handling path that calls
+        # masked_scatter_; if the upstream gradient is FP32 (from the mixed-precision loss)
+        # and the buffer is BF16, that call fails with a dtype mismatch.
+        lambdas = torch.stack(lambdas_list, dim=1).float()  # (B, K)
         one_minus = 1.0 - lambdas
 
         # exclusive cumprod of (1-lambda): p_prior[k] = prod_{j<k}(1-lambda_j)
@@ -940,10 +944,10 @@ class CODI(torch.nn.Module):
 
         if self.pondernet and len(pondernet_lambdas) > 0:
             # --- Phase 4: PonderNet objective ---
-            pondernet_p = self._halting_distribution(pondernet_lambdas)  # (B, K) in-graph
+            pondernet_p = self._halting_distribution(pondernet_lambdas)  # (B, K) — FP32
 
             # L_pondernet = E_p[L_ans^(k)] = sum_k p_k * L_ans^(k), averaged over batch
-            step_losses_tensor = torch.stack(pondernet_step_losses, dim=1)  # (B, K) in-graph
+            step_losses_tensor = torch.stack(pondernet_step_losses, dim=1)  # (B, K) — FP32
 
             # Exp-06: per-instance mask — zero out halting mass and step losses beyond K_i
             if active_mask is not None:
