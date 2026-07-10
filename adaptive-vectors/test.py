@@ -177,6 +177,9 @@ def evaluation(model_args, data_args, training_args):
 
     logging.warning("Formatting inputs...")
     question = [f"{example[question_name].strip().replace('  ', ' ')}" for example in test_set]
+    depths_all = [ex.get("depths") for ex in test_set] if test_set else None
+    if depths_all and all(d is None for d in depths_all):
+        depths_all = None
     answer = []
 
     # get numerical answer
@@ -412,6 +415,8 @@ def evaluation(model_args, data_args, training_args):
                 Mmax = model.ob_max_subvectors
                 eps = model.ob_eps
                 use_random = getattr(model, "ob_random", False)
+                # oracle: force n_k = min(depths[b][k], Mmax) per step; requires bs=1
+                use_oracle = getattr(training_args, "ob_oracle", False) and depths_all is not None
                 n_per_step = [[0] * K for _ in range(batch_size)]
                 first = True
                 for k in range(K):
@@ -420,6 +425,9 @@ def evaluation(model_args, data_args, training_args):
                     if use_random:
                         # baseline: pre-sample each row's target n_k in [1, Mmax]
                         target_nk = [random.randint(1, Mmax) for _ in range(batch_size)]
+                    elif use_oracle:
+                        batch_start = step * data_args.batch_size
+                        target_nk = [min(depths_all[batch_start + b][k], Mmax) for b in range(batch_size)]
                     for j in range(Mmax):
                         if not first:
                             pos_ids = attn.sum(dim=1, keepdim=True).long()
@@ -435,7 +443,7 @@ def evaluation(model_args, data_args, training_args):
                         for b in range(batch_size):
                             if bool(active[b]):
                                 n_per_step[b][k] += 1
-                        if use_random:
+                        if use_random or use_oracle:
                             reached = torch.tensor([(j + 1) >= target_nk[b] for b in range(batch_size)],
                                                    device=device)
                             active = active & (~reached)

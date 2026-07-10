@@ -164,6 +164,7 @@ class TrainingArguments(transformers.TrainingArguments):
     ob_max_subvectors: int = field(default=4, metadata={"help": "Inference: hard cap on sub-vectors per step (analogous to K_max for the c axis)."})
     ob_probe: bool = field(default=False, metadata={"help": "Phase-1 diagnostic: generate ob_subvectors_per_step sub-vectors per step and log the true per-sub-vector L_step (no new params, no objective change). GO/NO-GO gate for whether L_step decreases within a step."})
     ob_random: bool = field(default=False, metadata={"help": "Eval baseline: ignore the MLP and halt each step at a random n_k ~ Uniform[1, ob_max_subvectors]. Matched-budget control to show the MLP's halting beats chance."})
+    ob_oracle: bool = field(default=False, metadata={"help": "Eval diagnostic: force n_k = min(depths[k], ob_max_subvectors) using ground-truth per-step depths from the 'depths' field in synthetic test JSONs. Upper bound for adaptive-c (oracle knows exact step difficulty). Requires bs=1."})
     ob_coarse_steps: bool = field(default=False, metadata={"help": "Use coarse step segmentation (group ops evenly into ob_num_steps buckets) instead of one-op-per-step. Manufactures per-step complexity variation for the c-axis. Training/probe only; inference unaffected."})
 
 def print_trainable_parameters(model):
