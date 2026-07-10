@@ -1,12 +1,18 @@
 # Datasets / modelos / outputs
+# Bare names also cover worktree-local symlinks (trailing-slash patterns match only real dirs)
+data
 data/
 datasets/
 checkpoints/
+outputs
 outputs/
+models
+results
 runs/
 wandb/
 
 # Entornos virtuales
+.venv
 .venv/
 SIM-CoT/.venv/
 
