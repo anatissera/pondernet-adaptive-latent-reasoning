@@ -12,6 +12,7 @@ dependencies = [
     "peft==0.15.2",
     "safetensors==0.5.3",
     "scipy>=1.18.0",
+    "tensorboard>=2.21.0",
     "tensorboardx==2.6.2.2",
     "torch==2.7.1",
     "tqdm==4.67.1",
