@@ -14,7 +14,9 @@ MAX_VAL = 1000
 
 def apply_op(v: int, rng: random.Random) -> Tuple[str, int]:
     """One left-associative op that keeps the running value a positive bounded int."""
-    choices = ["+"]
+    choices = []
+    if v < MAX_VAL:
+        choices.append("+")
     if v > 2:
         choices.append("-")
     if v * 2 <= MAX_VAL:
@@ -24,7 +26,7 @@ def apply_op(v: int, rng: random.Random) -> Tuple[str, int]:
         choices.append("/")
     op = rng.choice(choices)
     if op == "+":
-        a = rng.randint(1, 12); return f"+{a}", v + a
+        a = rng.randint(1, min(12, MAX_VAL - v)); return f"+{a}", v + a
     if op == "-":
         a = rng.randint(1, v - 1); return f"-{a}", v - a
     if op == "*":
