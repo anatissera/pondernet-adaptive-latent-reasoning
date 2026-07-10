@@ -7,7 +7,9 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 - `baselines/` — upstream reference implementations; treat as read-only
   - `Coconut/` — Coconut latent CoT (GSM8K, ProntoQA tasks)
   - `CODI/` — CODI implicit CoT baseline (upstream reference)
-- `pondernet/` — PonderNet adaptive halting built on CODI; Subgroup 1's active working area
+- `pondernet/` — PonderNet adaptive halting built on CODI (Option C, the primary line)
+- `k-classifier/` — upfront k* classifier pipeline (Option A); self-contained, own requirements
+- `adaptive-vectors/` — adaptive vectors-per-step study (Option B); self-contained, gated by `--option_b`
 - `models/` — model weights (gitignored), split by provenance:
   - `pretrained/` — downloaded backbones + decoder: `gpt2`, `simcot-gpt2-codi`, `simcot-gpt2-coconut`, `simcot-gpt2-decoder` (fetch the decoder with `pondernet/scripts/fetch_simcot_decoder.py`)
   - `checkpoints/<NN-exp>/<run-id>/` — our trained runs, grouped under a numbered experiment
@@ -21,11 +23,15 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 - `docs/methods-comparison.md` — cross-paper comparison table and chain-of-influence narrative; read this for method context
 - `docs/papers/` — full paper content (raw); only read if you need deeper detail beyond the comparison doc
 
-## Two Subgroups
+## The three approaches
 
-| Branch | Strategy | Active Working Area |
-|--------|----------|---------------------|
-| `pondernet` | PonderNet-style adaptive halting (phases 1–6 complete) | `pondernet/` |
+| Branch | Strategy | Working Area |
+|--------|----------|--------------|
+| `option-c-pondernet` (primary) | PonderNet-style adaptive halting on the number of steps K | `pondernet/` |
+| `option-a-k-classifier` | Upfront classifier predicting the latent budget k per prompt | `k-classifier/` (own env: `.venv-option-a`; see `k-classifier/AGENTS.md`) |
+| `option-b-adaptive-vectors` | Adaptive vectors per step (the c axis), study complete | `adaptive-vectors/` (see `adaptive-vectors/AGENTS.md`) |
+
+`main` integrates all three; each option branch is the final state of that approach.
 
 ## Method: adaptive halting (PonderNet on SIM-CoT)
 
