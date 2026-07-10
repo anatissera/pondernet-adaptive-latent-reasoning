@@ -1,69 +1,66 @@
-# Diseño del clasificador de pasos latentes (Option-A)
+# Latent-step classifier design (Option A)
 
-## Objetivo
-Predecir, dada una consigna x, cuántos pasos latentes k conviene
-usar antes de responder. Entrada: r(x), una representación de la
-consigna. Salida: una estimación de k.
+## Goal
+Given a prompt x, predict how many latent steps k the model should use before
+answering. Input: r(x), a representation of the prompt. Output: an estimate of k.
 
-## Representación de entrada r(x)
-- **Decisión:** encoder congelado all-MiniLM-L6-v2 (sentence-transformer,
-  384 dims). No se fine-tunea; se precomputan los embeddings una vez.
-- **Por qué:** barato (corre en CPU), embeddings de oración de buena
-  calidad sin entrenamiento, independiente del backbone SIM-CoT (se
-  puede computar sin los checkpoints de CODI/Coconut).
-- **Alternativas descartadas por ahora:** features manuales (baseline
-  futuro), hidden state del backbone (Opción 3, más fiel pero más cara
-  y acoplada; queda como trabajo futuro).
+## Input representation r(x)
+- **Decision:** frozen all-MiniLM-L6-v2 encoder (sentence-transformer, 384 dims).
+  Not fine-tuned; embeddings are precomputed once.
+- **Why:** cheap (runs on CPU), good sentence embeddings with no training, and
+  independent of the SIM-CoT backbone (can be computed without the CODI/Coconut
+  checkpoints).
+- **Alternatives set aside for now:** hand-crafted features (a future baseline), and
+  backbone hidden states (more faithful but more expensive and coupled; left as
+  future work).
 
-## Formulación del problema
-- **Decisión:** regresión sobre k, con threshold/redondeo posterior.
-- **Por qué NO multiclase:** la distribución de k* está muy
-  desbalanceada (en el sweep CODI n=100: 79 ejemplos con k*=1, 10 con
-  k*=2, cola larga casi vacía). Un multiclase aprendería a predecir
-  siempre "1" y acertaría ~79% sin aprender señal útil. Además k es
-  ordinal, no categórico: k=2 está "entre" 1 y 3, estructura que el
-  multiclase ignora y la regresión respeta.
-- **A explorar:** cómo mapear la predicción continua a un k entero
-  (redondeo simple vs. threshold calibrado), y qué función de pérdida
-  (MSE vs. pérdidas que penalicen sub-estimar k, que es más costoso
-  que sobre-estimar porque deja respuestas mal).
+## Problem formulation
+- **Decision:** regression over k, with a threshold/rounding step afterwards.
+- **Why NOT multiclass:** the k* distribution is heavily imbalanced (in the CODI
+  n=100 sweep: 79 examples with k*=1, 10 with k*=2, an almost empty long tail). A
+  multiclass model would learn to always predict "1" and be right ~79% of the time
+  without learning any useful signal. Also, k is ordinal, not categorical: k=2 sits
+  "between" 1 and 3, a structure multiclass ignores and regression respects.
+- **To explore:** how to map the continuous prediction to an integer k (simple
+  rounding vs. a calibrated threshold), and which loss function (MSE vs. losses that
+  penalize underestimating k, which is costlier than overestimating because it leaves
+  answers wrong).
 
-## Etiquetas
-- k*(x) = menor k que alcanza el mejor score del ejemplo (de los sweeps).
-- Se unen embeddings r(x) y etiquetas k* por el `id` del ejemplo.
+## Labels
+- k*(x) = the smallest k that reaches the example's best score (from the sweeps).
+- Embeddings r(x) and k* labels are joined by the example `id`.
 
-## Pendiente de explorar / decidir
-- Tratamiento del desbalance (¿reponderar? ¿transformar k?).
-- Métrica de evaluación del clasificador (no solo error en k, sino
-  accuracy final del sistema usando el k predicho vs. baselines de k fijo).
-- Tamaño y arquitectura del MLP.
+## Open questions
+- Handling the imbalance (reweighting? transforming k?).
+- Evaluation metric for the classifier (not just error in k, but the final system
+  accuracy using the predicted k vs. fixed-k baselines).
+- MLP size and architecture.
 
-## Evidencia empírica (sweep CODI sobre train completo, n=7473, k_max=8)
+## Empirical evidence (CODI sweep over the full train set, n=7473, k_max=8)
 
-### Accuracy por k
+### Accuracy by k
 k=1: 0.408 | k=2: 0.427 | k=3: 0.479 | k=4: 0.579
 k=5: 0.637 | k=6: 0.640 | k=7: 0.637 | k=8: 0.631
 
-La accuracy crece fuerte hasta k≈5-6 (+23 puntos sobre k=1) y luego
-satura: k=7 y k=8 no mejoran (incluso bajan levemente). Esto confirma
-la premisa del proyecto —existe un presupuesto latente óptimo por
-debajo del máximo— y sugiere que predecir k>6 no aporta.
+Accuracy climbs steeply up to k of about 5-6 (+23 points over k=1) and then
+saturates: k=7 and k=8 do not improve (they even dip slightly). This confirms the
+project premise (an optimal latent budget exists below the maximum) and suggests
+that predicting k>6 adds nothing.
 
-### Distribución de k* (menor k que alcanza el mejor score)
+### k* distribution (smallest k reaching the best score)
 k=1: 4939 (66%) | k=2: 1243 | k=3: 396 | k=4: 446
 k=5: 319 | k=6: 75 | k=7: 32 | k=8: 23
 
-Fuertemente desbalanceada hacia k=1 (66%), con cola muy fina en k altos.
+Heavily imbalanced toward k=1 (66%), with a very thin tail at high k.
 
-### Implicancias de diseño
-- MSE puro sesgaría el regresor hacia k≈1 (donde está la masa). Hay que
-  tratar el desbalance: reponderación, transformación del target, o
-  pérdida asimétrica.
-- Sub-estimar k es más costoso que sobre-estimar: predecir k menor al
-  necesario deja la respuesta mal; predecir de más solo gasta cómputo.
-  La pérdida debería reflejar esta asimetría.
-- Las clases k=6,7,8 (75/32/23 ejemplos) son casi inaprendibles por
-  falta de datos. Dado que la accuracy satura en k≈5-6, considerar
-  capear el rango predicho (p. ej. k∈{1..5}) en lugar de {1..8}.
-- Outputs cambian con k en 97.4% de los casos → k tiene efecto real,
-  el problema de aprender a asignarlo tiene sentido.
+### Design implications
+- Plain MSE would bias the regressor toward k of about 1 (where the mass is). The
+  imbalance must be handled: reweighting, target transform, or an asymmetric loss.
+- Underestimating k is costlier than overestimating: predicting less than needed
+  leaves the answer wrong, predicting more only wastes compute. The loss should
+  reflect this asymmetry.
+- Classes k=6,7,8 (75/32/23 examples) are nearly unlearnable for lack of data. Since
+  accuracy saturates at k of about 5-6, consider capping the predicted range (e.g. k
+  in {1..5}) instead of {1..8}.
+- Outputs change with k in 97.4% of cases, so k has a real effect and learning to
+  assign it is a meaningful problem.

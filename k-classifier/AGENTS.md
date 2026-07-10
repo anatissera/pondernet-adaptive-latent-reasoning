@@ -1,189 +1,184 @@
 # AGENTS.md
 
-## Qué es este proyecto
-Investigación sobre **razonamiento latente adaptativo**. Objetivo final (Option-A):
-entrenar un clasificador liviano que, dada una consigna, prediga cuántos pasos de
-razonamiento latente `k` debe usar el modelo antes de responder
-(input → clasificador → k → el modelo razona con ese k → respuesta).
+## What this project is
+Research on **adaptive latent reasoning**. Final goal (Option A): train a lightweight
+classifier that, given a prompt, predicts how many latent reasoning steps `k` the model
+should use before answering
+(input -> classifier -> k -> the model reasons with that k -> answer).
 
-Etapa actual: **barridos de k** (no hay clasificador todavía). Se corre el mismo
-modelo sobre los mismos ejemplos variando k para comprobar que cambiar el
-presupuesto latente cambia las respuestas/accuracy, y se calcula `k_star`
-(el menor k que alcanza el mejor score por ejemplo).
+Current stage: **k sweeps** (no classifier yet). The same model is run over the same
+examples varying k, to confirm that changing the latent budget changes the
+answers/accuracy, and `k_star` is computed (the smallest k reaching each example's best
+score).
 
-## Estructura del repo
-- `k-classifier/` — **el trabajo real**. Todo lo que se ejecuta vive acá.
-  - `src/model_loaders.py` — reconstruye los wrappers CODI y Coconut y carga
-    los checkpoints locales (los config.json de SIM-CoT vienen vacíos).
-  - `src/model_runner.py` — `run_model` despacha por backend (coconut/codi).
-  - `src/k_sweep.py` — barre k=1..k_max, calcula k_star, agrega métricas.
-  - `src/metrics.py` — exact match numérico (último número de la salida).
-  - `scripts/run_k_sweep.py` — CLI del experimento.
-  - `scripts/smoke_model_load.py` — verifica carga + 1 generación (k=1).
-  - `scripts/prepare_gsm8k.py` — baja GSM8K y lo pasa a {id,input,gold}.
-  - `requirements.txt` — **dependencias reales** (no usar el pyproject.toml raíz).
-- `baselines/` — repos vendored upstream (CODI, Coconut). **Solo se importan las
-  clases de modelo de `baselines/Coconut/` (coconut.py, utils.py)**. El resto
-  (scripts, test.py, train.py, args/*.yaml) tiene rutas hardcodeadas del cluster
-  del autor original y NO se corre directo.
-- `README.md` raíz, `main.py`, `pyproject.toml` (name=tpnlp): scaffolding de `uv`,
-  ignorar para el experimento. Ojo: el pyproject pide `python >= 3.12` pero la VM
-  corre 3.10 — el pyproject no representa el entorno real.
+## Repo structure
+- `k-classifier/` is **the real work**. Everything that runs lives here.
+  - `src/model_loaders.py` rebuilds the CODI and Coconut wrappers and loads the local
+    checkpoints (the SIM-CoT config.json files ship empty).
+  - `src/model_runner.py`: `run_model` dispatches by backend (coconut/codi).
+  - `src/k_sweep.py` sweeps k=1..k_max, computes k_star, aggregates metrics.
+  - `src/metrics.py`: numeric exact match (last number in the output).
+  - `scripts/run_k_sweep.py`: experiment CLI.
+  - `scripts/smoke_model_load.py`: verifies loading + 1 generation (k=1).
+  - `scripts/prepare_gsm8k.py`: downloads GSM8K and converts it to {id,input,gold}.
+  - `requirements.txt`: the **real dependencies** (do not use the root pyproject.toml).
+- `baselines/`: vendored upstream repos (CODI, Coconut). **Only the model classes from
+  `baselines/Coconut/` (coconut.py, utils.py) are imported.** Everything else (scripts,
+  test.py, train.py, args/*.yaml) has paths hardcoded for the original author's cluster
+  and is NOT run directly.
+- Root `README.md`, `main.py`, `pyproject.toml` (name=tpnlp): `uv` scaffolding, ignore
+  for this experiment. Note: the pyproject asks for `python >= 3.12` but the VM runs
+  3.10, so the pyproject does not represent the real environment.
 
-## Entorno de ejecución (VM)
-- Corremos en una **VM de GCP con GPU Tesla T4 (15 GB)**, imagen Deep Learning con
-  **PyTorch ya instalado a nivel sistema** (`torch 2.9.1+cu129`, CUDA 12.9).
-- El binario de Python es **`python3`** (3.10.12). **NO existe `python`** — usar
-  siempre `python3`.
-- La VM es **Spot** (puede apagarse sola) y además **se apaga manualmente al
-  terminar cada sesión** para no gastar crédito. No asumir que sigue viva entre
-  sesiones; nada de estado en RAM debe darse por persistente.
+## Execution environment (VM)
+- We run on a **GCP VM with a Tesla T4 GPU (15 GB)**, a Deep Learning image with
+  **PyTorch already installed system-wide** (`torch 2.9.1+cu129`, CUDA 12.9).
+- The Python binary is **`python3`** (3.10.12). **There is no `python`**; always use
+  `python3`.
+- The VM is **Spot** (it can shut itself down) and is also **shut down manually at the
+  end of each session** to save credit. Do not assume it stays alive between sessions;
+  nothing in RAM is persistent.
 
-## Entorno Python / dependencias
-Fuente de verdad de deps: `k-classifier/requirements.txt`
+## Python environment / dependencies
+Source of truth for deps: `k-classifier/requirements.txt`
 (torch 2.5.1 / transformers 4.46.2 / peft 0.15.2 / accelerate 1.7.0 /
 datasets 3.1.0 / safetensors 0.5.3 / numpy 2.1.3).
 
-**Tensión de versiones (leer antes de instalar):**
-- El sistema trae **torch 2.9.1+cu129** (build correcto para la T4), pero
-  `requirements.txt` pide **torch 2.5.1**. **No degradar torch a ciegas:** un
-  `pip install -r requirements.txt` arrastraría torch 2.5.1 y podría romper la
-  build de CUDA que ya funciona en la GPU.
-- A nivel sistema NO están instalados `transformers`, `peft` ni `safetensors`
-  (verificado), así que igual hace falta instalar ese stack.
+**Version tension (read before installing):**
+- The system ships **torch 2.9.1+cu129** (the right build for the T4), but
+  `requirements.txt` pins **torch 2.5.1**. **Do not blindly downgrade torch:** a
+  `pip install -r requirements.txt` would drag in torch 2.5.1 and could break the CUDA
+  build that already works on the GPU.
+- `transformers`, `peft`, and `safetensors` are NOT installed system-wide (verified),
+  so that stack still needs installing.
 
-**Cómo se crea el venv (método verificado en la VM):** un venv aislado
-**`.venv-option-a`** con `--system-site-packages` para **reutilizar el torch 2.9.1
-del sistema** e instalar el resto SIN reinstalar torch.
+**How the venv is created (method verified on the VM):** an isolated
+**`.venv-option-a`** venv with `--system-site-packages` to **reuse the system's
+torch 2.9.1** and install the rest WITHOUT reinstalling torch.
 
-> **El venv NO se versiona, pero SÍ vive en el disco persistente** (`/dev/sda1`),
-> así que **sobrevive a un apagado/stop normal y a una preempción Spot**: al
-> reencender la VM basta `source .venv-option-a/bin/activate`, no hace falta
-> recrearlo. Solo se pierde si se **elimina/recrea la VM** (disco nuevo) — en ese
-> caso correr `scripts/setup_session.sh` (ver abajo). Ver *"Persistencia entre
-> sesiones"* más adelante.
+> **The venv is NOT versioned, but it DOES live on the persistent disk** (`/dev/sda1`),
+> so **it survives a normal stop and a Spot preemption**: after restarting the VM just
+> `source .venv-option-a/bin/activate`; no need to recreate it. It is only lost if the
+> **VM is deleted/recreated** (new disk); in that case run `scripts/setup_session.sh`
+> (see below). See *"Persistence between sessions"* further down.
 
-**Ojo: `python3-venv` no está instalado** en la VM, así que `python3 -m venv`
-falla por falta de `ensurepip` y pediría `sudo apt install python3.10-venv`.
-Para evitar sudo, se crea el venv **`--without-pip`** y se reutiliza el **pip del
-sistema** (visible gracias a `--system-site-packages`). pip instala igual dentro
-del venv porque lo invoca el `python3` del venv. Esto está automatizado en
-**`k-classifier/scripts/setup_session.sh`** (idempotente), pero el detalle manual es:
+**Careful: `python3-venv` is not installed** on the VM, so `python3 -m venv` fails for
+lack of `ensurepip` and would ask for `sudo apt install python3.10-venv`. To avoid
+sudo, the venv is created **`--without-pip`** and the **system pip** is reused (visible
+thanks to `--system-site-packages`). pip still installs inside the venv because it is
+invoked by the venv's `python3`. This is automated in
+**`k-classifier/scripts/setup_session.sh`** (idempotent), but the manual detail is:
 
 ```bash
-# 1) crear el venv sin pip, reusando torch + pip del sistema
+# 1) create the venv without pip, reusing the system torch + pip
 python3 -m venv --system-site-packages --without-pip .venv-option-a
 source .venv-option-a/bin/activate
 
-# 2) instalar TODO requirements.txt MENOS la línea torch==2.5.1
-#    (NO usar `pip install -r requirements.txt`: arrastraría torch 2.5.1)
+# 2) install ALL of requirements.txt EXCEPT the torch==2.5.1 line
+#    (do NOT use `pip install -r requirements.txt`: it would drag in torch 2.5.1)
 python3 -m pip install \
   transformers==4.46.2 safetensors==0.5.3 peft==0.15.2 accelerate==1.7.0 \
   datasets==3.1.0 numpy==2.1.3 tqdm==4.67.0 PyYAML==6.0.2 Pillow==11.3.0
 ```
 
-Notas:
-- Durante la instalación aparecen warnings *"Can't uninstall X — outside
-  environment"* (numpy/Pillow/PyYAML/etc. del sistema). Son **benignos**: el venv
-  instala su propia versión que tapa la del sistema en el path; no se toca nada
-  fuera del venv.
-- `transformers`/`peft`/`accelerate` no pinean torch, así que aceptan el 2.9.1 ya
-  presente. Verificado: tras instalar, `torch.__version__ == 2.9.1+cu129` y
+Notes:
+- During installation you will see *"Can't uninstall X -- outside environment"*
+  warnings (system numpy/Pillow/PyYAML/etc.). They are **benign**: the venv installs
+  its own version that shadows the system one on the path; nothing outside the venv is
+  touched.
+- `transformers`/`peft`/`accelerate` do not pin torch, so they accept the 2.9.1 already
+  present. Verified: after installing, `torch.__version__ == 2.9.1+cu129` and
   `torch.cuda.is_available() == True`.
 
-- **Verificar si torch 2.5.1 es realmente necesario antes de pinearlo.** El código
-  de Option-A usa APIs estables entre torch 2.5 y 2.9 (`AutoModelForCausalLM`,
-  `resize_token_embeddings`, `past_key_values`, `safetensors.load_file`,
-  `torch.load`, LoRA de peft). El riesgo real está en la versión de
-  **transformers** (la 4.46.2 es la que el código de Coconut/CODI espera; las
-  4.52+ deprecan la cache legacy que usa `coconut.py`), no en torch. Plan:
-  correr el smoke test con el torch 2.9.1 del sistema; **solo** pinear torch 2.5.1
-  si algo se rompe de verdad.
-- **No** instalar `baselines/CODI/requirements.txt` encima (pide torch 2.7.1 /
-  transformers 4.52.4 y rompería la compatibilidad). Option-A reimplementa el
-  wrapper de CODI contra transformers 4.46.2, así que no necesita el código ni las
-  deps de CODI. `baselines/Coconut/requirements.txt` sí está alineado (torch 2.5.1 /
-  transformers 4.46.2).
+- **Verify torch 2.5.1 is really needed before pinning it.** The Option-A code uses
+  APIs stable between torch 2.5 and 2.9 (`AutoModelForCausalLM`,
+  `resize_token_embeddings`, `past_key_values`, `safetensors.load_file`, `torch.load`,
+  peft LoRA). The real risk is the **transformers** version (4.46.2 is what the
+  Coconut/CODI code expects; 4.52+ deprecates the legacy cache `coconut.py` uses), not
+  torch. Plan: run the smoke test with the system torch 2.9.1; **only** pin torch 2.5.1
+  if something actually breaks.
+- Do **not** install `baselines/CODI/requirements.txt` on top (it asks for torch 2.7.1 /
+  transformers 4.52.4 and would break compatibility). Option-A reimplements the CODI
+  wrapper against transformers 4.46.2, so it needs neither CODI's code nor its deps.
+  `baselines/Coconut/requirements.txt` is aligned (torch 2.5.1 / transformers 4.46.2).
 
-## Significado de k (importante)
-- **Coconut**: k = etapas latentes; se insertan `k * c_thought` tokens `<|latent|>`
-  en el prompt (entre `<|start-latent|>` y `<|end-latent|>`) y se llama
-  `model.generate`. `c_thought` por defecto 1 en la CLI, 2 en el smoke test /
-  loader (env `OPTION_A_C_THOUGHT`).
-- **CODI**: k = iteraciones latentes; bucle manual que reinyecta el último hidden
-  state k veces (con proyección `prj`) antes de decodear la respuesta token a
-  token. Sin tokens de texto especiales (usa bot/eot = vocab_size+1/+2).
+## Meaning of k (important)
+- **Coconut**: k = latent stages; `k * c_thought` `<|latent|>` tokens are inserted in
+  the prompt (between `<|start-latent|>` and `<|end-latent|>`) and `model.generate` is
+  called. `c_thought` defaults to 1 in the CLI, 2 in the smoke test / loader (env
+  `OPTION_A_C_THOUGHT`).
+- **CODI**: k = latent iterations; a manual loop reinjects the last hidden state k
+  times (through the `prj` projection) before decoding the answer token by token. No
+  special text tokens (uses bot/eot = vocab_size+1/+2).
 
-Ambos backends entran por la misma `run_model(...)` y se diferencian por
+Both backends enter through the same `run_model(...)` and differ by
 `generation_config["backend"]`.
 
-## Cómo correr
-1. Datos: `python3 k-classifier/scripts/prepare_gsm8k.py` (requiere internet/HF).
+## How to run
+1. Data: `python3 k-classifier/scripts/prepare_gsm8k.py` (needs internet/HF).
 2. Smoke: `python3 k-classifier/scripts/smoke_model_load.py --backend {codi|coconut}`.
 3. Sweep:
    ```bash
    python3 k-classifier/scripts/run_k_sweep.py --backend codi --k-max 8 --n-examples 100 \
      --data k-classifier/data/gsm8k_test_100.jsonl \
-     --output k-classifier/results/<nombre>.jsonl \
+     --output k-classifier/results/<name>.jsonl \
      --model-loader src.model_loaders:load_codi
    ```
-   (para Coconut: `--model-loader src.model_loaders:load_coconut --c-thought 2`).
+   (for Coconut: `--model-loader src.model_loaders:load_coconut --c-thought 2`).
 
-## Checkpoints (NO versionados — `k-classifier/models/` está vacío en git)
-Se bajan de Hugging Face con `python3 k-classifier/scripts/download_models.py`
-(`--model all` por defecto; o `gpt2|coconut|codi` para uno solo). El script usa
-`huggingface_hub.snapshot_download` y deja cada modelo en `k-classifier/models/`:
-- `k-classifier/models/gpt2/`                 ← `openai-community/gpt2`        (GPT-2 base)
-- `k-classifier/models/SIM_COT-GPT2-Coconut/` ← `internlm/SIM_COT-GPT2-Coconut` (Coconut)
-- `k-classifier/models/SIM_COT-GPT2-CODI/`    ← `internlm/SIM_COT-GPT2-CODI`    (CODI)
+## Checkpoints (NOT versioned; `k-classifier/models/` is empty in git)
+Downloaded from Hugging Face with `python3 k-classifier/scripts/download_models.py`
+(`--model all` by default; or `gpt2|coconut|codi` for one). The script uses
+`huggingface_hub.snapshot_download` and leaves each model under `k-classifier/models/`:
+- `k-classifier/models/gpt2/`                 <- `openai-community/gpt2`        (GPT-2 base)
+- `k-classifier/models/SIM_COT-GPT2-Coconut/` <- `internlm/SIM_COT-GPT2-Coconut` (Coconut)
+- `k-classifier/models/SIM_COT-GPT2-CODI/`    <- `internlm/SIM_COT-GPT2-CODI`    (CODI)
 
-`k-classifier/models/` está gitignoreado pero vive en el disco persistente, así que
-los checkpoints **sobreviven a un apagado/stop normal** (no hace falta re-bajarlos
-cada sesión). Solo hay que volver a bajarlos en una **VM/disco nuevo**. Sin estos,
-ambos loaders lanzan `ModelLoadError` al inicio.
+`k-classifier/models/` is gitignored but lives on the persistent disk, so the checkpoints
+**survive a normal stop** (no need to re-download each session). They only need
+re-downloading on a **new VM/disk**. Without them, both loaders raise `ModelLoadError`
+at startup.
 
-## Persistencia entre sesiones (qué sobrevive al apagar la VM)
-La VM es **Spot/preemptible**, pero todo el repo (incluidos `.venv-option-a/`,
-`k-classifier/models/` y los datos generados) vive en el **disco persistente de
-arranque** (`/dev/sda1`, `PERSISTENT-BALANCED`). No hay local SSD efímero.
-- **Apagado manual / stop / preempción Spot** → la VM se detiene pero el disco se
-  conserva: **venv, checkpoints y datos siguen ahí** al reencender. Lo único
-  volátil es la RAM/procesos (por eso los sweeps largos van en `tmux`).
-- **Eliminar/recrear la VM (disco nuevo)** → se pierde todo lo no versionado
-  (venv + `models/` + datos). Recién ahí hay que re-bootstrappear:
-  `bash k-classifier/scripts/setup_session.sh` (recrea venv + instala deps) y
-  `python3 k-classifier/scripts/download_models.py` (re-baja checkpoints).
+## Persistence between sessions (what survives a VM shutdown)
+The VM is **Spot/preemptible**, but the whole repo (including `.venv-option-a/`,
+`k-classifier/models/`, and generated data) lives on the **persistent boot disk**
+(`/dev/sda1`, `PERSISTENT-BALANCED`). There is no ephemeral local SSD.
+- **Manual shutdown / stop / Spot preemption**: the VM stops but the disk is kept;
+  **venv, checkpoints, and data are still there** on restart. Only RAM/processes are
+  volatile (hence long sweeps run in `tmux`).
+- **Deleting/recreating the VM (new disk)**: everything unversioned is lost (venv +
+  `models/` + data). Only then re-bootstrap:
+  `bash k-classifier/scripts/setup_session.sh` (recreates venv + installs deps) and
+  `python3 k-classifier/scripts/download_models.py` (re-downloads checkpoints).
 
-## Datos
-- Formato canónico JSONL: `{"id", "input", "gold"}`.
-- Versionado: solo `k-classifier/data/examples.jsonl` (2 filas de prueba).
-- `gsm8k_test_100.jsonl` se genera con prepare_gsm8k.py; no está en git.
+## Data
+- Canonical JSONL format: `{"id", "input", "gold"}`.
+- Versioned: only `k-classifier/data/examples.jsonl` (2 test rows).
+- `gsm8k_test_100.jsonl` is generated with prepare_gsm8k.py; not in git.
 
-## Git / colaboración
-- Repo **compartido entre 5 personas**. Trabajamos en la rama **`option-a`**.
-- **No pushear a `main`.** Los cambios van a `option-a` o a ramas derivadas de ella.
-- Antes de empujar, sincronizar con la rama remota (varios autores tocan lo mismo).
+## Git / collaboration
+- Repo **shared by 5 people**. Option A work happens on the **`option-a-k-classifier`**
+  branch.
+- **Do not push directly to `main`.** Changes go to `option-a-k-classifier` or branches
+  derived from it.
+- Before pushing, sync with the remote branch (several authors touch the same files).
 
-## Gotchas conocidos
-- **Presupuesto de cómputo limitado (~USD 50 total).** Se prioriza correr lo
-  mínimo necesario; nada de barridos exploratorios de más.
-- **Sweeps largos van en `tmux`** para sobrevivir desconexiones de Cloud Shell y
-  el carácter Spot de la VM. No lanzar corridas largas en foreground de una sesión
-  interactiva.
-- `k-classifier/models/` vacío → ambos loaders fallan hasta poblar los checkpoints.
-- `k-classifier/data/gsm8k_test_100.jsonl` no existe en disco; hay que generarlo.
-- Símlink roto: `baselines/Coconut/ckpts/gsm_cot` → ruta de cluster (`/mnt/...`).
-- `baselines/CODI/test.py` tiene un `pdb.set_trace()` activo (línea ~321) y rutas
-  `/mnt/...` hardcodeadas; no correrlo directo.
-- Los `results/*.jsonl|csv` versionados son stubs vacíos; los números del
-  "Experimento actual" del README de Option-A no se reproducen desde lo commiteado.
-- Helpers muertos en model_loaders.py
-  (`_filter_unsupported_from_pretrained_kwargs`, `_load_module_from_path`) no están
-  cableados.
+## Known gotchas
+- **Limited compute budget (~USD 50 total).** Run the minimum necessary; no extra
+  exploratory sweeps.
+- **Long sweeps go in `tmux`** to survive Cloud Shell disconnects and the VM's Spot
+  nature. Do not launch long runs in the foreground of an interactive session.
+- `k-classifier/models/` empty -> both loaders fail until the checkpoints are populated.
+- `k-classifier/data/gsm8k_test_100.jsonl` does not exist on disk; it must be generated.
+- Broken symlink: `baselines/Coconut/ckpts/gsm_cot` -> cluster path (`/mnt/...`).
+- `baselines/CODI/test.py` has an active `pdb.set_trace()` (around line 321) and
+  hardcoded `/mnt/...` paths; do not run it directly.
+- The versioned `results/*.jsonl|csv` are empty stubs; the numbers in the Option-A
+  README's pilot experiment are not reproducible from what is committed.
+- Dead helpers in model_loaders.py (`_filter_unsupported_from_pretrained_kwargs`,
+  `_load_module_from_path`) are not wired up.
 
-## Convenciones
-- Código y wrappers nuevos: mantener el estilo de `k-classifier/src` (type hints,
-  funciones chicas, errores propios tipo `ModelLoadError` / `ModelRunnerError`).
-- Texto de cara al usuario / docs del repo: español (como el README de Option-A).
-</content>
-</invoke>
+## Conventions
+- New code and wrappers: keep the `k-classifier/src` style (type hints, small functions,
+  custom errors like `ModelLoadError` / `ModelRunnerError`).
+- User-facing text / repo docs: English.

@@ -1,199 +1,180 @@
-# Option-A: Predictor de pasos latentes
+# Option A: a predictor of the latent reasoning budget
 
-La Option-A propone entrenar un clasificador liviano que, dada una tarea o consigna, prediga cuántos pasos de razonamiento latente k debería usar el modelo principal antes de responder.
+Option A trains a lightweight classifier that, given a task prompt, predicts how many
+latent reasoning steps `k` the main model should use before answering:
 
-La idea final es:
+```
+task prompt -> classifier -> estimated k -> model reasons with that k -> answer
+```
 
-text input de la tarea -> clasificador -> k estimado -> modelo razona con ese k -> respuesta 
+This folder contains the experimental pipeline for that option: the k sweeps that
+establish whether a useful signal exists, the label construction, and two classifier
+variants (a regression head over frozen sentence embeddings, and a multi-output
+DistilBERT classifier).
 
-Esta carpeta contiene la primera etapa experimental de esa opción. Todavía no entrenamos el clasificador. Por ahora estamos barriendo distintos valores de k para ver si cambiar la cantidad de razonamiento latente realmente afecta las respuestas y la accuracy.
+## What k means
 
----
+`k` is the amount of latent reasoning the model is allowed to do.
 
-## Qué estamos probando ahora
+- In CODI, `k` is the number of internal latent iterations before generating the answer.
+- In Coconut, `k` is the number of latent stages added to the prompt via special tokens.
 
-En esta etapa corremos el mismo modelo varias veces sobre los mismos ejemplos, cambiando k.
+## Stage 1: does k matter? (k sweeps)
 
-Por ejemplo:
+The same model is run repeatedly over the same examples while varying `k`, and each
+prediction is scored. If every `k` gave the same result there would be nothing to
+predict; if different examples peak at different `k`, Option A makes sense.
 
-text mismo problema -> k=1 -> respuesta mismo problema -> k=2 -> respuesta mismo problema -> k=3 -> respuesta ... 
+For each example the sweep records the prompt, the gold answer, the prediction and
+score at every `k`, and `k_star`: the smallest `k` that reaches the example's best
+score, i.e. the minimum latent budget needed for its best answer.
 
-Después guardamos las predicciones y medimos si cada k acertó o no. Esto sirve para saber si existe una señal útil antes de entrenar el clasificador.
+### Pilot result (CODI, 100 GSM8K examples, k_max=8)
 
-Si todos los valores de k dieran siempre lo mismo, no tendría mucho sentido aprender a predecir k. En cambio, si distintos ejemplos mejoran con distintos valores de k, entonces la Option-A tiene más sentido.
+```
+Accuracy by k:  k=1: 0.31  k=2: 0.30  k=3: 0.29  k=4: 0.35  k=5: 0.33  k=6: 0.36  k=7: 0.37  k=8: 0.37
+k_star distribution:  k=1: 79  k=2: 10  k=3: 4  k=4: 5  k=5: 0  k=6: 1  k=7: 1  k=8: 0
+Outputs changed across k: 96%
+```
 
----
+Changing `k` changes the answer in 96% of examples, accuracy rises from 31% (k=1) to
+37% (k=7/8), and in 21 of 100 examples the best result is not at k=1. The latent
+budget has a real effect, so learning to assign it is meaningful.
 
-## Qué significa k
+### Full-train sweep (CODI, n=7473, k_max=8)
 
-k representa la cantidad de razonamiento latente que dejamos hacer al modelo.
+```
+Accuracy by k:  k=1: 0.408  k=2: 0.427  k=3: 0.479  k=4: 0.579  k=5: 0.637  k=6: 0.640  k=7: 0.637  k=8: 0.631
+k_star distribution:  k=1: 4939 (66%)  k=2: 1243  k=3: 396  k=4: 446  k=5: 319  k=6: 75  k=7: 32  k=8: 23
+Outputs changed across k: 97.4%
+```
 
-En CODI, k es la cantidad de iteraciones latentes internas antes de generar la respuesta.
+Accuracy climbs steeply up to k of about 5-6 (+23 points over k=1) and then saturates;
+k=7 and k=8 do not improve. This confirms the project premise (an optimal latent budget
+exists below the maximum) and suggests capping the predicted range at k in {1..5}.
+The k_star distribution is heavily imbalanced toward k=1, which drives the design
+decisions below. Raw numbers: `results/k_sweep_summary.csv`,
+`results/k_sweep_train_full_codi.jsonl`. Design analysis:
+[`docs/classifier-design.md`](docs/classifier-design.md).
 
-En Coconut, k es la cantidad de etapas latentes agregadas al prompt mediante tokens especiales.
+## Stage 2a: regression classifier over frozen embeddings
 
----
+Design (full rationale in [`docs/classifier-design.md`](docs/classifier-design.md)):
 
-## Estructura de archivos
+- Input representation r(x): frozen `all-MiniLM-L6-v2` sentence embeddings (384 dims),
+  precomputed once, CPU-friendly, independent of the SIM-CoT backbone.
+- Formulation: regression over k with a calibrated rounding/threshold step, not
+  multiclass. The k_star distribution is so imbalanced (66% at k=1) that a multiclass
+  model would predict "1" everywhere; and k is ordinal, which regression respects.
+- Labels: k_star(x) from the sweeps, joined to embeddings by example id.
+- Known asymmetry: underestimating k leaves answers wrong, overestimating only wastes
+  compute, so the loss should penalize underestimation more.
 
-text k-classifier/ ├── data/              # datasets en formato jsonl ├── models/            # checkpoints locales ignorados por git ├── results/           # resultados de los sweeps ├── scripts/           # scripts para correr experimentos ├── src/               # lógica principal de carga, inferencia y métricas ├── requirements.txt   # dependencias del entorno └── README.md 
+## Stage 2b: multi-output k classifier (DistilBERT)
 
-Archivos principales:
-
-text src/model_runner.py    # corre el modelo con un valor dado de k src/k_sweep.py         # barre k=1...k_max sobre un dataset src/metrics.py         # calcula exact match / accuracy src/model_loaders.py   # carga CODI y Coconut desde checkpoints locales 
-
-Scripts principales:
-
-text scripts/run_k_sweep.py        # corre el experimento principal scripts/smoke_model_load.py   # verifica que los modelos carguen y generen scripts/prepare_gsm8k.py      # convierte GSM8K al formato esperado scripts/download_models.py  # descarga los pesos locales necesarios 
-
----
-
-## Formato del dataset
-
-Cada ejemplo del dataset debe estar en una línea JSON:
-
-json {"id": "ex_001", "input": "What is 2 + 2?", "gold": "4"} 
-
-Donde:
-
-- id: identificador del ejemplo;
-- input: consigna o problema;
-- gold: respuesta correcta.
-
----
-
-## Recursos externos
-
-Pesos de los modelos:
-
-- [SIM-CoT GPT-2 Coconut](https://huggingface.co/internlm/SIM_COT-GPT2-Coconut/tree/main)
-- [SIM-CoT GPT-2 CODI](https://huggingface.co/internlm/SIM_COT-GPT2-CODI/tree/main)
-- [GPT-2 base](https://huggingface.co/openai-community/gpt2)
-
-Dataset:
-
-- [GSM8K](https://huggingface.co/datasets/openai/gsm8k)
-
-Los loaders esperan encontrar los modelos descargados localmente en estas rutas:
-
-- `k-classifier/models/gpt2`
-- `k-classifier/models/SIM_COT-GPT2-Coconut`
-- `k-classifier/models/SIM_COT-GPT2-CODI`
-
-Para descargarlos:
-
-bash python k-classifier/scripts/download_models.py
-
----
-
-## Cómo correr
-
-Activar el entorno:
-
-bash source .venv-option-a/bin/activate 
-
-Descargar los modelos:
-
-bash python k-classifier/scripts/download_models.py
-
-Correr un smoke test:
-
-bash python k-classifier/scripts/smoke_model_load.py --backend codi python k-classifier/scripts/smoke_model_load.py --backend coconut 
-
-Correr un sweep con CODI:
-
-bash python k-classifier/scripts/run_k_sweep.py \   --backend codi \   --k-max 8 \   --n-examples 100 \   --data k-classifier/data/gsm8k_test_100.jsonl \   --output k-classifier/results/gsm8k_codi_k8_n100_results.jsonl \   --model-loader src.model_loaders:load_codi 
-
-Correr un sweep con Coconut:
-
-bash python k-classifier/scripts/run_k_sweep.py \   --backend coconut \   --k-max 6 \   --n-examples 100 \   --data k-classifier/data/gsm8k_test_100.jsonl \   --output k-classifier/results/gsm8k_coconut_k6_n100_results.jsonl \   --model-loader src.model_loaders:load_coconut \   --c-thought 2 
-
----
-
-## Resultados que se guardan
-
-Cada sweep genera un archivo .jsonl con una fila por ejemplo. Para cada ejemplo se guardan:
-
-- la consigna;
-- la respuesta correcta;
-- la predicción para cada k;
-- el score para cada k;
-- el k_star.
-
-k_star es el menor valor de k que logra el mejor resultado para un ejemplo, es decir, la mínima cantidad de razonamiento latente necesaria para alcanzar su mejor respuesta. Por ejemplo, si k=1 falla pero k=2 y k=3 aciertan, entonces k_star = 2.
-
----
-
-## Experimento actual
-
-Corrimos CODI sobre 100 ejemplos de GSM8K con k_max=8.
-
-Resultado:
-
-text Accuracy by k: k=1: 0.3100 k=2: 0.3000 k=3: 0.2900 k=4: 0.3500 k=5: 0.3300 k=6: 0.3600 k=7: 0.3700 k=8: 0.3700  k_star distribution: k=1: 79 k=2: 10 k=3: 4 k=4: 5 k=5: 0 k=6: 1 k=7: 1 k=8: 0  Outputs changed across k: 96.00% 
-
-Interpretación breve:
-
-- La accuracy absoluta es modesta, pero esta etapa no busca maximizar performance final.
-- Lo importante es que cambiar k cambia las respuestas en el 96% de los ejemplos.
-- La accuracy sube de 31% con k=1 a 37% con k=7/8.
-- En 21 de 100 ejemplos, el mejor resultado no se obtiene con k=1.
-
-Esto sugiere que la cantidad de razonamiento latente sí afecta el resultado, por lo que tiene sentido avanzar hacia el objetivo real de la Option-A: entrenar un clasificador que prediga k para cada tarea.
-
----
-
-## Qué falta hacer
-
-Todavía falta la parte principal de Option-A:
-
-- construir labels a partir de los sweeps, por ejemplo usando k_star;
-- entrenar un clasificador liviano que reciba el input y prediga k;
-- comparar ese clasificador contra baselines de k fijo;
-- medir no solo accuracy, sino también costo promedio de razonamiento.
-
----
-
-## Adaptive k classifier
-
-This module trains a multi-output classifier that predicts which latent reasoning budgets are likely to solve a prompt.
-
-Each training example is:
-
-- input: prompt
-- label: binary vector over k values, e.g. `[0,0,1,1,1,0,0,0]`
-
-The classifier outputs one logit per k and is trained with `BCEWithLogitsLoss`.
-
-### Build dataset
+Trains a multi-output classifier predicting which latent budgets are likely to solve a
+prompt. Each training example maps a prompt to a binary vector over k values (e.g.
+`[0,0,1,1,1,0,0,0]`); the classifier outputs one logit per k and is trained with
+`BCEWithLogitsLoss`.
 
 ```bash
+# Build the dataset from a sweep
 python3 k-classifier/scripts/build_k_classifier_dataset.py \
   --input k-classifier/results/k_sweep_train_full_codi.jsonl \
   --output k-classifier/data/k_classifier_train.jsonl \
-  --k-min 1 \
-  --k-max 8
-```
+  --k-min 1 --k-max 8
 
-### Train classifier
-
-```bash
+# Train
 python3 k-classifier/scripts/train_k_classifier.py \
   --data k-classifier/data/k_classifier_train.jsonl \
   --output-dir k-classifier/results/k_classifier_distilbert \
   --model-name distilbert-base-uncased \
-  --epochs 3 \
-  --batch-size 16 \
-  --lr 2e-5 \
-  --max-length 256 \
-  --threshold 0.7 \
-  --fallback-k 6
-```
+  --epochs 3 --batch-size 16 --lr 2e-5 --max-length 256 \
+  --threshold 0.7 --fallback-k 6
 
-### Predict k
-
-```bash
+# Predict k for a prompt
 python3 k-classifier/scripts/predict_k.py \
   --checkpoint k-classifier/results/k_classifier_distilbert \
   --prompt "Natalia sold clips to 48 of her friends..."
 ```
+
+## File structure
+
+```
+k-classifier/
+├── data/              # jsonl datasets (sweep inputs, classifier training sets)
+├── models/            # local checkpoints, gitignored
+├── results/           # sweep outputs and summaries
+├── scripts/           # experiment entry points
+├── src/               # model loading, inference, sweep, and metrics logic
+├── docs/              # classifier design notes
+└── requirements.txt
+```
+
+Main modules and scripts:
+
+```
+src/model_runner.py    # runs the model with a given k
+src/k_sweep.py         # sweeps k=1..k_max over a dataset
+src/metrics.py         # exact match / accuracy
+src/model_loaders.py   # loads CODI and Coconut from local checkpoints
+src/k_classifier.py    # multi-output classifier model
+
+scripts/run_k_sweep.py             # main sweep experiment
+scripts/smoke_model_load.py        # checks that the models load and generate
+scripts/prepare_gsm8k.py           # converts GSM8K to the expected format
+scripts/download_models.py         # downloads the required local weights
+scripts/build_k_classifier_dataset.py  # sweep results -> classifier dataset
+scripts/train_k_classifier.py      # trains the multi-output classifier
+scripts/predict_k.py               # single-prompt k prediction
+```
+
+## Dataset format
+
+One JSON object per line:
+
+```json
+{"id": "ex_001", "input": "What is 2 + 2?", "gold": "4"}
+```
+
+## How to run
+
+```bash
+source .venv-option-a/bin/activate
+python k-classifier/scripts/download_models.py
+
+# Smoke tests
+python k-classifier/scripts/smoke_model_load.py --backend codi
+python k-classifier/scripts/smoke_model_load.py --backend coconut
+
+# Sweep with CODI
+python k-classifier/scripts/run_k_sweep.py \
+  --backend codi --k-max 8 --n-examples 100 \
+  --data k-classifier/data/gsm8k_test_100.jsonl \
+  --output k-classifier/results/gsm8k_codi_k8_n100_results.jsonl \
+  --model-loader src.model_loaders:load_codi
+
+# Sweep with Coconut
+python k-classifier/scripts/run_k_sweep.py \
+  --backend coconut --k-max 6 --n-examples 100 \
+  --data k-classifier/data/gsm8k_test_100.jsonl \
+  --output k-classifier/results/gsm8k_coconut_k6_n100_results.jsonl \
+  --model-loader src.model_loaders:load_coconut \
+  --c-thought 2
+```
+
+## External resources
+
+Model weights (the loaders expect them under `k-classifier/models/`):
+
+- [SIM-CoT GPT-2 Coconut](https://huggingface.co/internlm/SIM_COT-GPT2-Coconut/tree/main) -> `k-classifier/models/SIM_COT-GPT2-Coconut`
+- [SIM-CoT GPT-2 CODI](https://huggingface.co/internlm/SIM_COT-GPT2-CODI/tree/main) -> `k-classifier/models/SIM_COT-GPT2-CODI`
+- [GPT-2 base](https://huggingface.co/openai-community/gpt2) -> `k-classifier/models/gpt2`
+
+Dataset: [GSM8K](https://huggingface.co/datasets/openai/gsm8k)
+
+## Remaining work
+
+- Compare the trained classifiers against fixed-k baselines end to end.
+- Report not only answer accuracy but also the average reasoning cost with predicted k.
+- Address the k_star imbalance (reweighting, target transform, or an asymmetric loss).
