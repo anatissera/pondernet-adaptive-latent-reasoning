@@ -12,3 +12,10 @@ scikit-learn
 tqdm==4.67.0
 PyYAML==6.0.2
 Pillow==11.3.0
+
+# k* classifier (Option A): frozen sentence encoder + classic ML.
+# sentence-transformers 3.x is the last series compatible with transformers
+# 4.46.2 (the 4.x pin is kept by the CODI/Coconut wrappers; 5.x drags in
+# transformers>=4.52 and breaks coconut.py's legacy cache).
+sentence-transformers==3.3.1
+scikit-learn==1.7.2

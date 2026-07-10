@@ -1,0 +1,5 @@
+# Artefactos derivados y reproducibles del pipeline del clasificador
+# (embeddings precomputados, datasets X/y). No se versionan: se regeneran
+# con scripts/precompute_embeddings.py y scripts/build_dataset.py.
+*
+!.gitignore

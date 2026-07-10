@@ -64,3 +64,56 @@ Heavily imbalanced toward k=1 (66%), with a very thin tail at high k.
   in {1..5}) instead of {1..8}.
 - Outputs change with k in 97.4% of cases, so k has a real effect and learning to
   assign it is a meaningful problem.
+
+## v1 results: simple classic classifier (request: start simple)
+
+A deliberately simple first version (scikit-learn classic ML), before any MLP or
+target transformation. Note: the rest of this doc frames the problem as
+**regression**; this v1 attacks it as **multiclass** (k* in {1..8}) to get a cheap
+starting point and a hard baseline. The negative result below in fact reinforces the
+imbalance concern already noted.
+
+### Pipeline (3 reproducible scripts, in `k-classifier/scripts/`)
+1. `precompute_embeddings.py`: encodes the sweep's `input` field with the frozen
+   all-MiniLM-L6-v2 encoder (384 dims, CPU) and caches (id, embedding) in
+   `cache/embeddings_minilm_train_full.npz`. Does not recompute if the cache covers
+   all ids (~2 min for n=7473 on CPU).
+2. `build_dataset.py`: joins embeddings (id -> vector) with the sweep's k* labels
+   (id -> k_star) by `example_id`, and makes an internal stratified 80/20 split.
+   **The GSM8K test set stays reserved**: this split comes only from the train sweep.
+3. `train_classifier.py`: trains a majority baseline + logistic regression + random
+   forest (both `class_weight='balanced'`) and reports accuracy, F1-macro, confusion
+   matrix, and the comparison against the baseline. Raw metrics in
+   `results/classifier_results.json`.
+
+### Data
+- n=7473 examples (full CODI train sweep). Split: train n=5978, val n=1495.
+- The stratified split preserves the k* distribution in both partitions
+  (k=1 ~66.1% in train and val).
+
+### Metrics (internal validation, n=1495)
+
+| Model                             | Accuracy | F1-macro | dAcc vs base | dF1 vs base |
+|-----------------------------------|----------|----------|--------------|-------------|
+| Majority baseline (k=1)           | 0.6609   | 0.0995   | --           | --          |
+| Logistic regression (balanced)    | 0.2100   | 0.1112   | -0.4508      | +0.0118     |
+| Random forest (balanced)          | 0.6609   | 0.0995   | +0.0000      | +0.0000     |
+
+Confusion matrices (summary):
+- **Random forest**: all the mass falls in the k=1 column (predicts k=1 for all 1495
+  val examples). Identical to the baseline despite `class_weight='balanced'`.
+- **Logistic regression**: spreads predictions across classes, but with ~0.01-0.09
+  precision on the minority ones and k=1 precision/recall dropping to 0.64/0.19.
+
+### Does the classifier learn anything beyond "always predict k=1"?
+**Practically no.**
+- The RF literally collapses to the baseline (same accuracy and F1-macro).
+- The balanced LR raises F1-macro by just +0.012 over the baseline while sinking
+  accuracy to 0.21: it is guessing, not discriminating a useful signal.
+
+Conclusion: the frozen MiniLM embedding + simple classic ML **does not capture k\*
+signal above the base rate**. An informative negative result. Before moving to the
+MLP, attack the cause (the x -> k* signal may be weak in a sentence embedding, and/or
+the imbalance dominates): try more faithful representations (backbone hidden state,
+Option 3), cap the range to k in {1..5} where there is data, or reframe as ordinal
+regression, not just swap models.
