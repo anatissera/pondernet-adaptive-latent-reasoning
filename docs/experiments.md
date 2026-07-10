@@ -46,6 +46,7 @@ average of 5 *sampled* passes on test.
 | 08 | [simcot-pondernet-gamma-frontier](experiments/08-simcot-pondernet-gamma-frontier/experiment.md) | γ↑ (0.05→0.10) + prior reshaping to push the accuracy–steps frontier left | Run B ep5 **41.0% @ 3.64** (thr0.5); Run C ep5 **40.6% @ 2.93** (thr0.5, −32% steps vs baseline) | complete |
 | 09 | [simcot-pondernet-gamma-push](experiments/09-simcot-pondernet-gamma-push/experiment.md) | γ push (0.10→0.15/0.20): does the frontier keep moving left? | TBD | planned |
 | 10 | [simcot-pondernet-fromscratch](experiments/10-simcot-pondernet-fromscratch/experiment.md) | fair-comparison: replicate exp-08 Run C **from vanilla GPT-2** (no SIM-CoT warm-start; train aux decoder via new `full_dec` scope; lr 3e-3, 40 ep, full 385k GSM8k-Aug) | _(to run on external machine)_ | planned |
+| 11 | [simcot-pondernet-k-recipe](experiments/11-simcot-pondernet-k-recipe/experiment.md) | training-recipe x K_max factorial (A frozen / B cold / C full unfreeze) to break the K=6 warm-start prior | test said C > A everywhere (mean +0.97pt); validation re-eval flips it (A wins 4/5 K_max, mean -0.36pt); B collapsed to ~2% | complete (C > A retired) |
 
 **Headline (validation).** The greedy fixed-K baseline is **40.80%** (K=6). On the
 held-out set the adaptive runs cluster around it — best validated accuracy is
@@ -58,15 +59,14 @@ training drive strong difficulty-tracking (Spearman rises from +0.46 at exp-03 t
 claim **cannot be revalidated** — that checkpoint was deleted before the validation set
 existed.
 
-## Active / deferred (not yet migrated)
+## Related work outside this index
 
-These sweeps are ongoing or held for separate integration once complete; their artifacts
-remain at flat top-level paths (`<dir>/simcot-pondernet-k_recipe_sweep*`, `<dir>/optionb-*`)
-and must **not** be moved (see
-`docs/superpowers/specs/2026-06-10-repo-professionalization-design.md`). They will get a
-numbered experiment folder by hand, following an existing one as a template, when their sweeps finish.
-
-| experiment (provisional) | what it tests | status |
-|--------------------------|---------------|--------|
-| simcot-pondernet-k-recipe | K_max recipe sweep (recipeA k4–k12; recipeB variant) | active |
-| simcot-optionb-caxis | Option-B adaptive vectors-per-step (c-axis) | active |
+- The k-recipe sweep (previously listed here as active) finished and is now experiment 11
+  above. Its raw artifacts stay at their original flat paths
+  (`<dir>/k_recipe_sweep*`) and must **not** be moved (see
+  `docs/superpowers/specs/2026-06-10-repo-professionalization-design.md`).
+- Option A (upfront k* classifier) lives in `k-classifier/` and on the `option-a-k-classifier`
+  branch; see its README for the pipeline and results.
+- Option B (adaptive vectors-per-step, the c-axis) lives in `adaptive-vectors/` and on the
+  `option-b-adaptive-vectors` branch; see `adaptive-vectors/RESULTS.md` for the completed study.
+  Its artifacts stay at flat `<dir>/optionb-*` paths and must not be moved either.
