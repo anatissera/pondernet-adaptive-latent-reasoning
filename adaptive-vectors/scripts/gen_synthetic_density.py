@@ -8,6 +8,7 @@ Option-B/docs/superpowers/specs/2026-06-23-synthetic-density-dataset-design.md
 """
 import random
 from typing import List, Tuple
+import argparse, json, os
 
 MAX_VAL = 1000
 
@@ -67,3 +68,68 @@ def gen_instance(K: int, depths: List[int], rng: random.Random) -> dict:
         "answer": str(prev_val),
         "depths": list(depths),
     }
+
+
+LEVELS = {
+    "warmup": [(2, 1.0)],
+    "train":  [(1, .25), (2, .25), (3, .25), (4, .25)],
+    "L0":     [(2, .5), (3, .5)],
+    "L1":     [(1, .1), (2, .4), (3, .4), (4, .1)],
+    "L2":     [(1, .25), (2, .25), (3, .25), (4, .25)],
+    "L3":     [(1, .5), (4, .5)],
+}
+
+
+def sample_depths(level: str, K: int, rng: random.Random) -> List[int]:
+    pairs = LEVELS[level]
+    vals = [d for d, _ in pairs]
+    wts = [w for _, w in pairs]
+    return [rng.choices(vals, weights=wts, k=1)[0] for _ in range(K)]
+
+
+def build_split(level: str, n: int, K: int, seed: int, exclude: set):
+    rng = random.Random(seed)
+    rows, seen = [], set()
+    guard = 0
+    while len(rows) < n and guard < n * 100:
+        guard += 1
+        depths = sample_depths(level, K, rng)
+        inst = gen_instance(K, depths, rng)
+        q = inst["question"]
+        if q in seen or q in exclude:
+            continue
+        seen.add(q); rows.append(inst)
+    return rows, seen
+
+
+def _write(path: str, rows: List[dict]):
+    with open(path, "w") as f:
+        for r in rows:
+            f.write(json.dumps(r) + "\n")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out_dir", default="../data/synth_density")
+    ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--K", type=int, default=4)
+    ap.add_argument("--n_warmup", type=int, default=5000)
+    ap.add_argument("--n_train", type=int, default=15000)
+    ap.add_argument("--n_test", type=int, default=1200)
+    a = ap.parse_args()
+    os.makedirs(a.out_dir, exist_ok=True)
+    warm, qw = build_split("warmup", a.n_warmup, a.K, a.seed, set())
+    train, qt = build_split("train", a.n_train, a.K, a.seed + 1, qw)
+    used = qw | qt
+    _write(os.path.join(a.out_dir, "warmup.jsonl"), warm)
+    _write(os.path.join(a.out_dir, "train.jsonl"), train)
+    for i, lvl in enumerate(["L0", "L1", "L2", "L3"]):
+        rows, q = build_split(lvl, a.n_test, a.K, a.seed + 10 + i, used)
+        used |= q
+        _write(os.path.join(a.out_dir, f"{lvl}.jsonl"), rows)
+        print(f"{lvl}: {len(rows)} rows")
+    print(f"warmup={len(warm)} train={len(train)} -> {a.out_dir}")
+
+
+if __name__ == "__main__":
+    main()

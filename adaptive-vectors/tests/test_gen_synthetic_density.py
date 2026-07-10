@@ -53,6 +53,26 @@ def test_plus_respects_max_val():
         new_val = g.apply_op(995, rng)[1]
         assert new_val <= g.MAX_VAL, f"seed {seed}: 995 + op yielded {new_val} > {g.MAX_VAL}"
 
+def test_level_means():
+    import statistics
+    for lvl in ["L0", "L1", "L2", "L3"]:
+        rng = random.Random(42)
+        ds = [d for _ in range(4000) for d in g.sample_depths(lvl, 4, rng)]
+        assert abs(statistics.mean(ds) - 2.5) < 0.1, (lvl, statistics.mean(ds))
+    # variance is monotone increasing L0 < L1 < L2 < L3
+    def var(lvl):
+        rng = random.Random(1)
+        ds = [d for _ in range(4000) for d in g.sample_depths(lvl, 4, rng)]
+        return statistics.pvariance(ds)
+    vs = [var(l) for l in ["L0", "L1", "L2", "L3"]]
+    assert vs[0] < vs[1] < vs[2] < vs[3], vs
+
+def test_build_split_unique_and_disjoint():
+    train, qtrain = g.build_split("train", 500, 4, seed=0, exclude=set())
+    test, qtest = g.build_split("L2", 200, 4, seed=1, exclude=qtrain)
+    assert len({r["question"] for r in train}) == len(train)
+    assert qtrain.isdisjoint(qtest)
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
