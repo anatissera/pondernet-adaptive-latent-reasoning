@@ -36,9 +36,9 @@ def test_depths_recorded():
 def test_question_has_composed_expr():
     rng = random.Random(2)
     inst = g.gen_instance(4, [2, 2, 2, 2], rng)
-    assert inst["question"].startswith("Calculate:")
+    assert inst["question"].startswith("Evaluate step by step:")
     # the composed question expression evaluates to the answer
-    expr = inst["question"].split("Calculate:", 1)[1].strip()
+    expr = inst["question"].split("Evaluate step by step:", 1)[1].strip()
     assert abs(eval(expr) - float(inst["answer"])) < 1e-6
 
 def test_determinism():
@@ -59,6 +59,10 @@ def test_level_means():
         rng = random.Random(42)
         ds = [d for _ in range(4000) for d in g.sample_depths(lvl, 4, rng)]
         assert abs(statistics.mean(ds) - 2.5) < 0.1, (lvl, statistics.mean(ds))
+    for lvl in ["warmup", "warmup_test"]:
+        rng = random.Random(42)
+        ds = [d for _ in range(4000) for d in g.sample_depths(lvl, 4, rng)]
+        assert abs(statistics.mean(ds) - 2.0) < 0.01, (lvl, statistics.mean(ds))
     # variance is monotone increasing L0 < L1 < L2 < L3
     def var(lvl):
         rng = random.Random(1)

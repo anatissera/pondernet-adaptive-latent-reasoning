@@ -63,7 +63,7 @@ def gen_instance(K: int, depths: List[int], rng: random.Random) -> dict:
         cot_steps.append(f"<<{num_expr}={new_val}>>")
         prev_val = new_val
     return {
-        "question": f"Calculate: {comp_expr}",
+        "question": f"Evaluate step by step: {comp_expr}",
         "cot": " ".join(cot_steps),
         "answer": str(prev_val),
         "depths": list(depths),
@@ -71,12 +71,13 @@ def gen_instance(K: int, depths: List[int], rng: random.Random) -> dict:
 
 
 LEVELS = {
-    "warmup": [(2, 1.0)],
-    "train":  [(1, .25), (2, .25), (3, .25), (4, .25)],
-    "L0":     [(2, .5), (3, .5)],
-    "L1":     [(1, .1), (2, .4), (3, .4), (4, .1)],
-    "L2":     [(1, .25), (2, .25), (3, .25), (4, .25)],
-    "L3":     [(1, .5), (4, .5)],
+    "warmup":      [(2, 1.0)],
+    "warmup_test": [(2, 1.0)],
+    "train":       [(1, .25), (2, .25), (3, .25), (4, .25)],
+    "L0":          [(2, .5), (3, .5)],
+    "L1":          [(1, .1), (2, .4), (3, .4), (4, .1)],
+    "L2":          [(1, .25), (2, .25), (3, .25), (4, .25)],
+    "L3":          [(1, .5), (4, .5)],
 }
 
 
@@ -116,21 +117,25 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--K", type=int, default=4)
     ap.add_argument("--n_warmup", type=int, default=5000)
+    ap.add_argument("--n_warmup_test", type=int, default=300)
     ap.add_argument("--n_train", type=int, default=15000)
     ap.add_argument("--n_test", type=int, default=1200)
     a = ap.parse_args()
     os.makedirs(a.out_dir, exist_ok=True)
     warm, qw = build_split("warmup", a.n_warmup, a.K, a.seed, set())
-    train, qt = build_split("train", a.n_train, a.K, a.seed + 1, qw)
-    used = qw | qt
+    warm_test, qwt = build_split("warmup_test", a.n_warmup_test, a.K, a.seed + 20, qw)
+    train, qt = build_split("train", a.n_train, a.K, a.seed + 1, qw | qwt)
+    used = qw | qwt | qt
     _write(os.path.join(a.out_dir, "warmup.jsonl"), warm)
+    _write(os.path.join(a.out_dir, "warmup_test.jsonl"), warm_test)
     _write(os.path.join(a.out_dir, "train.jsonl"), train)
+    print(f"warmup={len(warm)} warmup_test={len(warm_test)} train={len(train)}")
     for i, lvl in enumerate(["L0", "L1", "L2", "L3"]):
         rows, q = build_split(lvl, a.n_test, a.K, a.seed + 10 + i, used)
         used |= q
         _write(os.path.join(a.out_dir, f"{lvl}.jsonl"), rows)
         print(f"{lvl}: {len(rows)} rows")
-    print(f"warmup={len(warm)} train={len(train)} -> {a.out_dir}")
+    print(f"-> {a.out_dir}")
 
 
 if __name__ == "__main__":
