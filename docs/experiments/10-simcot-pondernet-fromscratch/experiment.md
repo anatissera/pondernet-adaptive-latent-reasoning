@@ -4,6 +4,11 @@
 **Branch:** `experiment/10-fromscratch-gpt2`   **Dates:** 2026-06-26 → —
 
 > **Running this on the A100? Read [§ Hand-off](#hand-off-run-the-full-40-epoch-job-on-an-a100-read-this) — it is self-contained.** The sections above it are context.
+>
+> **Update (2026-07-09): the run moved to a Spot NVIDIA RTX PRO 6000 (96 GB) on GCE, not an
+> A100 — the A100 quota was never granted, the Spot RTX PRO 6000 quota was granted instantly.
+> Infrastructure, measured timings, the Blackwell/cu128 torch fix, the batch-size ceiling and
+> the resume analysis live in [gcp-handoff.md](gcp-handoff.md). Read that before launching.**
 
 ## Why
 
@@ -78,7 +83,16 @@ HF checkpoints, one per epoch (~1.2 GB each: `pytorch_model.bin`, `optimizer.pt`
 | `checkpoint-8997` | 3 | 8997 | ~1.6e-4 |
 
 ⚠️ **These are from a *4-epoch* cosine schedule** (`max_steps=11996`, `num_train_epochs=4`),
-not a 40-epoch one. See the Hand-off for how (and whether) to reuse them.
+not a 40-epoch one — they were annealed to LR ≈ 1e-9, so their weights are **not on the
+40-epoch trajectory** and none of them is a valid resume point for the real run. The same is
+true of the two `lr_0.003` checkpoints, which come from the diverged run. The epoch-12
+checkpoint (`checkpoint-35988`) exists only in the hand-off tar; it is not on the old L4 VM's
+disk (verified). See [gcp-handoff.md](gcp-handoff.md).
+
+**Measured throughput** (from these logs): the L4 ran at **13.84 s/step** — 11,996 steps in
+46 h 07 m on the probe, and the same 13.84 s/step on the 40-epoch run. A Spot RTX PRO 6000
+measured **1.21 s/step** at `BS=64 ACCUM=2` (**11.4× faster**; `BS=128` OOMs). Epochs 12→40
+take **28.2 h** there, versus 13.5 days on the L4.
 
 ## Hyperparameter parity with upstream CODI
 

@@ -22,3 +22,15 @@ dependencies = [
 dev = [
     "pytest>=9.1.1",
 ]
+
+# The default PyPI torch wheel is built against CUDA 12.6, which ships no kernels for
+# Blackwell (sm_120 — the RTX PRO 6000 on GCE's G4 VMs): every CUDA op dies with
+# "no kernel image is available for execution on the device". The cu128 wheel of the
+# same torch version covers sm_75 through sm_120, so it also still runs the L4 (sm_89).
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
