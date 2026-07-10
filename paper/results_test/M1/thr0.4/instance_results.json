@@ -1,0 +1,9235 @@
+[
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 14.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 30000.0,
+        "gt_answer": 70000.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 540.0,
+        "gt_answer": 540.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 72.0,
+        "gt_answer": 64.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 260.0,
+        "gt_answer": 260.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 100.0,
+        "gt_answer": 160.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 620.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 460.0,
+        "gt_answer": 460.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 366.0,
+        "gt_answer": 366.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 726.0,
+        "gt_answer": 694.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 12.0,
+        "gt_answer": 13.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 24.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 60.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 240.0,
+        "gt_answer": 125.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 115.0,
+        "gt_answer": 230.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 73500.0,
+        "gt_answer": 57500.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 2.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 12.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 18.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 9.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 24.8,
+        "gt_answer": 26.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 3.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 247.0,
+        "gt_answer": 243.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 16.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 25.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 18.0,
+        "gt_answer": 104.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 94.0,
+        "gt_answer": 109.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 73.33,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 35.0,
+        "gt_answer": 35.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 110.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 23.0,
+        "gt_answer": 23.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 60.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 75.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 3.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 40.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 48.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 600.0,
+        "gt_answer": 200.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 26.0,
+        "gt_answer": 26.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 200.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 96.0,
+        "gt_answer": 104.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 207.0,
+        "gt_answer": 163.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 28000.0,
+        "gt_answer": 800.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 30.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 756.0,
+        "gt_answer": 294.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 0.33,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 200.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 32.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 14.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 286.0,
+        "gt_answer": 83.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 17.0,
+        "gt_answer": 57.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 187.0,
+        "gt_answer": 187.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 18.0,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 1330.0,
+        "gt_answer": 1430.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 12500.0,
+        "gt_answer": 25000.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 1296.0,
+        "gt_answer": 1596.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 300.0,
+        "gt_answer": 300.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 72.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 36.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 635.0,
+        "gt_answer": 595.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 36.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 60.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 675.0,
+        "gt_answer": 7425.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 60.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 215.0,
+        "gt_answer": 221.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 150.0,
+        "gt_answer": 255.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 84.93,
+        "gt_answer": 88.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 1.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 4.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 200.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 3.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 70.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 14.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 17.0,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 573.0,
+        "gt_answer": 623.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 600.0,
+        "gt_answer": 600.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 27.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 344.0,
+        "gt_answer": 44.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 22.0,
+        "gt_answer": 22.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 18360.0,
+        "gt_answer": 9360.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 8888.0,
+        "gt_answer": 8000.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 18.0,
+        "gt_answer": 24.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 425.0,
+        "gt_answer": 225.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 28.0,
+        "gt_answer": 28.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 39.8,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 216.0,
+        "gt_answer": 348.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 40.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 6.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 100.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 98.0,
+        "gt_answer": 58.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 190.0,
+        "gt_answer": 175.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 12.5,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 25.0,
+        "gt_answer": 26.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 140.0,
+        "gt_answer": 140.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 500.0,
+        "gt_answer": 500.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 144.0,
+        "gt_answer": 72.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 1.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 52.5,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 28.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 27.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 96.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 24.0,
+        "gt_answer": 24.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 25.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 1500.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 60.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 84.0,
+        "gt_answer": 42.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 360.0,
+        "gt_answer": 360.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 20.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 86400.0,
+        "gt_answer": 95200.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 240.0,
+        "gt_answer": 240.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 27.0,
+        "gt_answer": 27.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 37.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 45.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 30.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 82.0,
+        "gt_answer": 82.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 205.0,
+        "gt_answer": 880.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 2000.0,
+        "gt_answer": 10000.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 20.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 940.0,
+        "gt_answer": 940.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 60.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 13.0,
+        "gt_answer": 13.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 720.0,
+        "gt_answer": 720.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 50.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": null,
+        "pred_answer": 6.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 24.0,
+        "gt_answer": 29.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 25.0,
+        "gt_answer": 105.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 70.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 466.0,
+        "gt_answer": 400.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 140.0,
+        "gt_answer": 140.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 16.5,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 1.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 4000.0,
+        "gt_answer": 4000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2125.0,
+        "gt_answer": 2125.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 90.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 10.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 16.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 3.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 2.5,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 41.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 112.0,
+        "gt_answer": 272.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 160.0,
+        "gt_answer": 280.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 500.0,
+        "gt_answer": 1400.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 400.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 34.0,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 9.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 16.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 25.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 28.8,
+        "gt_answer": 92.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 5.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 903.0,
+        "gt_answer": 77.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 16.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 18.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 150.0,
+        "gt_answer": 150.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 650.0,
+        "gt_answer": 1210.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 119.0,
+        "gt_answer": 51.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 13200.0,
+        "gt_answer": 18000.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 750.0,
+        "gt_answer": 95.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 0.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 100.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 1250.0,
+        "gt_answer": 350.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 122.0,
+        "gt_answer": 122.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 130.0,
+        "gt_answer": 130.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 200.0,
+        "gt_answer": 160.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 19.0,
+        "gt_answer": 23.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 115.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 22.22,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 30.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 30.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 106.0,
+        "gt_answer": 106.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 23.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 36.33,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 360.0,
+        "gt_answer": 360.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 4.29,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 56.0,
+        "gt_answer": 91.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 6.0,
+        "gt_answer": 24.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 609.0,
+        "gt_answer": 6277.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 360.0,
+        "gt_answer": 320.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 25.0,
+        "gt_answer": 7500.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 55.0,
+        "gt_answer": 55.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 130000.0,
+        "gt_answer": 114200.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 100.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 25.0,
+        "gt_answer": 31.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 91.0,
+        "gt_answer": 98.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 93.0,
+        "gt_answer": 98.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 680.0,
+        "gt_answer": 860.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 2000.0,
+        "gt_answer": 2600.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 76.0,
+        "gt_answer": 76.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 50.0,
+        "gt_answer": 145.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 4.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 7.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 3.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 250.0,
+        "gt_answer": 250.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 40.0,
+        "gt_answer": 44.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 1305.0,
+        "gt_answer": 220.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 36.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 66.0,
+        "gt_answer": 54.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 70.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 90.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 140.0,
+        "gt_answer": 140.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 20000.0,
+        "gt_answer": 20000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 180.0,
+        "gt_answer": 180.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 18.18,
+        "gt_answer": 33.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10.5,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 0.5,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 21.0,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 262000.0,
+        "gt_answer": 276000.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 50.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 75.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 7.0,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 50.0,
+        "gt_answer": 31.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 90.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 68.0,
+        "gt_answer": 68.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 280.0,
+        "gt_answer": 280.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 21.0,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 5.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 250.0,
+        "gt_answer": 250.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 4.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 24.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 2700.0,
+        "gt_answer": 27000.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 36.67,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 300.0,
+        "gt_answer": 300.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 5,
+        "pred_answer": 5600.0,
+        "gt_answer": 5600.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 15.0,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 70.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 82.0,
+        "gt_answer": 73.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 18.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 84.0,
+        "gt_answer": 84.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 80.0,
+        "gt_answer": 192.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 15.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 1400.0,
+        "gt_answer": 5600.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 126.0,
+        "gt_answer": 168.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 5.25,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 466.67,
+        "gt_answer": 62.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 270.0,
+        "gt_answer": 270.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 400.0,
+        "gt_answer": 400.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 35000.0,
+        "gt_answer": 9500.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 280000.0,
+        "gt_answer": 118000.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 65.0,
+        "gt_answer": 91.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 1375.0,
+        "gt_answer": 1375.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 862.0,
+        "gt_answer": 762.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 4.5,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 405.0,
+        "gt_answer": 315.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 3200.0,
+        "gt_answer": 3200.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 276.0,
+        "gt_answer": 138.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 60.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 3.33,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 2350.0,
+        "gt_answer": 2450.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 240.0,
+        "gt_answer": 195.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 100.0,
+        "gt_answer": 68.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 7,
+        "pred_answer": 360.0,
+        "gt_answer": 360.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 21.0,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 90.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 16.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 3.9,
+        "gt_answer": 390.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 2.4,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 15.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 61.0,
+        "gt_answer": 83.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 310.0,
+        "gt_answer": 370.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 35.0,
+        "gt_answer": 55.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 650.0,
+        "gt_answer": 500.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 27600.0,
+        "gt_answer": 31800.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 39.0,
+        "gt_answer": 78.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 80.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 9000.0,
+        "gt_answer": 1300.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 3200.0,
+        "gt_answer": 3200.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 30.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 7.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 300.0,
+        "gt_answer": 2050.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 77.0,
+        "gt_answer": 91.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 32.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 67500.0,
+        "gt_answer": 120000.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 35.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 17.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 136.0,
+        "gt_answer": 156.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 123.0,
+        "gt_answer": 123.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 11.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 1.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 2.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 15.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 10.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 560000.0,
+        "gt_answer": 224000.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 5.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 23.0,
+        "gt_answer": 31.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 5.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 14.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 66.0,
+        "gt_answer": 31.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 36000.0,
+        "gt_answer": 8400.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 44.0,
+        "gt_answer": 44.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 400.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 8.5,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 310.0,
+        "gt_answer": 310.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 9.0,
+        "gt_answer": 72.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 1.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 51.33,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 200.0,
+        "gt_answer": 160.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 220.0,
+        "gt_answer": 260.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 87.0,
+        "gt_answer": 87.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 180000.0,
+        "gt_answer": 180000.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 6.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 310.0,
+        "gt_answer": 310.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 36.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 100.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 2520.0,
+        "gt_answer": 2640.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 10.5,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 29.0,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 4.8,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 25.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 34.0,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 5.0,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 4.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 6.67,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": null,
+        "pred_answer": 25.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 4.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 22.0,
+        "gt_answer": 23.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 4.29,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 44.0,
+        "gt_answer": 49.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 12.0,
+        "gt_answer": 19.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 38.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 576.0,
+        "gt_answer": 1198.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 480.0,
+        "gt_answer": 320.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 50.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 240000.0,
+        "gt_answer": 240000.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 45.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 48.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 36.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 25.0,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 739.0,
+        "gt_answer": 803.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 47.0,
+        "gt_answer": 67.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 310.0,
+        "gt_answer": 350.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 54.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 44.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 26.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 80.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 36.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 88.0,
+        "gt_answer": 88.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 6.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 30.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 8.0,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 11.11,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 92.0,
+        "gt_answer": 92.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 42.0,
+        "gt_answer": 38.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 5.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 25.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 102.0,
+        "gt_answer": 168.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 48.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 14400.0,
+        "gt_answer": 14400.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 1.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 540.0,
+        "gt_answer": 81.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 28.0,
+        "gt_answer": 22.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 195.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 140.0,
+        "gt_answer": 200.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 2000.0,
+        "gt_answer": 2000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 50.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 144000.0,
+        "gt_answer": 168000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 1.5,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 1110.0,
+        "gt_answer": 1110.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 2325.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 112.0,
+        "gt_answer": 56.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 225.0,
+        "gt_answer": 350.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 98.0,
+        "gt_answer": 56.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 1560.0,
+        "gt_answer": 3140.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 40.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3000.0,
+        "gt_answer": 3000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 17000.0,
+        "gt_answer": 17000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 336.0,
+        "gt_answer": 284.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 4.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 570.0,
+        "gt_answer": 570.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 300.0,
+        "gt_answer": 150.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 11.0,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 100.0,
+        "gt_answer": 150.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 8.0,
+        "gt_answer": 26.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 13.0,
+        "gt_answer": 13.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 132.0,
+        "gt_answer": 132.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 30.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 3.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 1.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 0.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 8.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 1.33,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 17.0,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 108.0,
+        "gt_answer": 98.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 20.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 50.0,
+        "gt_answer": 49.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 9.0,
+        "gt_answer": 59.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 18.75,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 0.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 5.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 27.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 191.0,
+        "gt_answer": 539.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 112.0,
+        "gt_answer": 112.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 2450.0,
+        "gt_answer": 11050.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 30.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 4000.0,
+        "gt_answer": 6400.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 240.0,
+        "gt_answer": 150.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 1920.0,
+        "gt_answer": 1920.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 78.0,
+        "gt_answer": 78.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 45.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 42.86,
+        "gt_answer": 35.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 36.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 84.0,
+        "gt_answer": 84.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 71.0,
+        "gt_answer": 71.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 18.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 3.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 10.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 5,
+        "pred_answer": 1.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 1120.0,
+        "gt_answer": 1200.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 240.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 80.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 11.11,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 80.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 19.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 2100.0,
+        "gt_answer": 621.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 9300.0,
+        "gt_answer": 15400.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 11.0,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 84.0,
+        "gt_answer": 84.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 42.0,
+        "gt_answer": 26.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 40.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 240.0,
+        "gt_answer": 240.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 220.0,
+        "gt_answer": 220.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 20.0,
+        "gt_answer": -10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 16.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 32.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 100.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 46.67,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 1000.0,
+        "gt_answer": 200.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 50.0,
+        "gt_answer": 38.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 392.0,
+        "gt_answer": 112.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 40.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 8.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 15.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 162.0,
+        "gt_answer": 273.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 26.0,
+        "gt_answer": 26.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 18.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 1.5,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 400.0,
+        "gt_answer": 1600.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 72.0,
+        "gt_answer": 144.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 6.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 6.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 17.5,
+        "gt_answer": 525.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 110.0,
+        "gt_answer": 110.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 300.0,
+        "gt_answer": 300.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 90000.0,
+        "gt_answer": 90000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 24.0,
+        "gt_answer": 160.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 375.0,
+        "gt_answer": 375.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 18.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 80.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 160.0,
+        "gt_answer": 280.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 36.0,
+        "gt_answer": 63.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 42.0,
+        "gt_answer": 39.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 29.0,
+        "gt_answer": 29.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 82.0,
+        "gt_answer": 74.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 31.5,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 92.0,
+        "gt_answer": 172.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 11.0,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 48.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 64.0,
+        "gt_answer": 66.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 1.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 400.0,
+        "gt_answer": 300.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 0.0,
+        "gt_answer": 300.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 190.0,
+        "gt_answer": 188.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 18.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 60.0,
+        "gt_answer": 35.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 15.0,
+        "gt_answer": 39.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 50.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 7.5,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 20.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 80.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 30.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 3.0,
+        "gt_answer": 130.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 48.0,
+        "gt_answer": 81.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 100.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 402.0,
+        "gt_answer": 398.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 28.55,
+        "gt_answer": 27.0
+    },
+    {
+        "steps_used": 7,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 17.0,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 825.0,
+        "gt_answer": 450.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 92.0,
+        "gt_answer": 92.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 54.0,
+        "gt_answer": 54.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 160.0,
+        "gt_answer": 160.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 70.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 45.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 180.0,
+        "gt_answer": 180.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 70.0,
+        "gt_answer": 82.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 205.0,
+        "gt_answer": 240.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10.5,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 185.0,
+        "gt_answer": 175.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 21.0,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 25.0,
+        "gt_answer": 23.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 308.0,
+        "gt_answer": 308.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 90.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 600.0,
+        "gt_answer": 600.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 25.0,
+        "gt_answer": 37.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 288.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 1248.0,
+        "gt_answer": 11232.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 40.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 8.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 8.0,
+        "gt_answer": 500.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 295.0,
+        "gt_answer": 215.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 136800.0,
+        "gt_answer": 129200.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 5,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 20.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 10.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 1100.0,
+        "gt_answer": 800.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 50.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 51.0,
+        "gt_answer": 52.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 5.5,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 304.0,
+        "gt_answer": 319.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 220.0,
+        "gt_answer": 220.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 5.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 5.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 4200.0,
+        "gt_answer": 42.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 13.0,
+        "gt_answer": 13.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 238.33,
+        "gt_answer": 260.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 45.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 3.0,
+        "gt_answer": 69.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 68.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 93.0,
+        "gt_answer": 104.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 2700.0,
+        "gt_answer": 1800.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 8.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 33.0,
+        "gt_answer": 42.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 4.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 20.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 15.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 54600.0,
+        "gt_answer": 65960.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 750000.0,
+        "gt_answer": 1450000.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 32.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 93000.0,
+        "gt_answer": 93000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 312.0,
+        "gt_answer": 312.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 29.0,
+        "gt_answer": 33.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 14.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 36.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 76.0,
+        "gt_answer": 76.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 5051.0,
+        "gt_answer": 1509.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 3000.0,
+        "gt_answer": 3000.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 5.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 32.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 85.0,
+        "gt_answer": 85.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 160.0,
+        "gt_answer": 160.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 72.0,
+        "gt_answer": 72.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 32.0,
+        "gt_answer": 54.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 24.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 17500.0,
+        "gt_answer": 17500.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 4400.0,
+        "gt_answer": 4800.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 45.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 3.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 14.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 10.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 1050.0,
+        "gt_answer": 1050.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 1.4,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 8.05,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 216.0,
+        "gt_answer": 216.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 60000.0,
+        "gt_answer": 43500.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 228000.0,
+        "gt_answer": 262500.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 8590.0,
+        "gt_answer": 10800.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 840.0,
+        "gt_answer": 840.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 29.0,
+        "gt_answer": 29.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 48.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 79.0,
+        "gt_answer": 79.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 4.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 54.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 166000.0,
+        "gt_answer": 162000.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 2.0,
+        "gt_answer": 142.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 2400.0,
+        "gt_answer": 2100.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 195.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 80.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 20.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 170000.0,
+        "gt_answer": 330000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 48.0,
+        "gt_answer": 44.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 203.0,
+        "gt_answer": 193.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 32.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 360.0,
+        "gt_answer": 360.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 165.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 53.0,
+        "gt_answer": 53.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 100.0,
+        "gt_answer": 132.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 6.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 20.0,
+        "gt_answer": 33.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 240.0,
+        "gt_answer": 240.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 7.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 192.0,
+        "gt_answer": 576.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 60.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 305.0,
+        "gt_answer": 298.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 80.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 80.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 11.0,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 14.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 80.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 12.0,
+        "gt_answer": 13.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 240.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 4.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 6240.0,
+        "gt_answer": 5760.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 5.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 30.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 60.0,
+        "gt_answer": 68.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 5.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 10.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 95.0,
+        "gt_answer": 145.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 27.0,
+        "gt_answer": 27.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 720.0,
+        "gt_answer": 720.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 435.0,
+        "gt_answer": 135.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 92.0,
+        "gt_answer": 200.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 600.0,
+        "gt_answer": 2800.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 35.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 50.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 20.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 168.0,
+        "gt_answer": 168.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 600.0,
+        "gt_answer": 3000.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 47.8,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 4.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 42.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 576.0,
+        "gt_answer": 576.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 27.5,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 350000.0,
+        "gt_answer": 385000.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 540.0,
+        "gt_answer": 770.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 175.0,
+        "gt_answer": 175.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 3500.0,
+        "gt_answer": 2450.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 255.0,
+        "gt_answer": 255.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 160.0,
+        "gt_answer": 160.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 30.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 22.5,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 10.67,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 80.0,
+        "gt_answer": 112.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 75.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 1000.0,
+        "gt_answer": 1000.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 5.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 57.0,
+        "gt_answer": 87.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 15.0,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 50.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 170.0,
+        "gt_answer": 98.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 25.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 28.0,
+        "gt_answer": 28.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 48.0,
+        "gt_answer": 24.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 3.43,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 1500.0,
+        "gt_answer": 1100.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 12.0,
+        "gt_answer": 28.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 350.0,
+        "gt_answer": 350.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 280.0,
+        "gt_answer": 336.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 2000.0,
+        "gt_answer": 4000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 31.0,
+        "gt_answer": 43.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 100.0,
+        "gt_answer": 240.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 140.0,
+        "gt_answer": 128.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 48.0,
+        "gt_answer": 89.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 22.0,
+        "gt_answer": 22.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 70.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 133.0,
+        "gt_answer": 133.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 600.0,
+        "gt_answer": 60000.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 32.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 27.0,
+        "gt_answer": 27.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 85.0,
+        "gt_answer": 85.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 125.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 16.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 490.0,
+        "gt_answer": 490.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 600.0,
+        "gt_answer": 675.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 155.0,
+        "gt_answer": 110.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 66.67,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 24.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 272.0,
+        "gt_answer": 276.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 800.0,
+        "gt_answer": 800.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 7,
+        "pred_answer": 2120.0,
+        "gt_answer": 4400.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 38.0,
+        "gt_answer": 38.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 330.0,
+        "gt_answer": 255.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 5.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 13.0,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 27.0,
+        "gt_answer": 54.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 150.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 49.0,
+        "gt_answer": 155.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 142.0,
+        "gt_answer": 142.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 25.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 100.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 16.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 12.0,
+        "gt_answer": 108.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 114.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 75.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 190.0,
+        "gt_answer": 250.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 32.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 2400000.0,
+        "gt_answer": 2880000.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 540.0,
+        "gt_answer": 540.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 120.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 402.0,
+        "gt_answer": 428.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 920.0,
+        "gt_answer": 1240.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 40.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 1170.0,
+        "gt_answer": 1170.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 160.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 12.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 3.8,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 50.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 5,
+        "pred_answer": 310.0,
+        "gt_answer": 310.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 2.4,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 7,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 64.0,
+        "gt_answer": 79.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 4.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 7,
+        "pred_answer": 220.0,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 100.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 4500.0,
+        "gt_answer": 4500.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 24.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 6250.0,
+        "gt_answer": 6250.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 720.0,
+        "gt_answer": 720.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 35.0,
+        "gt_answer": 35.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 1260.0,
+        "gt_answer": 1260.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 32.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 52.0,
+        "gt_answer": 52.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 228.0,
+        "gt_answer": 153.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 21.0,
+        "gt_answer": 27.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 8.4,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 0.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 12000.0,
+        "gt_answer": 14000.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 1068.0,
+        "gt_answer": 1128.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 479.0,
+        "gt_answer": 324.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 42.0,
+        "gt_answer": 42.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 50.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 80.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 12.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 140.0,
+        "gt_answer": 140.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 180.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 4200.0,
+        "gt_answer": 5600.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 19.0,
+        "gt_answer": 19.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 360.0,
+        "gt_answer": 180.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 7.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 8.0,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 975.0,
+        "gt_answer": 975.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 75.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 65.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 110.0,
+        "gt_answer": 110.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 81.0,
+        "gt_answer": 123.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 96.0,
+        "gt_answer": 144.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 67.0,
+        "gt_answer": 13.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 18000.0,
+        "gt_answer": 14000.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 234.0,
+        "gt_answer": 3430.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 1520.0,
+        "gt_answer": 1520.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 12.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 4.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 110.0,
+        "gt_answer": 110.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 100.0,
+        "gt_answer": 80.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 23.0,
+        "gt_answer": 23.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 23.0,
+        "gt_answer": 28.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 500.0,
+        "gt_answer": 500.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 60.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 31.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 9.0,
+        "gt_answer": 13.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 6.48,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 132.0,
+        "gt_answer": 132.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 60.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 7.0,
+        "gt_answer": 41.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 10000.0,
+        "gt_answer": 7000.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 4.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 575.0,
+        "gt_answer": 575.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 14.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 7,
+        "pred_answer": 12.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 25.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 50.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 500.0,
+        "gt_answer": 500.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 38.0,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 25.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 115.0,
+        "gt_answer": 55.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 600.0,
+        "gt_answer": 480.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 26.0,
+        "gt_answer": 26.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 68.0,
+        "gt_answer": 74.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 250.0,
+        "gt_answer": 250.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 3.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 110.0,
+        "gt_answer": 110.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 16.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 3.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 2.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 94.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 9.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 11.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 16.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 14.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 40.0,
+        "gt_answer": 38.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 700.0,
+        "gt_answer": 700.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 64.0,
+        "gt_answer": 64.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 5.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 23.0,
+        "gt_answer": 23.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 5.5,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 78.0,
+        "gt_answer": 56.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 180.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 33.0,
+        "gt_answer": 47.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 3.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 120.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 6.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2000.0,
+        "gt_answer": 2000.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 7,
+        "pred_answer": 2.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 2550.0,
+        "gt_answer": 85000.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 44.8,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 60.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 5.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 20.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 20.0,
+        "gt_answer": 24.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 410.0,
+        "gt_answer": 410.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 108000.0,
+        "gt_answer": 64800.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 40.0,
+        "gt_answer": 250.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 159.0,
+        "gt_answer": 159.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 10.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 450.0,
+        "gt_answer": 650.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 280.0,
+        "gt_answer": 280.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 898.0,
+        "gt_answer": 842.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 183.75,
+        "gt_answer": 205.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 210.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 34.0,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 9.0,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": null,
+        "pred_answer": 450.0,
+        "gt_answer": 450.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 13.0,
+        "gt_answer": 13.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 130.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 42.0,
+        "gt_answer": 42.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 300.0,
+        "gt_answer": 300.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 480.0,
+        "gt_answer": 360.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 45.0,
+        "gt_answer": 452.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 26.0,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 600.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 1.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 45.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 60.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 27.0,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 310.0,
+        "gt_answer": 225.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 600.0,
+        "gt_answer": 1000.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 53.0,
+        "gt_answer": 147.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 200.0,
+        "gt_answer": 200.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 586.0,
+        "gt_answer": 374.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 54.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 30.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 103.5,
+        "gt_answer": 227.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 2100.0,
+        "gt_answer": 1800.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 33.0,
+        "gt_answer": 33.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 100.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 4.0,
+        "gt_answer": 79.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 4.2,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 330.0,
+        "gt_answer": 540.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 4.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 160.0,
+        "gt_answer": 160.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 31.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 90.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 14.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 54.0,
+        "gt_answer": 342.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 63.0,
+        "gt_answer": 63.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 70.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 15.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 60.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 15.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 2.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 60.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 96.0,
+        "gt_answer": 52.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 11.0,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 2.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 9.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 7300.0,
+        "gt_answer": 6600.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 50.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 33.33,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 5.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 7.5,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 280.0,
+        "gt_answer": 480.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 4.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 170.0,
+        "gt_answer": 1490.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 49.0,
+        "gt_answer": 826.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 34.0,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 230.0,
+        "gt_answer": 230.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 750.0,
+        "gt_answer": 1875.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 3.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 7,
+        "pred_answer": 750.0,
+        "gt_answer": 6000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 30.0,
+        "gt_answer": 94.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 5.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 78.0,
+        "gt_answer": 78.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 128.63,
+        "gt_answer": 138.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 21.0,
+        "gt_answer": 45.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 60.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 171.0,
+        "gt_answer": 98.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 22.0,
+        "gt_answer": 22.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 33.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 5.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 77.0,
+        "gt_answer": 77.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 240.0,
+        "gt_answer": 300.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 70.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10800.0,
+        "gt_answer": 43200.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 6.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 2000.0,
+        "gt_answer": 200.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 23.0,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 40.0,
+        "gt_answer": 24.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 4.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 450.0,
+        "gt_answer": 450.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 9.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 134.0,
+        "gt_answer": 66.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 40.0,
+        "gt_answer": 35.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 8.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 120.0,
+        "gt_answer": 160.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 704.0,
+        "gt_answer": 736.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 101.0,
+        "gt_answer": 101.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 10.33,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 130000.0,
+        "gt_answer": 130000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 6.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 560.0,
+        "gt_answer": 420.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 31.5,
+        "gt_answer": 189.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 5.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 12282.5,
+        "gt_answer": 7400.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 750.0,
+        "gt_answer": 655.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 170.0,
+        "gt_answer": 110.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 75.0,
+        "gt_answer": 55.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2400.0,
+        "gt_answer": 2400.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2304.0,
+        "gt_answer": 2304.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 312.0,
+        "gt_answer": 156.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 24.0,
+        "gt_answer": 24.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 250.0,
+        "gt_answer": 250.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 6.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 53.0,
+        "gt_answer": 31.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 40.0,
+        "gt_answer": 58.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 542.0,
+        "gt_answer": 482.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 320.0,
+        "gt_answer": 320.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 287.0,
+        "gt_answer": 247.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 45.0,
+        "gt_answer": 95.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 12.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 455.0,
+        "gt_answer": 245.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 76.0,
+        "gt_answer": 24.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 300.0,
+        "gt_answer": 300.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 36.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 531.0,
+        "gt_answer": 251.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 65.0,
+        "gt_answer": 85.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 21.0,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 250.0,
+        "gt_answer": 750.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 5.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 162.0,
+        "gt_answer": 162.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 115.0,
+        "gt_answer": 145.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 60.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 60.0,
+        "gt_answer": 72000.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 195.0,
+        "gt_answer": 195.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 0.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 26.0,
+        "gt_answer": 26.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 7,
+        "pred_answer": 131250.0,
+        "gt_answer": 131250.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 24.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 11.25,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 16.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 74.0,
+        "gt_answer": 72.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 1000.0,
+        "gt_answer": 1000.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 1080.0,
+        "gt_answer": 1080.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 6,
+        "pred_answer": 144.0,
+        "gt_answer": 144.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 50.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 270.0,
+        "gt_answer": 270.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 96.0,
+        "gt_answer": 240.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 684.0,
+        "gt_answer": 480.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 30.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 3.75,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 16.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 60.0,
+        "gt_answer": 113.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 90.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 24.0,
+        "gt_answer": 24.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 4.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 120.0,
+        "gt_answer": 360.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 38.0,
+        "gt_answer": 38.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 4.5,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 0.5,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 147.0,
+        "gt_answer": 157.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 9.0,
+        "gt_answer": -3.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 10.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 6.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 60.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 18.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 280.0,
+        "gt_answer": 560.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 2.5,
+        "gt_answer": 35.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 7,
+        "pred_answer": 4.0,
+        "gt_answer": 18.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 45.0,
+        "gt_answer": 105.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 36.0,
+        "gt_answer": 64.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 30.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 50.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 93.75,
+        "gt_answer": 750.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 0.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 18.125,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 38.4,
+        "gt_answer": 96.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 45000.0,
+        "gt_answer": 45000.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 120.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 32.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 46.0,
+        "gt_answer": 26.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 13.0,
+        "gt_answer": 68.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 380.0,
+        "gt_answer": 700.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 4.0,
+        "gt_answer": 1.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 13.0,
+        "gt_answer": 27.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 300.0,
+        "gt_answer": 300.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 32.0,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 36.0,
+        "gt_answer": 291.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 40.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 20.0,
+        "gt_answer": 22.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 9.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 29.7,
+        "gt_answer": 93.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 21.0,
+        "gt_answer": 21.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 46.67,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 80.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 22.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 30.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 13.0,
+        "gt_answer": 13.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 7,
+        "pred_answer": 200.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 2.5,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 4040.0,
+        "gt_answer": 7300.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 11.11,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 1368.0,
+        "gt_answer": 1125.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 2125.0,
+        "gt_answer": 170.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 11.0,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 3832.0,
+        "gt_answer": 1248.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 3000.0,
+        "gt_answer": 2350.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 24.8,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 12.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 4.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 1240.0,
+        "gt_answer": 3160.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 93.0,
+        "gt_answer": 93.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 12.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 60.0,
+        "gt_answer": 240.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 18.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 4.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 16.0,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 17.0,
+        "gt_answer": 17.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 33.33,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5600.0,
+        "gt_answer": 5600.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 4.8,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 54.0,
+        "gt_answer": 1800.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 7.0,
+        "gt_answer": 11.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 306.0,
+        "gt_answer": 306.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 6.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 19.0,
+        "gt_answer": 19.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 7.5,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 8.0,
+        "gt_answer": 24.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 8.0,
+        "gt_answer": 6.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 127.0,
+        "gt_answer": 19.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 280.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 3060.0,
+        "gt_answer": 280.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 10.25,
+        "gt_answer": 9.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 1200.0,
+        "gt_answer": 1200.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 440.0,
+        "gt_answer": 320.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 75.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 900.0,
+        "gt_answer": 2400.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 87.5,
+        "gt_answer": 140.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 3.33,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 28.0,
+        "gt_answer": 42.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 19.0,
+        "gt_answer": 19.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 1260.0,
+        "gt_answer": 240.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 168.0,
+        "gt_answer": 168.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 40000.0,
+        "gt_answer": 40000.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 65.0,
+        "gt_answer": 64.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 9.0,
+        "gt_answer": 27.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 30.0,
+        "gt_answer": 29.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 288.0,
+        "gt_answer": 288.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 448.0,
+        "gt_answer": 448.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 30.0,
+        "gt_answer": 150.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 25.0,
+        "gt_answer": 31.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 270.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 70.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 45.0,
+        "gt_answer": 75.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 6.25,
+        "gt_answer": 225.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 100.0,
+        "gt_answer": 100.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 32.0,
+        "gt_answer": 32.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 10.0,
+        "gt_answer": 10.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 350.0,
+        "gt_answer": 350.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 10.8,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 6.0,
+        "gt_answer": 3.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 124.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 32.0,
+        "gt_answer": 66.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 31.0,
+        "gt_answer": 31.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 48.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 180.0,
+        "gt_answer": 440.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 80.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 15.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 6,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 81.0,
+        "gt_answer": 81.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 12.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 30.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 54.0,
+        "gt_answer": 84.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 78.0,
+        "gt_answer": 78.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 520.0,
+        "gt_answer": 520.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 20.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 5.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 7.4,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 50.0,
+        "gt_answer": 50.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 14.0,
+        "gt_answer": 35.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": null,
+        "pred_answer": 99.0,
+        "gt_answer": 96.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 3360.0,
+        "gt_answer": 3360.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 150.0,
+        "gt_answer": 750.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 72.0,
+        "gt_answer": 56.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 22.0,
+        "gt_answer": 22.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 30.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 40.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 30.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 11.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 10.0,
+        "gt_answer": 15.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 14.0,
+        "gt_answer": 14.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 90.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 7200.0,
+        "gt_answer": 7200.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 225.0,
+        "gt_answer": 235.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 37500.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 340.0,
+        "gt_answer": 500.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 4,
+        "pred_answer": 210.0,
+        "gt_answer": 210.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 18.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 147.0,
+        "gt_answer": 147.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 40.0,
+        "gt_answer": 40.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 72.0,
+        "gt_answer": 54.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 2160.0,
+        "gt_answer": 3528.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 15.0,
+        "gt_answer": 43.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 592.0,
+        "gt_answer": 296.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 30.0,
+        "gt_answer": 27.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 32.0,
+        "gt_answer": 38.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 14.0,
+        "gt_answer": 16.0
+    },
+    {
+        "steps_used": 1,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 70.0,
+        "gt_answer": 70.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 32.0,
+        "gt_answer": 48.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 609.0,
+        "gt_answer": 665.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 53.0,
+        "gt_answer": 180.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 0,
+        "pred_answer": 7.0,
+        "gt_answer": 7.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 20.0,
+        "gt_answer": 20.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 14.0,
+        "gt_answer": 12.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 0.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 13.0,
+        "gt_answer": 25.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 1258.0,
+        "gt_answer": 1218.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 145.0,
+        "gt_answer": 105.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 60.0,
+        "gt_answer": 84.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 6,
+        "pred_answer": 300.0,
+        "gt_answer": 34.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 101.0,
+        "gt_answer": 101.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 90.0,
+        "gt_answer": 90.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 27.0,
+        "gt_answer": 27.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 73.0,
+        "gt_answer": 67.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 140000.0,
+        "gt_answer": 140000.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 24.0,
+        "gt_answer": 36.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 3.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 385.0,
+        "gt_answer": 335.0
+    },
+    {
+        "steps_used": 6,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 340.0,
+        "gt_answer": 60.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 15.67,
+        "gt_answer": 31.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 19.0,
+        "gt_answer": 13.0
+    },
+    {
+        "steps_used": 5,
+        "correct": true,
+        "cot_steps": 3,
+        "pred_answer": 120.0,
+        "gt_answer": 120.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 5,
+        "pred_answer": 22.0,
+        "gt_answer": 23.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 102.0,
+        "gt_answer": 72.0
+    },
+    {
+        "steps_used": 5,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 2.0,
+        "gt_answer": 4.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 1000.0,
+        "gt_answer": 1000.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 12120.0,
+        "gt_answer": 2325.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 7.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 3,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 8.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 1,
+        "pred_answer": 30.0,
+        "gt_answer": 30.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 2,
+        "pred_answer": 2240.0,
+        "gt_answer": 2280.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 8.0,
+        "gt_answer": 64.0
+    },
+    {
+        "steps_used": 2,
+        "correct": false,
+        "cot_steps": 1,
+        "pred_answer": 194.0,
+        "gt_answer": 594.0
+    },
+    {
+        "steps_used": 4,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 210.0,
+        "gt_answer": 180.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 2.0,
+        "gt_answer": 2.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 4,
+        "pred_answer": 14.0,
+        "gt_answer": 8.0
+    },
+    {
+        "steps_used": 4,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 5.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 3,
+        "correct": false,
+        "cot_steps": 3,
+        "pred_answer": 370.0,
+        "gt_answer": 230.0
+    },
+    {
+        "steps_used": 1,
+        "correct": false,
+        "cot_steps": 0,
+        "pred_answer": 10.0,
+        "gt_answer": 5.0
+    },
+    {
+        "steps_used": 2,
+        "correct": true,
+        "cot_steps": 2,
+        "pred_answer": 14.0,
+        "gt_answer": 14.0
+    }
+]

@@ -1,0 +1,123 @@
+{
+    "accuracy_pct": 39.73,
+    "total_examples": 1319,
+    "avg_steps_used": 6.387,
+    "max_latent_steps": 12,
+    "threshold": 0.8,
+    "ckpt": "/home/tpnlp/alr-valentino/models/checkpoints/08-simcot-pondernet-gamma-frontier/fullscope-adaptive-g0.10-b1.5-k12-ep5/default/gpt2/ep_5/lr_2e-05/seed_42/checkpoint-3890",
+    "greedy": true,
+    "data_name": "gsm8k",
+    "by_steps_used": [
+        {
+            "steps_used": 2,
+            "n": 34,
+            "accuracy_pct": 35.29
+        },
+        {
+            "steps_used": 3,
+            "n": 142,
+            "accuracy_pct": 62.68
+        },
+        {
+            "steps_used": 4,
+            "n": 194,
+            "accuracy_pct": 60.31
+        },
+        {
+            "steps_used": 5,
+            "n": 145,
+            "accuracy_pct": 39.31
+        },
+        {
+            "steps_used": 6,
+            "n": 163,
+            "accuracy_pct": 35.58
+        },
+        {
+            "steps_used": 7,
+            "n": 193,
+            "accuracy_pct": 43.01
+        },
+        {
+            "steps_used": 8,
+            "n": 170,
+            "accuracy_pct": 27.65
+        },
+        {
+            "steps_used": 9,
+            "n": 132,
+            "accuracy_pct": 22.73
+        },
+        {
+            "steps_used": 10,
+            "n": 75,
+            "accuracy_pct": 21.33
+        },
+        {
+            "steps_used": 11,
+            "n": 50,
+            "accuracy_pct": 16.0
+        },
+        {
+            "steps_used": 12,
+            "n": 21,
+            "accuracy_pct": 33.33
+        }
+    ],
+    "by_cot_steps": [
+        {
+            "cot_steps": 0,
+            "n": 65,
+            "accuracy_pct": 47.69,
+            "avg_steps_used": 3.82
+        },
+        {
+            "cot_steps": 1,
+            "n": 357,
+            "accuracy_pct": 62.18,
+            "avg_steps_used": 4.48
+        },
+        {
+            "cot_steps": 2,
+            "n": 364,
+            "accuracy_pct": 43.68,
+            "avg_steps_used": 6.27
+        },
+        {
+            "cot_steps": 3,
+            "n": 290,
+            "accuracy_pct": 27.59,
+            "avg_steps_used": 7.91
+        },
+        {
+            "cot_steps": 4,
+            "n": 138,
+            "accuracy_pct": 15.22,
+            "avg_steps_used": 8.21
+        },
+        {
+            "cot_steps": 5,
+            "n": 57,
+            "accuracy_pct": 8.77,
+            "avg_steps_used": 8.89
+        },
+        {
+            "cot_steps": 6,
+            "n": 21,
+            "accuracy_pct": 4.76,
+            "avg_steps_used": 9.67
+        },
+        {
+            "cot_steps": 7,
+            "n": 9,
+            "accuracy_pct": 22.22,
+            "avg_steps_used": 9.78
+        },
+        {
+            "cot_steps": null,
+            "n": 18,
+            "accuracy_pct": 16.67,
+            "avg_steps_used": 3.94
+        }
+    ]
+}

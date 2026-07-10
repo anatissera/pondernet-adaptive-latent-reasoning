@@ -1,0 +1,98 @@
+{
+    "accuracy_pct": 39.42,
+    "total_examples": 1319,
+    "avg_steps_used": 2.519,
+    "max_latent_steps": 12,
+    "threshold": 0.4,
+    "ckpt": "/home/tpnlp/alr-valentino/models/checkpoints/08-simcot-pondernet-gamma-frontier/fullscope-adaptive-g0.10-a0.6-b1.5-k12-ep5/default/gpt2/ep_5/lr_2e-05/seed_42/checkpoint-3890",
+    "greedy": true,
+    "data_name": "gsm8k",
+    "by_steps_used": [
+        {
+            "steps_used": 1,
+            "n": 299,
+            "accuracy_pct": 60.54
+        },
+        {
+            "steps_used": 2,
+            "n": 365,
+            "accuracy_pct": 34.52
+        },
+        {
+            "steps_used": 3,
+            "n": 383,
+            "accuracy_pct": 36.03
+        },
+        {
+            "steps_used": 4,
+            "n": 217,
+            "accuracy_pct": 26.73
+        },
+        {
+            "steps_used": 5,
+            "n": 53,
+            "accuracy_pct": 30.19
+        },
+        {
+            "steps_used": 6,
+            "n": 2,
+            "accuracy_pct": 50.0
+        }
+    ],
+    "by_cot_steps": [
+        {
+            "cot_steps": 0,
+            "n": 65,
+            "accuracy_pct": 46.15,
+            "avg_steps_used": 1.46
+        },
+        {
+            "cot_steps": 1,
+            "n": 357,
+            "accuracy_pct": 63.31,
+            "avg_steps_used": 1.62
+        },
+        {
+            "cot_steps": 2,
+            "n": 364,
+            "accuracy_pct": 43.68,
+            "avg_steps_used": 2.51
+        },
+        {
+            "cot_steps": 3,
+            "n": 290,
+            "accuracy_pct": 25.17,
+            "avg_steps_used": 3.26
+        },
+        {
+            "cot_steps": 4,
+            "n": 138,
+            "accuracy_pct": 14.49,
+            "avg_steps_used": 3.27
+        },
+        {
+            "cot_steps": 5,
+            "n": 57,
+            "accuracy_pct": 7.02,
+            "avg_steps_used": 3.46
+        },
+        {
+            "cot_steps": 6,
+            "n": 21,
+            "accuracy_pct": 9.52,
+            "avg_steps_used": 3.81
+        },
+        {
+            "cot_steps": 7,
+            "n": 9,
+            "accuracy_pct": 22.22,
+            "avg_steps_used": 3.89
+        },
+        {
+            "cot_steps": null,
+            "n": 18,
+            "accuracy_pct": 22.22,
+            "avg_steps_used": 1.67
+        }
+    ]
+}

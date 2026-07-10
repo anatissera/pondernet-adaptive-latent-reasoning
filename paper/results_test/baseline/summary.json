@@ -1,0 +1,10 @@
+{
+    "accuracy_pct": 39.5,
+    "total_examples": 1319,
+    "avg_steps_used": null,
+    "max_latent_steps": 6,
+    "threshold": null,
+    "ckpt": "/tmp/claude-1000/-home-tpnlp-alr-valentino/cdb652e1-e1f4-4294-9f22-d55aa9bd6731/scratchpad/codi_ckpt_prepared",
+    "greedy": true,
+    "data_name": "gsm8k"
+}
