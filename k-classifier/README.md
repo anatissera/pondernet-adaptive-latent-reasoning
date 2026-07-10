@@ -57,7 +57,7 @@ decisions below. Raw numbers: `results/k_sweep_summary.csv`,
 `results/k_sweep_train_full_codi.jsonl`. Design analysis:
 [`docs/classifier-design.md`](docs/classifier-design.md).
 
-## Stage 2a: regression classifier over frozen embeddings
+## Stage 2a: classifier over frozen embeddings
 
 Design (full rationale in [`docs/classifier-design.md`](docs/classifier-design.md)):
 
@@ -69,6 +69,22 @@ Design (full rationale in [`docs/classifier-design.md`](docs/classifier-design.m
 - Labels: k_star(x) from the sweeps, joined to embeddings by example id.
 - Known asymmetry: underestimating k leaves answers wrong, overestimating only wastes
   compute, so the loss should penalize underestimation more.
+
+A deliberately simple **v1** (classic scikit-learn, multiclass as a cheap starting
+point) was built and evaluated:
+
+```bash
+python3 k-classifier/scripts/precompute_embeddings.py   # frozen MiniLM embeddings, cached
+python3 k-classifier/scripts/build_dataset.py           # join with k* labels, 80/20 split
+python3 k-classifier/scripts/train_classifier.py        # majority baseline + LogReg + RF
+```
+
+**Result: negative.** Neither logistic regression nor random forest (both
+class-balanced) beats the "always k=1" majority baseline on the internal validation
+split (n=1495): the RF collapses to the baseline exactly, and the LR trades accuracy
+for noise. The frozen sentence embedding carries no usable k* signal above the base
+rate. Details and next moves in
+[`docs/classifier-design.md`](docs/classifier-design.md) (v1 results section).
 
 ## Stage 2b: multi-output k classifier (DistilBERT)
 
@@ -124,6 +140,9 @@ scripts/run_k_sweep.py             # main sweep experiment
 scripts/smoke_model_load.py        # checks that the models load and generate
 scripts/prepare_gsm8k.py           # converts GSM8K to the expected format
 scripts/download_models.py         # downloads the required local weights
+scripts/precompute_embeddings.py   # frozen MiniLM embeddings (v1 classifier)
+scripts/build_dataset.py           # embeddings + k* labels -> train/val split
+scripts/train_classifier.py        # majority baseline + LogReg + RF (v1)
 scripts/build_k_classifier_dataset.py  # sweep results -> classifier dataset
 scripts/train_k_classifier.py      # trains the multi-output classifier
 scripts/predict_k.py               # single-prompt k prediction
