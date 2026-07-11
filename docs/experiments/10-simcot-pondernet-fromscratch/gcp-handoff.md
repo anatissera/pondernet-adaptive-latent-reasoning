@@ -1,7 +1,8 @@
 # exp-10 — GCP: the full 40-epoch from-scratch run on a Spot RTX PRO 6000
 
-**Status (2026-07-10):** **running.** `RESUME_MODE=scratch` — cold GPT-2, one continuous
-40-epoch cosine, ~40.4 h. Per-epoch test accuracy is scored on a second GPU in a second project.
+**Status (2026-07-11): complete.** 40/40 epochs trained and evaluated. Final accuracy
+**18.88%** on the GSM8K test set (vs. 39.5% SIM-CoT warm-start baseline) — see § Results below
+for the full curve and what it means. Both VMs are stopped.
 
 The plan changed once the hardware was measured. Resuming from the epoch-12 hand-off checkpoint
 was only ever attractive because 28 epochs on the L4 meant 13.5 days. At the measured
@@ -249,11 +250,56 @@ Two ordering hazards, both handled: a `.ready` marker is written *after* the wei
 single-object writes atomic, never multi-object ones), and the uploader waits for the file size
 to settle because HF creates the checkpoint directory before finishing the write.
 
-### Results
+### Results — run complete (40/40 epochs, 2026-07-11)
 
-| epoch | accuracy (test, 1319 ex) | avg latent steps | eval wall time |
-|---|---|---|---|
-| 1 | 6.22 % | 2.253 | 234 s |
+Training ran 38h 59m on the Spot RTX PRO 6000 (predicted 40.4h; no preemptions occurred, so
+the difference is measurement noise around the 1.01h/epoch estimate, not lost time). Every
+epoch was scored on the full 1319-example GSM8K test set at batch_size=1, K_max=12.
+
+**Headline: 18.88% final accuracy, vs. the 39.5% SIM-CoT warm-start baseline — the model
+converged to a plateau, it did not run out of epochs before converging.** Accuracy rose
+6.22% → ~19% over epochs 1-11, then held inside **17-19.8%** for all 30 remaining epochs
+(11-40), including the low-LR tail (36-40: 18.65/18.95/18.88/18.88%) where a late convergence
+push would show up if one were coming. None appeared. `avg_steps_used` stayed flat at ~2.2 of
+a K_max=12 budget for the entire run — the halting head is not spending more compute to buy
+the accuracy the warm-start run gets, so the ~20.6pp gap is attributable to what the SIM-CoT
+checkpoint's own ~40 epochs of pretraining contributed, which is exactly the confound exp-10
+was designed to isolate.
+
+Full per-epoch table (accuracy_pct, avg_steps_used from each epoch's `summary.json`):
+
+| epoch | accuracy | avg steps | | epoch | accuracy | avg steps |
+|---|---|---|---|---|---|---|
+| 1 | 6.22% | 2.253 | | 21 | 19.11% | 2.230 |
+| 2 | 9.33% | 2.053 | | 22 | 19.18% | 2.168 |
+| 3 | 12.13% | 1.996 | | 23 | 19.26% | 2.216 |
+| 4 | 12.36% | 2.067 | | 24 | 18.65% | 2.255 |
+| 5 | 13.87% | 2.279 | | 25 | 19.48% | 2.232 |
+| 6 | 14.86% | 2.059 | | 26 | 18.95% | 2.144 |
+| 7 | 16.00% | 2.124 | | 27 | 18.42% | 2.163 |
+| 8 | 15.16% | 2.275 | | 28 | 19.26% | 2.172 |
+| 9 | 17.06% | 2.144 | | 29 | 19.11% | 2.167 |
+| 10 | 18.35% | 2.281 | | 30 | 18.73% | 2.182 |
+| 11 | 19.03% | 2.219 | | 31 | 18.95% | 2.176 |
+| 12 | 18.27% | 2.179 | | 32 | 18.88% | 2.161 |
+| 13 | 17.74% | 2.246 | | 33 | 18.80% | 2.187 |
+| 14 | 19.41% | 2.274 | | 34 | 19.26% | 2.190 |
+| 15 | 17.74% | 2.275 | | 35 | 18.95% | 2.196 |
+| 16 | 16.91% | 2.177 | | 36 | 18.80% | 2.195 |
+| 17 | 19.79% | 2.171 | | 37 | 18.65% | 2.183 |
+| 18 | 18.95% | 2.195 | | 38 | 18.95% | 2.193 |
+| 19 | 19.11% | 2.124 | | 39 | 18.88% | 2.183 |
+| 20 | 18.50% | 2.203 | | 40 | 18.88% | 2.191 |
+
+Full curve: `results-curve.png`. Raw `summary.json`/`eval.log` per epoch, the full `train.log`,
+and the TensorBoard events are archived locally under `models/checkpoints/10-.../`,
+`outputs/10-.../`, `results/10-.../` (gitignored — not in this repo). The final checkpoint
+(`checkpoint-119960`, epoch 40, full with optimizer/scheduler/rng — 1.2 GB) was pulled to the
+same `models/checkpoints/` path before the VMs were stopped.
+
+Both cloud VMs (`alr-exp10-spot`, `alr-eval-l4`) are **STOPPED**, not deleted — their disks
+persist. Total eval cost: 40 epochs × ~234s ≈ 2.6h of on-demand L4 ≈ $2. Training cost: ~39h
+of Spot RTX PRO 6000.
 
 ## Scripts
 
