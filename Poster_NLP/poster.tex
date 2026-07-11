@@ -80,8 +80,8 @@ linewidth=2pt % Width of the border lines around content boxes
 %----------------------------------------------------------------------------------------
 %
 {\includegraphics[height=7em]{figures/UDESA.png}} % First university/lab logo on the left
-{\Large{Procesamiento del Lenguaje Natural - Universidad de San Andrés - 2026}\vspace{0.35cm}\\\huge\bf{Razonamiento latente adaptativo: \emph{halting} probabilístico tipo PonderNet sobre cadenas de pensamiento implícitas}\vspace{0.35cm}} % Poster title
-{Franco Amato de Lusarreta, Valentino Arbelaiz Alberti, Naomi Couriel, Juan Cruz Giner Pulero, Ana Paula Tissera} % Author names
+{\large{I400 - Procesamiento del Lenguaje Natural - Universidad de San Andrés - 2026}\vspace{0.3cm}\\\huge\bf{Razonamiento latente adaptativo: \emph{halting} probabilístico tipo PonderNet sobre cadenas de pensamiento implícitas}\vspace{0.3cm}} % Poster title
+{\normalsize Ana Paula Tissera, Valentino Arbelaiz Alberti, Franco Amato de Lusarreta, Naomi Couriel, Juan Cruz Giner Pulero} % Author names
 {} % Second university/lab logo on the right (empty)
 
 %----------------------------------------------------------------------------------------
@@ -90,43 +90,36 @@ linewidth=2pt % Width of the border lines around content boxes
 
 \headerbox{Introducción}{name=resumen,column=0,row=0}{
 
-\hspace*{0.5em} Los modelos de \emph{cadena de pensamiento latente} (Coconut, CODI, SIM-CoT) razonan encadenando vectores continuos en lugar de texto, a una fracción del costo del CoT explícito. Pero fijan de antemano el número de pasos latentes $K$ y lo aplican por igual a toda entrada: un problema de dos operaciones consume el mismo presupuesto que uno de seis. Este trabajo hace ese presupuesto \textbf{adaptativo por instancia}.
+\hspace*{0.5em} Los modelos de \emph{chain-of-thought latente} (Coconut, CODI, SIM-CoT) reemplazan el razonamiento en texto por vectores continuos, a un costo mucho menor que el de CoT explícito. Pero fijan de antemano el número de pasos latentes $K$ y el número de vectores por paso $c$, aplicándolos por igual a toda entrada: un problema de dos operaciones consume el mismo presupuesto que uno de seis. Este trabajo hace ese presupuesto \textbf{adaptativo por instancia}.
 }
 
 \headerbox{Objetivos}{name=objetivos,column=0,below=resumen}{
 
+\hspace*{0.5em} Hacer el presupuesto de razonamiento \textbf{adaptativo por instancia}, en tres frentes:
 \begin{itemize}[left=0.45em, rightmargin=0.6em]\compresslist
-  \item Verificar que el presupuesto óptimo \textbf{varía por instancia} (barrido oráculo sobre CODI).
-  \item Evaluar la \textbf{predicción \emph{upfront}} del presupuesto desde la consigna.
-  \item Hacer adaptativo el número de pasos $K$ con \textbf{\emph{halting} probabilístico tipo PonderNet} sobre SIM-CoT/CODI (aporte central).
-  \item Explorar el otro eje del presupuesto: el número de \textbf{vectores por paso} $c$.
-  \item Caracterizar la \textbf{frontera exactitud--cómputo} que el $K$ fijo no puede reportar.
+  \item Mostrar que el presupuesto óptimo \textbf{depende de la instancia} y ver si es predecible \emph{upfront} desde la consigna.
+  \item Hacer adaptativo el número de \textbf{pasos $K$} con \emph{halting} estilo PonderNet, y caracterizar la frontera entre accuracy y cómputo que un $K$ fijo no captura \textbf{(aporte principal)}.
+  \item Explorar el otro eje del presupuesto: los \textbf{vectores por paso $c$}.
 \end{itemize}
 }
 
 \headerbox{\textquestiondown Cuánto razonamiento?}{name=opciona,column=0,below=objetivos}{
 
-\hspace*{0.5em} Ejecutamos CODI variando $k \in \{1,\dots,8\}$ sobre $n{=}7473$ ejemplos y medimos $k^*$: el menor $k$ que alcanza el mejor puntaje de cada instancia.
+\hspace*{0.5em} Ejecutamos CODI variando $k \in \{1,\dots,8\}$ sobre $n{=}7473$ ejemplos y medimos $k^*$ (el menor $k$ que alcanza la mejor accuracy para cada instancia).
 
-\vspace{0.3em}
+
+\vspace{-0.5em}
 \begin{center}
-\small
-\setlength{\tabcolsep}{3.4pt}
-\begin{tabular}{lcccccccc}
-\toprule
-$k$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
-\midrule
-Exactitud & .41 & .43 & .48 & .58 & .64 & \textbf{.64} & .64 & .63 \\
-$k^*$ (\%) & \textbf{66} & 17 & 5 & 6 & 4 & 1 & $<$1 & $<$1 \\
-\bottomrule
-\end{tabular}
+\includegraphics[width=0.48\linewidth]{paperfigures/k_sweep_kstar.png}\hfill
+\includegraphics[width=0.48\linewidth]{paperfigures/k_sweep_accuracy.png}
 \end{center}
-\vspace{0.2em}
+\vspace{-0.5em}
 
-\hspace*{0.5em} La exactitud satura en $k{\approx}5$--$6$ ($+23$ puntos sobre $k{=}1$); el $k^*$ varía con fuerte desbalance. \textbf{Existe estructura explotable por un mecanismo adaptativo.}
+\hspace*{0.5em} La accuracy sube 23 puntos hasta $k\approx5$--$6$ y luego se estabiliza. Pero el óptimo $k^*$ está muy \textbf{desbalanceado} ($66$\,\% de las instancias resuelven con $k^*{=}1$): \textbf{existe margen para adaptar el presupuesto por instancia}.
 
-\vspace{0.3em}
-\hspace*{0.5em} \textbf{Resultado negativo:} un clasificador de $k^*$ sobre \emph{embeddings} congelados (MiniLM) no supera a la clase mayoritaria (el \emph{random forest} colapsa a la baseline, $0.661$; la regresión logística cae a $0.210$). La dificultad \textbf{no es legible \emph{upfront}}: la decisión debe tomarse \emph{durante} el razonamiento.
+\vspace{0.1em}
+\hspace*{0.5em}
+Un clasificador entrenado para predecir $k^*$ a partir de \emph{embeddings} congelados (MiniLM) no supera a la clase mayoritaria (RF: $0.661$; LR: $0.210$). La dificultad \textbf{no puede leerse \emph{upfront}}: hay que decidir \emph{durante} el razonamiento.
 }
 
 \headerbox{Referencias}{name=ref,column=0,below=opciona}{
@@ -135,6 +128,8 @@ $k^*$ (\%) & \textbf{66} & 17 & 5 & 6 & 4 & 1 & $<$1 & $<$1 \\
 
 \scriptsize
 \begin{thebibliography}{9}
+\setlength{\itemsep}{1.5pt}
+\setlength{\parskip}{0pt}
 
 \bibitem{hao2024coconut}
 Hao et al.
@@ -161,51 +156,30 @@ Banino, Balaguer y Blundell.
 
 \headerbox{Método: \emph{halting} adaptativo}{name=metodo,column=1}{
 
-\hspace*{0.5em} El modelo realimenta su último estado oculto como próxima entrada ($z_k$, ``pensamientos continuos''). Una única cabeza lineal de parada decide, en cada paso, si el razonamiento acumulado ya es suficiente para responder:
-
-\vspace{0.4em}
+\hspace*{0.5em} El modelo realimenta su último estado oculto como próxima entrada ($z_k$, ``pensamientos continuos''). Una única halting head lineal decide, en cada paso, si el razonamiento acumulado ya es suficiente para responder:
+\vspace{-0.2em}
 \begin{center}
-\resizebox{\linewidth}{!}{%
-\begin{tikzpicture}[>=stealth, font=\footnotesize,
-  tok/.style={rectangle, rounded corners=2pt, draw=udesa, fill=udesa!8, minimum height=2.1em, inner sep=4pt},
-  lat/.style={circle, draw=udesa, thick, fill=udesa!18, minimum size=2.1em, inner sep=1pt},
-  hlt/.style={rectangle, rounded corners=1pt, draw=gray!70, fill=gray!12, minimum height=1.5em, inner sep=2.5pt}]
-  \node[tok] (q) {pregunta $x$};
-  \node[lat, right=0.55cm of q] (z1) {$z_1$};
-  \node[lat, right=0.55cm of z1] (z2) {$z_2$};
-  \node[right=0.4cm of z2] (dots) {$\cdots$};
-  \node[lat, right=0.4cm of dots] (zk) {$z_k$};
-  \node[tok, right=0.55cm of zk] (a) {respuesta};
-  \draw[->, thick, udesa] (q) -- (z1);
-  \draw[->, thick, udesa] (z1) -- (z2);
-  \draw[->, thick, udesa] (z2) -- (dots);
-  \draw[->, thick, udesa] (dots) -- (zk);
-  \draw[->, thick, udesa] (zk) -- (a);
-  \node[hlt, below=0.5cm of z1] (l1) {$\lambda_1$};
-  \node[hlt, below=0.5cm of z2] (l2) {$\lambda_2$};
-  \node[hlt, below=0.5cm of zk] (lk) {$\lambda_k$};
-  \draw[->, gray!70] (z1) -- (l1);
-  \draw[->, gray!70] (z2) -- (l2);
-  \draw[->, gray!70] (zk) -- (lk);
-  \node[below=1.35cm of dots, text=udesa] (stop) {\textbf{detener cuando} $\sum_k p_k > 0.5$};
-\end{tikzpicture}
-}
+\includegraphics[width=\linewidth]{paperfigures/latent_reasoning_schematic.png}
 \end{center}
-\vspace{0.2em}
+\vspace{-0.1em}
 
-\hspace*{0.5em} Cada paso emite una probabilidad de parada condicional y una respuesta candidata se decodifica tras \textbf{cada} prefijo $k=1,\dots,K$, formando la distribución de parada de PonderNet (con frontera absorbente en $K$):
+\hspace*{0.5em} En cada paso, el modelo predice una probabilidad de parada condicional y se decodifica una respuesta candidata para cada prefijo $k=1,\dots,K$, formando la distribución de parada de PonderNet (con frontera absorbente en $K$):
 \vspace{-0.2cm}
+
+\vspace{-0.17cm}
 \[
   \lambda_k = \sigma\!\left(\texttt{halt\_head}(h_k)\right)
 \]
-\vspace{-0.75cm}
+\vspace{-0.6cm}
 \[
   p_k = \big(\textstyle\prod_{j<k}(1-\lambda_j)\big)\,\lambda_k .
 \]
 \vspace{-0.5cm}
 
-\hspace*{0.5em} El objetivo combina términos de los tres métodos: PonderNet (pérdida esperada + regularización KL), SIM-CoT (supervisión por paso) y CODI (destilación):
-\vspace{-0.2cm}
+\hspace*{0.5em} La función objetivo combina términos de los tres métodos: PonderNet (pérdida esperada + regularización KL), SIM-CoT (supervisión por paso) y CODI (losses de destilación):
+
+
+\vspace{-0.4cm}
 \[
   \mathcal{L} = \underbrace{\textstyle\sum_k p_k\,\mathcal{L}_{\text{ans}}^{(k)}}_{\mathcal{L}_{\text{ponder}}}
   + \beta\,\mathcal{L}_{\text{step}}
@@ -213,29 +187,31 @@ Banino, Balaguer y Blundell.
   + \mathcal{L}_{\text{distill}}
   + \mathcal{L}_{\text{ref}} .
 \]
-\vspace{-0.5cm}
+\vspace{-0.6cm}
 
 \begin{itemize}[left=0.45em, rightmargin=0.6em]\compresslist
   \item El peso $\gamma$ \textbf{controla el cómputo}: regula la influencia del prior geométrico y, con ella, cuánto se acorta la cadena de razonamiento.
-  \item Inferencia: se acumula la masa de parada y el bucle latente se detiene al superar un umbral (por defecto $0.5$); $K_{\max}$ actúa como límite superior.
-  \item Evaluación fiel del \emph{halting}: \texttt{batch\_size}$=1$.
+  \item En inferencia, el razonamiento se detiene cuando la masa acumulada de parada supera un umbral (por defecto $0.5$); $K_{\max}$ fija el límite superior.
 \end{itemize}
 }
 
+
+
 \headerbox{Prior geométrico por instancia}{name=prior,column=1,below=metodo}{
 
-\hspace*{0.5em} Un prior global impone el mismo presupuesto esperado a todos los problemas. Lo anclamos al número de operaciones $n_i$ de cada instancia:
-\vspace{-0.15cm}
+\hspace*{0.5em} En lugar de usar un prior geométrico global, hacemos que el presupuesto esperado dependa de cada instancia. Para ello, lo parametrizamos como una función afín del número de operaciones $n_i$:
+
+\vspace{-0.65cm}
 \[
   \texttt{geom\_mean}_i = \mathrm{clamp}\big(\alpha\, n_i + \beta,\; \beta,\; K_{\max}\big).
 \]
-\vspace{-0.55cm}
+\vspace{-0.85cm}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.64\textwidth]{ourfigures/step_distribution.png}
-    \caption{Distribución de $n_i$ en GSM8k-Aug ($\mu = 1.59$): más de la mitad tiene $n_i \le 1$; el mapeo afín evita un prior degenerado.}
-\end{figure}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{paperfigures/step_distribution.png}
+\end{center}
+\vspace{-0.35cm}
+{\footnotesize \textbf{Figura.} Distribución de $n_i$ en GSM8k-Aug ($\mu{=}1.59$).}
 }
 
 %----------------------------------------------------------------------------------------
@@ -245,10 +221,10 @@ Banino, Balaguer y Blundell.
 \headerbox{Configuración experimental}{name=setup,column=2}{
 
 \begin{itemize}[left=0.45em, rightmargin=0.6em]\compresslist
-  \item \textbf{Datos:} GSM8k-Aug (anotaciones paso a paso de Deng et al.); subconjuntos de 15k/100k para el barrido.
-  \item \textbf{Modelo:} GPT-2 (124M) + LoRA, \emph{warm-start} del checkpoint CODI de SIM-CoT (con su decoder auxiliar).
-  \item \textbf{Protocolo:} exactitud \emph{greedy}, una sola pasada, \texttt{batch\_size}$=1$, sobre el \textbf{test held-out de 1319 ejemplos} (la selección de modelo se hizo en validación disjunta).
-  \item \textbf{Baseline de $K$ fijo ($K{=}6$): 39.50\,\%.}
+  \item \textbf{Datos:} GSM8k-Aug (razonamiento paso a paso, Deng et al.; $\sim$385k ejemplos de \emph{train}). El tamaño de entrenamiento \textbf{varía según el experimento} (desde el \emph{train} completo hasta subconjuntos chicos); los modelos de la banda de resultados usan 100k ejemplos.
+  \item \textbf{Modelo:} GPT-2 (124M), inicializado desde el checkpoint CODI de SIM-CoT (\emph{warm-start}). Afinamos la \textbf{red completa} (no solo adaptadores) junto con la halting head, con un tope de $K_{\max}{=}12$ pasos latentes.
+  \item \textbf{Evaluación:} accuracy \emph{greedy}, una sola pasada y \texttt{batch\_size}$=1$, sobre el \textbf{test de 1319 ejemplos} nunca visto en entrenamiento. La epoch y el threshold de halt se eligieron en un set de validación aparte (500 ejemplos).
+  \item \textbf{Baseline ($K$ fijo $=6$): 39.50\,\%.}
 \end{itemize}
 }
 
@@ -272,47 +248,35 @@ warm $+$ gruesa & 25.5 & 36.6 & \textbf{40.3} & $+3.7$ \\
 \end{center}
 \vspace{0.2em}
 
-\hspace*{0.5em} Con pasos atómicos (una operación por paso) la exactitud \textbf{satura en $c{=}2$}: la parada adaptativa no supera a la aleatoria y no hay margen explotable. Con pasos gruesos (densidad variable) la señal reaparece (adaptativo $>$ aleatorio por $2.7\sigma$), aunque modesta. \textbf{La varianza de la tarea está en el número de pasos, no en la complejidad interna de cada paso.}
+\hspace*{0.5em} Con pasos atómicos (una operación por paso), la accuracy \textbf{satura en $c=2$}: la parada adaptativa no mejora sobre la aleatoria. Con pasos gruesos (densidad variable), la mejora reaparece (adaptativo $>$ aleatorio por $2.7\sigma$), aunque es pequeña. 
+
+\textbf{La variabilidad parece estar en el número de pasos, más que en la complejidad de cada paso.}
 }
 
 \headerbox{Conclusiones}{name=conclu,column=2,below=opcionb}{
 \vspace{0.1cm}
 \begin{itemize}[left=0.45em, rightmargin=0.6em]\compresslist
     \item El \emph{halting} aprendido \textbf{iguala al baseline de $K$ fijo} ($\approx 39.5$\,\% en test) recortando \textbf{cerca de la mitad de los pasos latentes} ($3.01$ vs.\ $6$).
-    \item Fuerte seguimiento de la dificultad: \textbf{Spearman $+0.675$} entre operaciones y pasos usados (test).
+    \item Fuerte seguimiento de la dificultad: \textbf{Spearman $+0.626$} entre operaciones y pasos usados (M2, test).
     \item Dos resultados negativos informativos: la dificultad no es legible \emph{upfront}; el eje $c$ no tiene margen en GSM8k-Aug.
-    \item A futuro: comparación justa desde cero (en curso), otros backbones y tareas.
+    \item A futuro: comparación justa entrenando GPT-2 \textbf{desde cero} (sin \emph{warm-start}, con el train completo y 40 épocas; en curso), otros backbones y tareas.
 \end{itemize}
-}
-
-\headerbox{Ejemplo cualitativo}{name=ejemplo,column=2,below=conclu}{
-
-\begin{center}
-% PLACEHOLDER: ejemplo cualitativo del halting en acción
-% (una instancia fácil que para en ~2 pasos vs una difícil que usa ~6,
-% con las probabilidades de parada por paso). Generar desde una corrida
-% de eval con batch_size=1 y reemplazar este recuadro.
-\fbox{\parbox[c][1.9cm][c]{0.92\textwidth}{\centering
-\small\textbf{[PLACEHOLDER correr]} Instancia fácil (para en $\sim$2 pasos) vs.\ difícil (usa $\sim$6), con las $\lambda_k$ por paso.
-}}
-\end{center}
 }
 
 %----------------------------------------------------------------------------------------
 %	Resultados (banda inferior, columnas 0-2, anclada al pie)
 %----------------------------------------------------------------------------------------
 
-\headerbox{Resultados en test ($n{=}1319$): mitad del cómputo, misma exactitud}{name=resultados,column=0,span=3,above=bottom}{
+\headerbox{Resultado principal: \emph{halting} adaptativo en test ($n{=}1319$): la mitad del cómputo, sin perder accuracy}{name=resultados,column=0,span=3,above=bottom}{
 
-\begin{minipage}[c]{0.21\textwidth}
+\begin{minipage}[c]{0.30\textwidth}
 \begin{center}
-\includegraphics[width=\textwidth]{ourfigures/poster_frontier.png}
-
-\small La frontera de M2: cada punto es el \emph{mismo} modelo con distinto umbral de parada.
+{\normalsize\textbf{Accuracy vs.\ cómputo}}\\[0.3em]
+\includegraphics[width=\textwidth]{paperfigures/poster_frontier_crop.png}
 \end{center}
 \end{minipage}%
 \hfill
-\begin{minipage}[c]{0.40\textwidth}
+\begin{minipage}[c]{0.37\textwidth}
 \begin{center}
 \small
 \begin{tabular}{lccc}
@@ -328,35 +292,22 @@ warm $+$ gruesa & 25.5 & 36.6 & \textbf{40.3} & $+3.7$ \\
 \end{tabular}
 
 \vspace{0.4em}
-\small \emph{Exactitud (\%) @ pasos latentes promedio}. M0/M1/M2 son el mismo modelo adaptativo con distinta intensidad $\gamma$ del regularizador y pendiente $\alpha$ del prior; baseline de $K$ fijo: $39.5$ @ $6.0$.
+\small \emph{Accuracy (\%) @ pasos latentes promedio}. M0/M1/M2 son el mismo modelo adaptativo con distinta intensidad $\gamma$ del regularizador y pendiente $\alpha$ del prior; baseline de $K$ fijo: $39.5$ @ $6.0$.
 \end{center}
 
 \vspace{0.6em}
-\hspace*{0.5em} \textbf{Lectura:} la exactitud es esencialmente plana ($\sim$39--40\,\%) entre configuraciones y umbrales; la elección del punto de operación es, entonces, una decisión de \emph{presupuesto de cómputo}. El punto de mínimo cómputo a paridad es \textbf{M2 a umbral $0.5$}: $39.9$\,\% con $3.01$ pasos, la \textbf{mitad} del baseline de $K$ fijo.
+\hspace*{0.5em} Todas las configuraciones alcanzan una accuracy similar ($\sim$39--40\,\%). M2 con umbral $0.5$ logra $39.9$\,\% usando solo $3.01$ pasos: \textbf{la mitad} del cómputo del baseline de $K$ fijo.
 \end{minipage}%
 \hfill
 \begin{minipage}[c]{0.28\textwidth}
 \begin{center}
-\begin{tikzpicture}
-  \begin{axis}[
-    width=\textwidth, height=5.4cm,
-    ybar, bar width=8pt,
-    xlabel={Operaciones ($n_{\text{expr}}$)},
-    ylabel={Pasos usados},
-    symbolic x coords={0,1,2,3,4,5+},
-    xtick=data, ymin=0, ymax=7,
-    tick label style={font=\footnotesize},
-    label style={font=\footnotesize},
-  ]
-    \addplot[fill=udesa!60, draw=udesa] coordinates {(0,2.08)(1,2.51)(2,3.66)(3,4.76)(4,4.86)(5+,5.5)};
-  \end{axis}
-\end{tikzpicture}
+\includegraphics[width=\textwidth]{paperfigures/joint_matrix_ap.png}
 
-\small Pasos promedio por dificultad (M1, umbral $0.5$, test; el grupo $5{+}$ promedia $5.2$--$5.8$). Spearman $= +0.675$: cómputo asignado por dificultad, no uniforme.
+\vspace{0.2em}
+\small Pasos usados vs.\ dificultad (M2, umbral $0.5$, test): la masa sigue la diagonal. \textbf{Spearman $= +0.626$}: el cómputo se asigna por dificultad, no de forma uniforme.
 \end{center}
 \end{minipage}
 }
-
 \end{poster}
 
 \end{document}
