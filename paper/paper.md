@@ -1,7 +1,19 @@
 # Consideraciones del paper
 
-Notas internas del equipo sobre qué se decide **mostrar** y **omitir** en `paper.tex`, y
-por qué. No forma parte del informe; es la memoria de las decisiones editoriales.
+Notas internas del equipo sobre qué se decide **mostrar** y **omitir** en `main.tex`
+(el informe), y por qué. No forma parte del informe; es la memoria de las decisiones
+editoriales.
+
+> **Actualización (2026-07-10).** El informe pasó a reportar el **conjunto de test
+> held-out (n=1319)**, no validación: se completó el TODO #1. El baseline de $K$ fijo se
+> re-evaluó en test (**39.50%**, greedy, K=6) y toda la frontera se reconcilió a test; los
+> puntos de operación se renombraron a **M0/M1/M2** (el mismo modelo adaptativo a tres
+> configuraciones de $\gamma$ y forma del prior). También se integró el formato ACL completo
+> con las tres direcciones (barrido oráculo + clasificador *upfront*, *halting*, y eje $c$) y
+> se insertó la figura de la distribución de pasos (TODO #2). Números crudos de test en
+> `results_test/frontier_test.md` y las carpetas `results_test/{M0,M1,M2,baseline}/`. Las
+> secciones que siguen son la memoria histórica de las decisiones y se conservan como estaban;
+> donde dicen "validación" o "40.80%", léase ya reemplazado por test / 39.50%.
 
 ## Qué se omite deliberadamente del paper
 
@@ -56,15 +68,15 @@ fijo") sale de nuestro propio experimento de baseline, no es inventado:
 
 ## TODOs pendientes
 
-- [ ] **Evaluar todos los modelos en `test`.** Hoy reportamos métricas de validación; no
-  deberíamos. Correr la evaluación final de los checkpoints seleccionados sobre un split de
-  `test` limpio (no usado para selección de hiperparámetros) y reemplazar las cifras del
-  paper (baseline 40.80%, frontera exp-08, Spearman +0.675, desglose por dificultad).
-- [ ] **Gráfico de la distribución de pasos de razonamiento en GSM8k-Aug.** Añadir una
-  figura con el histograma de `n_expr` (número de operaciones / pasos de la anotación) sobre
-  GSM8k-Aug, para justificar visualmente por qué el prior por instancia y el mapeo afín
-  (más de la mitad de ejemplos con `n_i <= 1`) tienen sentido.
+- [x] **Evaluar todos los modelos en `test`.** Hecho (2026-07-10): frontera, baseline de $K$
+  fijo (39.50%), Spearman y desglose por dificultad recomputados sobre el test held-out
+  (n=1319). Artefactos en `results_test/`.
+- [x] **Gráfico de la distribución de pasos de razonamiento en GSM8k-Aug.** Hecho: figura
+  `figures/step_distribution.png` insertada en la Sección de método (Figura~\ref{fig:stepdist}).
 - [ ] **Nota al pie: diferencia de reasoning steps entre `train` y `test`.** Agregar un
   footnote que cuantifique cuánto difiere la distribución de pasos de razonamiento entre el
   split de entrenamiento y el de test, para contextualizar la generalización del halting
   aprendido.
+- [ ] **Número final del experimento desde cero (Sección `fromscratch`).** El run de 40
+  épocas sobre GSM8k-Aug completo desde GPT-2 vanilla sigue en curso; el informe lo marca
+  como trabajo en curso hasta que exista el número.
