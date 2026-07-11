@@ -1,0 +1,189 @@
+<title>Pensar en el espacio latente</title>
+<style>
+  :root {
+    --page:   #ffffff;
+    --card:   #ffffff;
+    --ink:    #2f2f38;
+    --label:  #55555f;
+    --hair:   #dcdbe4;
+    --gray:   #8a897f;   /* explícito (texto discreto) */
+    --gray-fill: #eeece7;
+    --blue:   #444d8a;   /* latente (nuestro): indigo institucional del poster */
+    --blue-fill: #e7e8f2;
+    --blue-ink: #2e3566;
+    --orange: #b0485f;   /* cabeza de parada: frambuesa apagada (no naranja) */
+    --orange-fill: #f6e6ea;
+    --orange-ink: #8f3a4d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: "Palatino Linotype", "Book Antiqua", "URW Palladio L", Palatino, Georgia, "Times New Roman", serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 40px 28px 56px; }
+  .eyebrow {
+    font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--blue); font-weight: 700; margin: 0 0 10px;
+  }
+  h1 {
+    font-size: clamp(26px, 4vw, 40px); line-height: 1.08; margin: 0 0 12px;
+    font-weight: 800; text-wrap: balance; letter-spacing: -.01em;
+  }
+  .lede {
+    font-size: clamp(15px, 1.8vw, 18px); line-height: 1.5; color: var(--label);
+    max-width: 62ch; margin: 0 0 28px;
+  }
+  .figure {
+    background: var(--card); border: 1px solid var(--hair); border-radius: 16px;
+    padding: 20px 20px 8px; box-shadow: 0 1px 0 rgba(0,0,0,.02), 0 18px 40px -28px rgba(0,0,0,.25);
+    overflow-x: auto;
+  }
+  svg { width: 100%; height: auto; min-width: 860px; display: block; }
+  figcaption {
+    font-size: 13.5px; line-height: 1.5; color: var(--label);
+    margin: 14px 6px 10px; max-width: 90ch;
+  }
+  figcaption b { color: var(--ink); font-weight: 700; }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Razonamiento latente adaptativo</p>
+  <h1>Pensar en el espacio latente</h1>
+  <p class="lede">
+    El mismo problema, dos formas de razonar. Arriba, la cadena de pensamiento
+    <b>explícita</b>: cada paso se escribe como texto. Abajo, el razonamiento
+    <b>latente</b>: una cadena de vectores continuos que nunca se decodifican, y una
+    cabeza de halting que decide sola cuándo terminar.
+  </p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 1180 726" role="img"
+         aria-label="Diagrama: cadena de pensamiento explícita en texto versus razonamiento latente con vectores z y cabeza de halting.">
+      <defs>
+        <marker id="ah-gray" markerWidth="10" markerHeight="10" refX="7.5" refY="4"
+                orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#8a897f"/>
+        </marker>
+        <marker id="ah-blue" markerWidth="10" markerHeight="10" refX="7.5" refY="4"
+                orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#444d8a"/>
+        </marker>
+        <marker id="ah-ink" markerWidth="10" markerHeight="10" refX="7.5" refY="4"
+                orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#52514e"/>
+        </marker>
+      </defs>
+
+      <!-- ============ ENTRADA COMPARTIDA ============ -->
+      <g>
+        <rect x="34" y="286" width="212" height="120" rx="12"
+              fill="#faf9f6" stroke="#c9c8be"/>
+        <text x="50" y="314" font-size="12.5" letter-spacing="1.5" fill="#8a897f" font-weight="700">PROBLEMA</text>
+        <text x="50" y="346" font-size="16" fill="#33322f" font-weight="600">12 cajas de 3 lápices</text>
+        <text x="50" y="370" font-size="16" fill="#33322f" font-weight="600">y 9 cajas de 2.</text>
+        <text x="50" y="394" font-size="16" fill="#33322f" font-weight="600">¿Cuántos en total?</text>
+      </g>
+      <!-- ramas hacia los dos carriles -->
+      <path d="M246,332 C280,300 280,190 300,158" fill="none" stroke="#8a897f"
+            stroke-width="2" marker-end="url(#ah-gray)"/>
+      <path d="M246,360 C280,392 280,470 300,486" fill="none" stroke="#444d8a"
+            stroke-width="2" marker-end="url(#ah-blue)"/>
+
+      <!-- ============ CARRIL EXPLÍCITO (arriba) ============ -->
+      <text x="300" y="50" font-size="17" letter-spacing="1.2" fill="#8a897f" font-weight="800">CADENA DE PENSAMIENTO EXPLÍCITA</text>
+      <text x="300" y="76" font-size="15" fill="#8a897f">cada paso se genera como texto — tokens discretos, longitud fija</text>
+
+      <!-- pasos de texto -->
+      <g font-size="19" font-weight="600" fill="#4a4945" text-anchor="middle">
+        <rect x="300" y="116" width="150" height="76" rx="9" fill="#eeece7" stroke="#c3c2b7"/>
+        <text x="375" y="161">12 × 3 = 36</text>
+        <rect x="486" y="116" width="150" height="76" rx="9" fill="#eeece7" stroke="#c3c2b7"/>
+        <text x="561" y="161">9 × 2 = 18</text>
+        <rect x="672" y="116" width="164" height="76" rx="9" fill="#eeece7" stroke="#c3c2b7"/>
+        <text x="754" y="161">36 + 18 = 54</text>
+      </g>
+      <!-- flechas explícitas -->
+      <g stroke="#8a897f" stroke-width="2.2" fill="none">
+        <line x1="452" y1="154" x2="482" y2="154" marker-end="url(#ah-gray)"/>
+        <line x1="638" y1="154" x2="668" y2="154" marker-end="url(#ah-gray)"/>
+        <line x1="838" y1="154" x2="884" y2="154" marker-end="url(#ah-ink)"/>
+      </g>
+      <!-- respuesta explícita -->
+      <rect x="888" y="116" width="132" height="76" rx="9" fill="#33322f"/>
+      <text x="954" y="146" font-size="12.5" letter-spacing="1" fill="#cfcfc9" text-anchor="middle" opacity=".85">RESPUESTA</text>
+      <text x="954" y="176" font-size="27" fill="#ffffff" font-weight="800" text-anchor="middle">54</text>
+
+      <!-- ============ CARRIL LATENTE (abajo) ============ -->
+      <text x="300" y="402" font-size="17" letter-spacing="1.2" fill="#2e3566" font-weight="800">RAZONAMIENTO LATENTE</text>
+      <text x="300" y="428" font-size="15" fill="#444d8a">vectores continuos zₖ, realimentados — nunca se decodifican a texto</text>
+
+      <!-- vectores z_k -->
+      <g>
+        <!-- z1 -->
+        <rect x="300" y="450" width="150" height="76" rx="12" fill="#e7e8f2" stroke="#444d8a"/>
+        <g fill="#444d8a"><rect x="322" y="500" width="7" height="14" rx="2"/><rect x="333" y="490" width="7" height="24" rx="2"/><rect x="344" y="496" width="7" height="18" rx="2"/><rect x="355" y="486" width="7" height="28" rx="2"/><rect x="366" y="502" width="7" height="12" rx="2"/></g>
+        <text x="414" y="499" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="33" fill="#2e3566" text-anchor="middle">z₁</text>
+        <!-- z2 -->
+        <rect x="486" y="450" width="150" height="76" rx="12" fill="#e7e8f2" stroke="#444d8a"/>
+        <g fill="#444d8a"><rect x="508" y="498" width="7" height="16" rx="2"/><rect x="519" y="488" width="7" height="26" rx="2"/><rect x="530" y="502" width="7" height="12" rx="2"/><rect x="541" y="492" width="7" height="22" rx="2"/><rect x="552" y="500" width="7" height="14" rx="2"/></g>
+        <text x="600" y="499" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="33" fill="#2e3566" text-anchor="middle">z₂</text>
+        <!-- z3 -->
+        <rect x="672" y="450" width="164" height="76" rx="12" fill="#e7e8f2" stroke="#444d8a"/>
+        <g fill="#444d8a"><rect x="694" y="494" width="7" height="20" rx="2"/><rect x="705" y="486" width="7" height="28" rx="2"/><rect x="716" y="498" width="7" height="16" rx="2"/><rect x="727" y="490" width="7" height="24" rx="2"/><rect x="738" y="500" width="7" height="14" rx="2"/></g>
+        <text x="794" y="499" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="33" fill="#2e3566" text-anchor="middle">z₃</text>
+      </g>
+      <!-- flechas latentes -->
+      <g stroke="#444d8a" stroke-width="2.2" fill="none">
+        <line x1="452" y1="488" x2="482" y2="488" marker-end="url(#ah-blue)"/>
+        <line x1="638" y1="488" x2="668" y2="488" marker-end="url(#ah-blue)"/>
+        <line x1="838" y1="488" x2="884" y2="488" marker-end="url(#ah-ink)"/>
+      </g>
+      <!-- respuesta latente -->
+      <rect x="888" y="450" width="132" height="76" rx="9" fill="#33322f"/>
+      <text x="954" y="480" font-size="12.5" letter-spacing="1" fill="#cfcfc9" text-anchor="middle" opacity=".85">RESPUESTA</text>
+      <text x="954" y="510" font-size="27" fill="#ffffff" font-weight="800" text-anchor="middle">54</text>
+
+      <!-- ============ CABEZA DE HALTING ============ -->
+      <!-- conectores punteados z_k -> cabeza -->
+      <g stroke="#b0485f" stroke-width="1.8" stroke-dasharray="4 4" fill="none" opacity=".9">
+        <line x1="375" y1="526" x2="375" y2="572"/>
+        <line x1="561" y1="526" x2="561" y2="572"/>
+        <line x1="754" y1="526" x2="754" y2="572"/>
+      </g>
+      <!-- λ_k por paso, sobre cada conector punteado -->
+      <g font-family="Georgia, 'Times New Roman', serif" font-size="17" fill="#8f3a4d" text-anchor="start" font-style="italic">
+        <text x="386" y="556">λ₁ = 0.1</text>
+        <text x="572" y="556">λ₂ = 0.3</text>
+        <text x="765" y="556">λ₃ = 0.9</text>
+      </g>
+      <rect x="300" y="572" width="536" height="92" rx="12" fill="#f6e6ea" stroke="#b0485f"/>
+      <text x="320" y="602" font-size="16" letter-spacing="1.2" fill="#8f3a4d" font-weight="800">CABEZA DE HALTING</text>
+      <text x="320" y="628" font-size="14.5" fill="#8f3a4d" font-style="italic">λₖ: probabilidad de parar en el paso k</text>
+      <text x="320" y="650" font-size="14.5" fill="#8f3a4d">detiene cuando la masa de parada acumulada ≥ umbral</text>
+      <!-- disparo de parada hacia la respuesta -->
+      <path d="M836,606 C866,606 866,544 884,512" fill="none" stroke="#b0485f"
+            stroke-width="2.2" marker-end="url(#ah-ink)"/>
+
+      <!-- ============ CLAVE (leyenda) ============ -->
+      <g font-size="14.5" fill="#52514e">
+        <rect x="300" y="690" width="17" height="17" rx="4" fill="#eeece7" stroke="#c3c2b7"/>
+        <text x="326" y="703">paso explícito (texto)</text>
+        <rect x="504" y="690" width="17" height="17" rx="4" fill="#e7e8f2" stroke="#444d8a"/>
+        <text x="530" y="703">vector latente zₖ</text>
+        <rect x="694" y="690" width="17" height="17" rx="4" fill="#f6e6ea" stroke="#b0485f"/>
+        <text x="720" y="703">cabeza de halting</text>
+      </g>
+    </svg>
+
+    <figcaption>
+      Ambas rutas resuelven el mismo problema y llegan a la <b>misma respuesta</b>.
+      La ruta explícita gasta un paso de texto por operación; la latente comprime cada
+      paso en un vector continuo <b>zₖ</b> y una <b>cabeza de halting</b> corta el bucle
+      en cuanto la masa de parada acumulada cruza un umbral — gastando cómputo según la
+      dificultad, no un presupuesto fijo.
+    </figcaption>
+  </figure>
+</div>

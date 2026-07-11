@@ -1,0 +1,102 @@
+% ------------------------------------------------------------------
+%  Esquema: "Pensar en el espacio latente" — CoT explícito vs latente + halting.
+%
+%  Figura NATIVA del informe: TikZ + Times (casa con \usepackage{times} del ACL) +
+%  la paleta indigo/frambuesa de la casa. Compacta, sin texto de mas.
+%
+%  Inclusión (una sola vez, dentro del documento):
+%      \input{figures/latent_reasoning_schematic.tex}
+%
+%  Requiere en el PREÁMBULO de main.tex (pgfplots ya carga tikz):
+%      \usetikzlibrary{arrows.meta}
+%
+%  Va como figura de doble columna (figure*) porque es apaisada.
+% ------------------------------------------------------------------
+\definecolor{lrGray}{HTML}{8A897F}
+\definecolor{lrBlue}{HTML}{444D8A}
+\definecolor{lrBlueDk}{HTML}{2E3566}
+\definecolor{lrRasp}{HTML}{B0485F}
+\definecolor{lrRaspDk}{HTML}{8F3A4D}
+\definecolor{lrInk}{HTML}{33322F}
+\definecolor{lrLabel}{HTML}{6A6A66}
+
+\begin{figure*}[t]
+  \centering
+  \begin{tikzpicture}[
+      font=\rmfamily,
+      >={Latex[length=2.2mm]},
+      box/.style={rounded corners=3pt, minimum width=2.35cm, minimum height=1.0cm,
+                  align=center},
+      stepbox/.style={box, draw=lrGray!55, fill=black!5, text=black!78,
+                   font=\normalsize},
+      zb/.style={box, draw=lrBlue, line width=0.8pt, fill=lrBlue!8},
+      ans/.style={rounded corners=3pt, fill=lrInk, text=white,
+                  minimum width=1.5cm, minimum height=1.0cm, font=\large\bfseries},
+      title/.style={anchor=west, font=\scshape\bfseries},
+      sub/.style={anchor=west, font=\footnotesize\itshape, text=lrLabel},
+      lam/.style={anchor=north, font=\footnotesize, text=lrRaspDk},
+    ]
+
+    % ---------- entrada compartida (izquierda, centrada) ----------
+    \node[rounded corners=4pt, draw=black!28, fill=black!3, align=left,
+          text width=2.5cm, inner sep=6pt, minimum height=1.5cm] (prob) at (0.7,0)
+      {{\footnotesize\bfseries\color{lrGray}PROBLEMA}\\[3pt]
+       {\small 12 cajas de 3 y 9 de 2. ¿Total?}};
+
+    % ---------- carril explícito (arriba) ----------
+    \node[title, text=lrGray]     at (3.1,2.45) {Cadena de pensamiento explícita};
+    \node[sub]                    at (3.1,2.08) {texto discreto · presupuesto fijo};
+
+    \node[stepbox] (e1) at (4.3,1.35)  {$12\times 3$};
+    \node[stepbox] (e2) at (7.2,1.35)  {$9\times 2$};
+    \node[stepbox] (e3) at (10.1,1.35) {$36+18$};
+    \node[ans]  (ea) at (12.7,1.35) {54};
+
+    \draw[->,lrGray] (e1)--(e2);
+    \draw[->,lrGray] (e2)--(e3);
+    \draw[->,lrInk]  (e3)--(ea);
+
+    % ---------- carril latente (abajo) ----------
+    \node[title, text=lrBlueDk] at (3.1,-0.30) {Razonamiento latente};
+    \node[sub]                  at (3.1,-0.67) {vectores continuos · presupuesto adaptativo};
+
+    \node[zb] (z1) at (4.3,-1.55)  {};
+    \node[zb] (z2) at (7.2,-1.55)  {};
+    \node[zb] (z3) at (10.1,-1.55) {};
+    \node[ans](za) at (12.7,-1.55) {54};
+
+    % etiqueta z_k + glifo de vector (barras) dentro de cada caja
+    \foreach \n/\lbl in {z1/1, z2/2, z3/3}{
+      \node[text=lrBlueDk, font=\large\itshape] at ([xshift=6mm]\n.center) {$z_{\lbl}$};
+      \foreach \dx/\h in {-9mm/2.0mm, -7.7mm/3.6mm, -6.4mm/2.6mm, -5.1mm/4.2mm, -3.8mm/1.6mm}
+        \fill[lrBlue] ([xshift=\dx, yshift=-3mm]\n.center) rectangle ++(0.8mm,\h);
+    }
+
+    \draw[->,lrBlue] (z1)--(z2);
+    \draw[->,lrBlue] (z2)--(z3);
+    \draw[->,lrInk]  (z3)--(za);
+
+    % ---------- cabeza de halting (una sola linea, compacta) ----------
+    \node[rounded corners=5pt, draw=lrRasp, line width=0.8pt, fill=lrRasp!10,
+          anchor=north, minimum width=8.1cm, minimum height=0.95cm, inner sep=6pt,
+          text=lrRaspDk] (halt) at (7.2,-2.55)
+      {{\bfseries Cabeza de halting} \; corta cuando $\sum_{j\le k}\lambda_j \ge \tau$};
+
+    \foreach \n/\lam in {z1/{\lambda_1{=}0.1}, z2/{\lambda_2{=}0.3}, z3/{\lambda_3{=}0.9}}{
+      \draw[lrRasp, dashed, line width=0.7pt] (\n.south) -- (\n.south|-halt.north);
+      \node[lam, anchor=west] at ([xshift=1.3mm, yshift=-2.6mm]\n.south) {$\lam$};
+    }
+    \draw[->,lrRasp] (halt.east) to[out=0,in=-90] (za.south);
+
+    % ---------- ramas: entrada -> carriles ----------
+    \draw[->,lrGray] (prob.east) to[out=32, in=180] (e1.west);
+    \draw[->,lrBlue] (prob.east) to[out=-32,in=180] (z1.west);
+
+  \end{tikzpicture}
+  \caption{\textbf{Pensar en el espacio latente.} El mismo problema por dos vías. La
+  \emph{explícita} escribe cada paso como texto (presupuesto fijo); la \emph{latente}
+  encadena vectores continuos $z_k$ que nunca se decodifican, y una cabeza de halting
+  corta la cadena en cuanto la masa de parada acumulada cruza un umbral $\tau$
+  --- gastando cómputo según la dificultad.}
+  \label{fig:latent-schematic}
+\end{figure*}
