@@ -1,0 +1,123 @@
+{
+    "accuracy_pct": 40.03,
+    "total_examples": 1319,
+    "avg_steps_used": 4.457,
+    "max_latent_steps": 12,
+    "threshold": 0.5,
+    "ckpt": "/home/tpnlp/alr-valentino/models/checkpoints/07-simcot-pondernet-fullscope-prior/fullscope-adaptive-g0.05-b1.5-k12-ep5/default/gpt2/ep_5/lr_2e-05/seed_42/checkpoint-3890",
+    "greedy": true,
+    "data_name": "gsm8k",
+    "by_steps_used": [
+        {
+            "steps_used": 1,
+            "n": 62,
+            "accuracy_pct": 50.0
+        },
+        {
+            "steps_used": 2,
+            "n": 233,
+            "accuracy_pct": 65.24
+        },
+        {
+            "steps_used": 3,
+            "n": 160,
+            "accuracy_pct": 43.12
+        },
+        {
+            "steps_used": 4,
+            "n": 203,
+            "accuracy_pct": 38.42
+        },
+        {
+            "steps_used": 5,
+            "n": 237,
+            "accuracy_pct": 37.97
+        },
+        {
+            "steps_used": 6,
+            "n": 215,
+            "accuracy_pct": 28.84
+        },
+        {
+            "steps_used": 7,
+            "n": 126,
+            "accuracy_pct": 22.22
+        },
+        {
+            "steps_used": 8,
+            "n": 55,
+            "accuracy_pct": 18.18
+        },
+        {
+            "steps_used": 9,
+            "n": 21,
+            "accuracy_pct": 33.33
+        },
+        {
+            "steps_used": 10,
+            "n": 4,
+            "accuracy_pct": 0.0
+        },
+        {
+            "steps_used": 11,
+            "n": 3,
+            "accuracy_pct": 33.33
+        }
+    ],
+    "by_cot_steps": [
+        {
+            "cot_steps": 0,
+            "n": 65,
+            "accuracy_pct": 47.69,
+            "avg_steps_used": 2.37
+        },
+        {
+            "cot_steps": 1,
+            "n": 357,
+            "accuracy_pct": 62.18,
+            "avg_steps_used": 2.89
+        },
+        {
+            "cot_steps": 2,
+            "n": 364,
+            "accuracy_pct": 45.05,
+            "avg_steps_used": 4.36
+        },
+        {
+            "cot_steps": 3,
+            "n": 290,
+            "accuracy_pct": 27.59,
+            "avg_steps_used": 5.71
+        },
+        {
+            "cot_steps": 4,
+            "n": 138,
+            "accuracy_pct": 13.77,
+            "avg_steps_used": 5.91
+        },
+        {
+            "cot_steps": 5,
+            "n": 57,
+            "accuracy_pct": 8.77,
+            "avg_steps_used": 6.61
+        },
+        {
+            "cot_steps": 6,
+            "n": 21,
+            "accuracy_pct": 4.76,
+            "avg_steps_used": 7.1
+        },
+        {
+            "cot_steps": 7,
+            "n": 9,
+            "accuracy_pct": 22.22,
+            "avg_steps_used": 7.11
+        },
+        {
+            "cot_steps": null,
+            "n": 18,
+            "accuracy_pct": 22.22,
+            "avg_steps_used": 2.56
+        }
+    ]
+}

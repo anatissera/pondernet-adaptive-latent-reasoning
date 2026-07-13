@@ -1,0 +1,313 @@
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[final]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+% Improves layout and typography
+\usepackage{microtype}
+% Typewriter font
+\usepackage{inconsolata}
+% Images
+\usepackage{graphicx}
+
+% Added for this manuscript
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta}
+\usepackage[english]{babel}
+
+\title{Adaptive Latent Reasoning: PonderNet-style Probabilistic \textit{Halting} over Implicit Chains of Thought}
+
+\author{Valentino Arbelaiz Alberti\\
+  \texttt{varbelaizalberti@udesa.edu.ar} \\\And
+  Ana Paula Tissera \\
+  \texttt{atissera@udesa.edu.ar} \\\AND
+  Franco Amato de Lusarreta \\
+  \texttt{famatodelusarreta@udesa.edu.ar} \\\And
+  Juan Cruz Giner Pulero \\
+  \texttt{jginer@udesa.edu.ar} \\\AND
+  Naomi Couriel  \\
+  \texttt{ncouriel@udesa.edu.ar} \\}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\emph{Latent chain-of-thought} reasoning models replace natural-language reasoning steps with a sequence of continuous vectors, but they fix their compute budget in advance (how many latent steps $K$ to run and how many vectors $c$ represent each step) and apply it uniformly to every input: a two-step addition problem consumes the same budget as a six-step algebraic one. This work studies how to make that budget \textbf{instance-adaptive} along the Coconut $\rightarrow$ CODI $\rightarrow$ SIM-CoT line, organizing the exploration of its two axes into three studies. A first study (\emph{upfront} prediction) verifies the premise with an oracle sweep over CODI (the optimal step budget exists, varies per instance, and is strongly imbalanced), but shows that anticipating it \emph{before} reasoning does not beat the majority class (a classifier over frozen prompt embeddings). Adaptive \emph{halting} attacks the $K$ axis \emph{during} reasoning: it grafts PonderNet's probabilistic \textit{halting} mechanism, where a \textit{halting} head defines a termination distribution over prefixes and a KL regularizer toward a per-instance geometric prior calibrates the budget. On GSM8k with a GPT-2 backbone, evaluating on the held-out test set, the adaptive model matches the fixed-$K$ baseline accuracy ($\approx 39.5\%$) while cutting nearly half ($\sim 50\%$) of the latent steps, with strong difficulty tracking (Spearman correlation of $+0.626$); we thus characterize the \textbf{accuracy--compute frontier} that prior work, tied to a single $K$, never reported. A third study explores the $c$ axis and finds that it has almost no exploitable headroom on GSM8k-Aug (accuracy saturates at $c{=}2$ almost uniformly). The robust result is \textbf{compute adaptivity}: at parity accuracy, the model allocates fewer steps to easy problems and more to hard ones.
+\end{abstract}
+
+\section{Introduction}
+
+Explicit \emph{chain-of-thought} (CoT) improves the reasoning of language models by generating intermediate steps in text \citep{wei2022cot}, but it pays a cost: each step is decoded token by token over the vocabulary, and most of those tokens exist only for fluency. \emph{Latent reasoning} (or implicit CoT) removes that cost by performing the reasoning in a continuous space: instead of projecting the hidden state to a token and converting it back into an embedding, the model feeds its last hidden state directly as the next input embedding, producing a sequence of ``continuous thoughts'' that are never decoded to text \citep{hao2024coconut}. This family of methods (Coconut \citep{hao2024coconut}, CODI \citep{shen2025codi}, and SIM-CoT \citep{wei2025simcot}) reaches the accuracy of explicit CoT at a fraction of the inference cost.
+
+All of them, however, share a structural limitation: the number of latent steps $K$ is a \textbf{fixed hyperparameter}, identical for every input. A two-step addition problem and a six-step algebraic one consume exactly the same reasoning budget. This wastes compute on easy inputs and may fall short on hard ones. The premise that compute should scale with difficulty (not with input size) is precisely what motivates the \emph{adaptive computation time} literature \citep{graves2016act} and, in particular, PonderNet \citep{banino2021pondernet}, which learns a termination distribution over the steps of a recurrent computation.
+
+The latent budget has two axes: how many reasoning steps to run ($K$) and how many vectors represent each step ($c$). We organize the work into three studies that sweep that space and converge on one reading: adaptivity cannot be read from the prompt (\emph{upfront} prediction), nor does it live in the width of the step ($c$ axis), but rather in the \emph{number} of steps, decided while the model reasons (adaptive \emph{halting}). The latter, \emph{halting} over the CODI/SIM-CoT loop, is our central contribution. Our contributions, one per study, are:
+
+\begin{enumerate}
+  \item \textbf{\textit{Upfront} prediction ($K$ axis).} An oracle sweep confirms the premise (the optimal budget $k^*$ exists, varies per instance, and saturates), but predicting it from frozen prompt embeddings does not beat the majority class: an informative negative result (Section~\ref{sec:modA}).
+  \item \textbf{Adaptive halting ($K$ axis, online).} We graft PonderNet's \textit{halting} onto the CODI/SIM-CoT latent loop, with a per-instance geometric prior anchored to the number of operations, and characterize the accuracy--compute frontier that fixed $K$ cannot trace (Section~\ref{sec:modB}).
+  \item \textbf{The $c$ axis (vectors per step).} The adaptive mechanism works, but the required $c$ is almost constant on GSM8k-Aug: a second negative that bounds the design space (Section~\ref{sec:modC}).
+\end{enumerate}
+
+We frame the result honestly: the accuracy gains over the fixed-$K$ baseline are within the noise. The robust and reproducible result is \textbf{compute adaptivity}: at parity accuracy, the model allocates fewer steps to easy problems and more to hard ones.
+
+\section{Related Work}
+
+\paragraph{Implicit CoT.} \textbf{Coconut} \citep{hao2024coconut} proposes reasoning in a continuous latent space by feeding the last hidden state as the next input, and observes that a single continuous thought can encode several alternative continuations at once (a BFS-like search). It is trained with a multi-stage curriculum that progressively replaces language steps with continuous thoughts, but it suffers \emph{catastrophic forgetting} between stages and collapses as the number of latents grows. \textbf{CODI} \citep{shen2025codi} removes the curriculum with a \emph{single-stage self-distillation}: it jointly trains a teacher task (explicit CoT) and a student (continuous thoughts) and aligns their hidden states at a single \emph{distillation token} (the position just before the answer), with a \textit{stop-gradient} on the teacher. It is the first implicit CoT to match explicit CoT at GPT-2 scale. \textbf{SIM-CoT} \citep{wei2025simcot} diagnoses that the instability when scaling $K$ comes from the \emph{homogenization} of the latents due to the lack of per-step supervision, and adds an \emph{auxiliary decoder} that reconstructs the text of each reasoning step during training; the decoder is discarded at inference, so there is no added cost. It stabilizes training up to $K=8$. In all three methods, however, $K$ remains \textbf{fixed} at inference.
+
+\paragraph{Adaptive computation.} \textbf{ACT} \citep{graves2016act} introduces adaptive computation in recurrent networks through a \textit{halting} unit, with biased gradients and hyperparameter-sensitive behavior. \textbf{PonderNet} \citep{banino2021pondernet} reformulates it probabilistically: a geometric termination distribution over the steps, optimized with an expected loss plus a KL regularization toward a geometric prior. It was not designed for language models or for sequences of latent tokens, but its learned \textit{halting} mechanism is the natural component for making the number of steps dynamic in the implicit-CoT family. Our work performs that graft. An alternative to learned \textit{halting} is an \emph{auxiliary controller or classifier} that predicts the budget from the input or the hidden state; we evaluate the simplest version of that family (\textit{upfront} prediction from the prompt) in Section~\ref{sec:modA}, with a negative result.
+
+\section{Preliminaries: the latent loop and the experimental protocol}
+\label{sec:setup}
+
+\paragraph{The fixed-$K$ latent loop.} All three studies extend the same latent-CoT mechanism. Starting from the prefix of question embeddings $U^{(0)} = (e(x_1),\dots,e(x_T))$, the model runs $K$ reasoning steps; at each step $k = 1,\dots,K$ it takes the last-layer hidden state at the last position and feeds it back as the next input:
+\begin{equation}
+  z_k = H_\theta\!\left(U^{(k-1)}\right), \qquad
+  U^{(k)} = U^{(k-1)} \oplus z_k,
+  \label{eq:latentloop}
+\end{equation}
+where $\oplus$ concatenates along the time axis. After $K$ steps, the model switches to decoding over the vocabulary and produces the answer. The crucial point is that $K$ is fixed in advance and identical for every input: it is the rigidity that adaptive \textit{halting} (Section~\ref{sec:modB}) makes dynamic. The three studies share this loop, the data, and the backbone; they differ only in the evaluation protocol, which each one states separately.
+
+\paragraph{Data and backbone.} All experiments use GSM8k \citep{cobbe2021gsm8k} with the augmented step-by-step internalization annotations of \citet{deng2024icot} (GSM8k-Aug), and a GPT-2 (124M) backbone \citep{radford2019gpt2}.\footnote{The distributions of the number of reasoning steps differ across splits: validation and test examples have, on average, fewer annotated steps than training examples.} \textit{Upfront} prediction (oracle sweep and classifier) works on GSM8k training examples with an internal validation split, whereas adaptive \textit{halting} and the $c$ axis report on the same GSM8k test set (the $1319$ held-out examples). The figures for the latter two are therefore directly comparable to each other; those of \textit{upfront} prediction, measured on training with internal validation, are not. Each study is, in any case, internally consistent.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/step_distribution.png}
+  \caption{Distribution of the number of annotated reasoning steps $n_i$ in GSM8k-Aug (mean $\mu = 1.59$; more than half of the examples have $n_i \le 1$).}
+  \label{fig:stepdist}
+\end{figure}
+
+\section{Anticipating the budget: \textit{upfront} prediction from the prompt}
+\label{sec:modA}
+
+Before building an adaptive mechanism it is worth verifying that there is something to adapt. This first study attacks the $K$ axis in the most direct way: an \emph{oracle sweep} that measures how much budget each instance really needs, and an auxiliary classifier that tries to predict it in advance from the prompt, following the pipeline \emph{prompt $\rightarrow$ classifier $\rightarrow$ $\hat{k}$ $\rightarrow$ the model reasons with $\hat{k}$ steps}. The whole study is evaluated on GSM8k training examples with an internal validation split, not on the held-out test set of adaptive \textit{halting} (Section~\ref{sec:modB}).
+
+\subsection{Oracle sweep: the premise is confirmed}
+\label{sec:ksweep}
+
+We run CODI repeatedly over the same examples, varying the number of latent steps $k \in \{1,\dots,8\}$, and for each instance we define $k^*$ as the \emph{smallest} $k$ that reaches its best score (the minimal sufficient budget). Over $n{=}7473$ GSM8k training examples, Table~\ref{tab:ksweep} shows two facts. First, the budget \textbf{matters}: aggregate accuracy rises $23$ points between $k{=}1$ and $k{\approx}5$--$6$ and then saturates (in $97.4\%$ of the examples the output changes as $k$ varies). Second, the optimal budget \textbf{varies per instance} and is strongly imbalanced: $66\%$ of the examples reach their best answer already at $k{=}1$, while a long tail needs $2$ to $8$ steps. There exists, then, the structure that an adaptive mechanism can exploit: most instances have budget to spare and a minority needs all of it.
+
+\begin{table}[t]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4.2pt}
+  \begin{tabular}{lcccccccc}
+    \toprule
+    $k$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+    \midrule
+    Accuracy & .41 & .43 & .48 & .58 & .64 & \textbf{.64} & .64 & .63 \\
+    $k^*$ (\%) & \textbf{66.1} & 16.6 & 5.3 & 6.0 & 4.3 & 1.0 & 0.4 & 0.3 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Oracle sweep over CODI ($n{=}7473$ GSM8k training examples, $k_{\max}{=}8$). Top row: aggregate accuracy when forcing $k$ steps for all instances. Bottom row: distribution of the minimal optimal budget $k^*$ per instance. Accuracy saturates at $k{\approx}5$--$6$ and $k^*$ is strongly imbalanced toward $k{=}1$.}
+  \label{tab:ksweep}
+\end{table}
+
+\subsection{The \textit{upfront} classifier: a negative result}
+\label{sec:clasificador}
+
+The simplest realization of adaptivity uses those $k^*$ labels to train a classifier that predicts the budget \emph{before} reasoning. Our first version, deliberately simple, classifies $k^* \in \{1,\dots,8\}$ over frozen sentence embeddings (all-MiniLM-L6-v2, 384 dimensions; \citealp{reimers2019sbert}), with a stratified $5978/1495$ split. Table~\ref{tab:clasificador} summarizes the internal validation: the balanced \textit{random forest} \textbf{collapses exactly to the majority baseline} (it predicts $k{=}1$ for all $1495$ examples), and the balanced logistic regression spreads its predictions but gains only $+0.012$ macro-F1 at the cost of sinking accuracy to $0.21$: it disperses, it does not discriminate.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lcc}
+    \toprule
+    \textbf{Model} & \textbf{Accuracy} & \textbf{F1-macro} \\
+    \midrule
+    Majority (always $k{=}1$) & 0.661 & 0.099 \\
+    Logistic reg.\ (balanced) & 0.210 & 0.111 \\
+    Random forest (balanced) & 0.661 & 0.099 \\
+    \bottomrule
+  \end{tabular}
+  \caption{\textit{Upfront} classifier of $k^*$ over frozen embeddings (internal validation, $n{=}1495$). No model beats the majority class: the prompt representation carries no usable $k^*$ signal above the base rate.}
+  \label{tab:clasificador}
+\end{table}
+
+\subsection{From predicting to deciding on the fly}
+\label{sec:pivot}
+
+The negative result is informative because it points to structural limitations of the \textit{upfront} approach, not just of its first implementation. (i) The classifier must infer difficulty by looking \emph{only at the prompt}, before the main model starts reasoning and without access to its hidden states; the signal it needs may simply not be present in a static representation of the text. (ii) Building the labels costs $k_{\max}$ model passes per instance, and $k^*$ inherits the imbalance and the noise of the metric used to score it. (iii) The decision is made only once: if $\hat{k}$ falls short, the system cannot correct itself on the fly. Adaptive \textit{halting} (Section~\ref{sec:modB}) dissolves all three problems: it decides \emph{during} reasoning by observing the latent states themselves, needs no $k^*$ labels, and is optimized directly by the task signal.
+
+\section{Deciding on the fly: PonderNet-style probabilistic \textit{halting}}
+\label{sec:modB}
+
+Instead of fixing $K$ or predicting it before reasoning (\textit{upfront} prediction, Section~\ref{sec:modA}), we decide the stopping point \emph{during} reasoning: we graft PonderNet's probabilistic \textit{halting} onto the fixed-$K$ continuous-thought loop (Equation~\ref{eq:latentloop}), so that the model learns how many latent steps to use per instance by observing its own states. Figure~\ref{fig:posterfrontier} previews the central result: the adaptive model matches the fixed-$K$ baseline accuracy while spending nearly half the compute.
+
+\begin{figure}[!hb]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/poster_frontier-ap.png}
+  \caption{Central result of adaptive \textit{halting}. The adaptive model (M2) reaches the fixed-$K$ baseline accuracy ($\approx 39.5\%$) with $\sim 3$ latent steps per problem, half of the baseline's $6$ steps. Each blue point is a different stopping threshold of the same model; the diamond is the baseline. Held-out test ($n{=}1319$).}
+  \label{fig:posterfrontier}
+\end{figure}
+
+\subsection{Adaptive halting}
+\label{sec:halting}
+
+We add a single linear \textit{halting} head, $\texttt{halt\_head}: \mathbb{R}^d \rightarrow \mathbb{R}$, whose bias is initialized at $-2.0$ (so that the initial halting probability is $\sigma(-2)\approx 0.12$ and the model uses many steps at the start of training). At each latent step $k$ it defines a \emph{conditional halting probability}
+\begin{equation}
+  \lambda_k = \sigma\!\left(\texttt{halt\_head}(h_k)\right),
+\end{equation}
+the probability of stopping at step $k$ given that it did not stop earlier. Unlike fixed $K$, we decode a candidate answer after \textbf{every} prefix $k = 1,\dots,K$, which allows building PonderNet's geometric \emph{termination distribution}:
+\begin{equation}
+  p_k = \Bigg(\prod_{j<k}\big(1 - \lambda_j\big)\Bigg)\,\lambda_k .
+  \label{eq:halting}
+\end{equation}
+So that the distribution sums to 1 without losing mass, we impose an \emph{absorbing boundary} at $K$ (equivalent to forcing $\lambda_K \rightarrow 1$): the last entry receives all the remaining mass $p_K = \prod_{j<K}(1-\lambda_j)$, and it is then renormalized.
+
+\subsection{Training objective}
+\label{sec:loss}
+
+The objective combines three lineages. From PonderNet, the \emph{expected answer loss} and the KL regularization; from SIM-CoT, the per-step supervision; from CODI, the distillation:
+\begin{equation}
+  \mathcal{L} = \mathcal{L}_{\text{ponder}}
+  + \beta_{\text{step}}\,\mathcal{L}_{\text{step}}
+  + \gamma\,\mathrm{KL}_{\text{geom}}
+  + \mathcal{L}_{\text{distill}}
+  + \mathcal{L}_{\text{ref}} .
+  \label{eq:loss}
+\end{equation}
+The main term weights each prefix's answer cross-entropy by its halting probability,
+\begin{equation}
+  \mathcal{L}_{\text{ponder}}
+  = \sum_{k=1}^{K} p_k \, \mathcal{L}_{\text{ans}}^{(k)} ,
+  \label{eq:lponder}
+\end{equation}
+so that the model learns to make good the answers of the prefixes to which it assigns mass. $\mathcal{L}_{\text{step}}$ is the reconstruction of SIM-CoT's auxiliary decoder (with $\beta_{\text{step}}=1.0$; the decoder is discarded at inference). $\mathrm{KL}_{\text{geom}}$ is the KL divergence of the termination distribution $p_k$ toward a \emph{truncated geometric prior} $q$ with mean \texttt{geom\_mean}; with $g = 1/\texttt{geom\_mean}$, $q_k \propto (1-g)^{k}\,g$ with the same absorbing boundary at $K$. The terms $\mathcal{L}_{\text{distill}}$ (SmoothL1 alignment of teacher--student hidden states) and $\mathcal{L}_{\text{ref}}$ (cross-entropy of the teacher task) come from CODI. By default $\gamma=0.01$ and $\texttt{geom\_mean}=3.0$. The weight $\gamma$ is the causal lever that regulates how much the compute is shortened: it raises the pressure to stop earlier.
+
+\subsection{Per-instance geometric prior}
+\label{sec:prior}
+
+A \emph{global} geometric prior asks the same expected budget of every problem. We replace it with a \textbf{per-instance} prior that anchors the budget to the problem's number of operations $n_i$ through an affine mapping:
+\begin{equation}
+  \texttt{geom\_mean}_i = \mathrm{clamp}\big(\alpha\, n_i + \beta,\; \beta,\; K_{\max}\big).
+  \label{eq:adaptiveprior}
+\end{equation}
+The affine form (rather than the identity $\texttt{geom\_mean}_i = n_i$) is necessary because of the skew of the $n_i$ distribution in GSM8k-Aug (Figure~\ref{fig:stepdist}): more than half of the examples have $n_i \le 1$, which under the identity would fall into a degenerate point-mass prior ($g=1$), whose KL dominates the task loss. The shift $\beta$ lifts all examples off that floor.
+
+\subsection{Inference}
+\label{sec:inferencia}
+
+At inference we accumulate halting mass step by step and cut the latent loop as soon as the accumulated mass crosses a threshold (by default $0.5$); $K_{\max} = \texttt{max\_latent\_steps}$ is a hard cap. The answer is decoded from the prefix at which the instance stopped. A fidelity detail: since the latent steps are shared within a batch but each example stops at a different step, a faithful evaluation requires \texttt{batch\_size}$=1$ (or cutting the KV-cache row by row at each example's stopping step); otherwise an example that stops early would be decoded from a longer prefix than its step count reports. All the numbers in this work use the faithful variant. The checkpoint (epoch) and the stopping threshold were chosen on a separate validation set of $500$ examples, never on the held-out test set on which this section's figures are reported.
+
+\subsection{The accuracy--compute frontier}
+\label{sec:frontera}
+
+The central result of this study is that the adaptive model traces an accuracy--steps \textbf{frontier} that fixed $K$ cannot: by varying $\gamma$ (which makes the geometric prior ``bite'') and the shape of the per-instance prior, we move the operating point monotonically. Table~\ref{tab:frontera} compares, per stopping threshold, three operating points that differ only in the strength $\gamma$ of the KL regularizer and the slope $\alpha$ of the per-instance prior: \textbf{M0} (the weak reference prior), \textbf{M1} (which hardens $\gamma$), and \textbf{M2} (which additionally lowers $\alpha$ to trim the budget tail on hard problems). The exact values of each configuration are in the table.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lccc}
+    \toprule
+    \textbf{Threshold} & \textbf{M0} & \textbf{M1} & \textbf{M2} \\
+                    & $\alpha1.0,\gamma.05$ & $\alpha1.0,\gamma.10$ & $\alpha0.6,\gamma.10$ \\
+    \midrule
+    0.3 & 39.1 @ 3.34 & 39.1 @ 2.60 & 38.4 @ \textbf{2.10} \\
+    0.4 & 39.6 @ 3.86 & 39.4 @ 3.16 & 39.4 @ \textbf{2.52} \\
+    0.5 & 40.0 @ 4.46 & 39.4 @ 3.73 & \textbf{39.9 @ 3.01} \\
+    0.8 & 40.2 @ 6.97 & 39.7 @ 6.39 & 40.0 @ 4.98 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Accuracy--compute frontier. Each cell is \emph{accuracy (\%) @ average latent steps}, on the held-out test set ($n=1319$), \textit{greedy}, \texttt{batch\_size}$=1$. Accuracy is on par across the three configurations ($\sim 39$--$40\%$); raising $\gamma$ (M1) and lowering $\alpha$ (M2) trim the steps at parity accuracy. (M0/M1/M2 are the same model at three configurations of $\gamma$ and prior shape.)}
+  \label{tab:frontera}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/frontier_test-ap.png}
+  \caption{Accuracy--compute frontier. Raising $\gamma$ shifts the frontier to the left (fewer steps at equal accuracy); lowering the slope $\alpha$ of the per-instance prior trims the budget tail even further. M2 reaches $39.9\%$ with $3.01$ steps, $33\%$ fewer than M0 at the same threshold ($40.0\%$ at $4.46$ steps) and half of the fixed-$K$ baseline ($6$ steps).}
+  \label{fig:frontera}
+\end{figure}
+
+On test, accuracy is essentially flat ($\sim 39$--$40\%$) across configurations and thresholds, so the choice of operating point is one of \emph{compute budget}. The minimum-compute point at parity is \textbf{M2} at threshold $0.5$: $\mathbf{39.9\%}$ with $\mathbf{3.01}$ steps, matching the fixed-$K$ baseline ($39.5\%$) with \textbf{half} the steps, and $-33\%$ steps relative to M0 at the same threshold (at $-0.1$ pp). Lowering the threshold to $0.4$/$0.3$ compresses the compute even further (M2: $2.52$/$2.10$ steps) with small accuracy drops. A $\gamma$ that is too low ($0.05$, M0) makes the prior not bite; raising it to $0.10$ (M1/M2) shifts the whole frontier to the left. Figure~\ref{fig:frontera} visualizes this. Accuracy parity also holds \emph{bin by bin} of difficulty (Figure~\ref{fig:accbydiff}): the compute cut is not paid for in any regime, neither on easy nor on hard problems.
+
+\begin{figure}[b]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/accuracy_by_difficulty-ap.png}
+  \caption{Accuracy by difficulty level (annotated dataset reasoning steps) of the adaptive model (M2, threshold $0.5$) against the fixed-$K$ baseline, on held-out test. Parity holds bin by bin: the adaptive model's advantage is in compute, not accuracy, across the whole difficulty scale.}
+  \label{fig:accbydiff}
+\end{figure}
+
+\subsection{Difficulty tracking}
+\label{sec:dificultad}
+
+A truly adaptive model should spend more steps on harder problems. We measure this with the Spearman correlation between the number of operations $n_{\text{expr}}$ and the steps used. On the held-out test set, the minimum-compute point (M2, threshold $0.5$) reaches $\mathbf{+0.626}$ (M0 and M1 reach even higher, $+0.677$ and $+0.675$ respectively), a strong correlation that confirms that the full-scope fine-tuning with a per-instance prior and $K_{\max}=12$ allocates compute by difficulty. Figure~\ref{fig:jointmatrix} shows it directly: the joint distribution of difficulty and steps used concentrates its mass along the diagonal.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/joint_matrix-ap.png}
+  \caption{Joint distribution of problem difficulty (annotated dataset steps, rows) and the latent steps the model actually uses (columns), normalized per row. The mass shifts to the right as we descend the rows: the model spends more steps on harder problems (Spearman $+0.626$). M2, threshold $0.5$, held-out test.}
+  \label{fig:jointmatrix}
+\end{figure}
+
+The effect is interpretable at the difficulty-group level (Figure~\ref{fig:stepsaccbydiff}): in that configuration (M2, test, threshold $0.5$), the average steps scale from $1.72$ ($0$-operation problems) to $2.11$, $2.99$, $3.77$, $3.81$, and $\sim 4.1$--$4.6$ ($5$-or-more-operation problems). Easy problems stop around two steps and hard ones around four and a half: the model allocates compute by difficulty, not by a uniform budget.
+
+\begin{figure}[b]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/steps_accuracy_by_difficulty-ap.png}
+  \caption{Average latent steps used (red, right axis) and accuracy (blue, left axis) by difficulty level, for the adaptive model (M2, threshold $0.5$) on held-out test. The steps used grow monotonically with difficulty while accuracy falls: compute is allocated where the problem demands it.}
+  \label{fig:stepsaccbydiff}
+\end{figure}
+
+\subsection{Toward a fair from-scratch comparison}
+\label{sec:fromscratch}
+
+The previous experiments start from a warm-start of the full CODI checkpoint (backbone, LoRA, projection, and decoder, the product of a CODI training we did not run), and then fine-tune for only five epochs. A reviewer may rightly ask whether the $\approx 40\%$ comes from the adaptive \emph{method} or from the inherited checkpoint. To isolate this, we replicate \textbf{M2} (the minimum-compute configuration) from a \emph{vanilla} GPT-2: the auxiliary decoder is also trained (a new \texttt{full\_dec} \textit{scope}), over the full GSM8k-Aug, $40$ epochs. We record a necessary recipe correction: the original work's $3\times10^{-3}$ rate diverges in \texttt{bf16} (the gradient norm explodes and \texttt{NaN} appears); $1\times10^{-3}$ with $0.05$ \textit{warmup} is stable. At the time of submission of this work, the from-scratch model is \textbf{still training} (moved to an A100 GPU because of the cost of the sequential $K=12$ loop). The goal is to report three comparable points (fixed-$K$ baseline, adaptive with warm-start, and adaptive from scratch) so that the gap quantifies the contribution of the warm-start versus that of the method.
+
+\section{The second budget axis: vectors per step}
+\label{sec:modC}
+
+The latent budget has a second axis: how many vectors $c$ represent each reasoning step. Coconut uses a fixed $c{=}2$; the CODI checkpoint we start from, $c{=}1$. This third study makes that number variable per step: each step is built as a block of up to $M$ sub-vectors generated one by one, SIM-CoT's auxiliary decoder reconstructs the step's text from the accumulated block, and a lightweight MLP \emph{distills} that reconstruction loss $\mathcal{L}_{\text{step}}$ from the hidden state ($\hat{\mathcal{L}} = \mathrm{MLP}(h)$, SmoothL1 loss). Unlike the decoder, the MLP survives inference: after each sub-vector $\hat{\mathcal{L}}$ is evaluated and, when it converges ($|\hat{\mathcal{L}}_j - \hat{\mathcal{L}}_{j-1}| < \varepsilon$), the step is considered semantically mature and the model advances to the next one. An optional \textit{ponder penalty} penalizes extra sub-vectors when the step already looks mature.
+
+\paragraph{The mechanism works; the axis has no headroom.} Trained with warm-start over the atomic segmentation of GSM8k-Aug (one arithmetic operation per step) and evaluated on the full test set ($n{=}1319$, \texttt{batch\_size}$=1$), adaptive \textit{halting} trims between $16\%$ and $33\%$ of the latent vectors with no accuracy cost ($\approx 39.5$--$39.9\%$, competitive with the baseline). But at matched budget it \textbf{beats neither random \textit{halting} nor a fixed $c$}: the accuracy curve against fixed $c$ (Table~\ref{tab:opcionb}, first row) rises $+11.9$ points from $c{=}1$ to $c{=}2$ and only $+0.5$ from $c{=}2$ to $c{=}3$. It saturates hard at $c{=}2$, almost uniformly across instances: the MLP does not even assign more vectors to the problems the model gets wrong ($10.28$ vectors on average for correct vs.\ $10.01$ for incorrect). The $c$ axis matters, but its \emph{per-instance variance} is almost nil on this task: the simple optimum is a fixed $c{=}2$, and there is no clever adaptivity to exploit.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lcccc}
+    \toprule
+    \textbf{Init $\times$ granularity} & $c{=}1$ & $c{=}2$ & $c{=}3$ & $\Delta_{2\rightarrow3}$ \\
+    \midrule
+    warm $+$ atomic & 27.5 & 39.4 & 39.9 & $+0.5$ \\
+    warm $+$ coarse & 25.5 & 36.6 & \textbf{40.3} & $+3.7$ \\
+    \textit{cold} $+$ coarse & 5.3 & 5.5 & 5.5 & n/a \\
+    \bottomrule
+  \end{tabular}
+  \caption{Accuracy (\%) with forced fixed $c$, by initialization and segmentation granularity (GSM8k test, $n{=}1319$). With atomic steps the curve saturates at $c{=}2$; with coarse steps (2--3 operations, variable density) the third vector contributes again. From scratch the model collapses: the latents remain inert.}
+  \label{tab:opcionb}
+\end{table}
+
+\paragraph{The negative is about granularity, not the mechanism.} Two controls bound the conclusion. First, retraining \emph{from scratch} (vanilla GPT-2, fresh decoder) collapses to near chance ($\approx 5.5\%$ for all $c$): the model learns the answer format but the latents remain inert (decoding after each prefix gives a flat curve), i.e., latent reasoning does not start from scratch under this objective and the warm-start was not a bias but a structural piece. Second (and more interesting), re-segmenting the steps in a \emph{coarse} way (grouping 2--3 operations per step, with variable density) over the warm model revives the signal: the jump $c{=}2 \rightarrow c{=}3$ goes from $+0.5$ to $+3.7$ points (Table~\ref{tab:opcionb}), and adaptive \textit{halting} comes to beat random \textit{halting} by $+3.6$ points ($\approx 2.7\sigma$; $38.8\%$ with $7.2$ vectors versus $35.2\%$ with $6.1$), something that did not happen in the atomic regime, although the gain over assigning everyone the same budget is modest ($+0.6$ to $+1.0$). The combined reading: in GSM8k-Aug each atomic step is a trivial operation that two vectors saturate; the task's variance lives in the \emph{number} of steps, not in their internal complexity. This bounds the design space and reinforces the choice of the $K$ axis as the one with real dynamics.
+
+\section{Discussion}
+
+We interpret the learned \textit{halting} as an \emph{early-exit} mechanism that avoids the collapse-prone high-$K$ regime. SIM-CoT \citep{wei2025simcot} documents that late latents homogenize and merely ``repeat'' the final prediction once the answer is reached; stopping when the answer is already encoded preserves the diversity among latents and acts as a regularizer of the number of steps, without treating it as a hyperparameter to tune. That accuracy stays within the noise is consistent with this reading: the method does not aim to solve problems that fixed $K$ cannot, but to solve the same ones while spending compute proportional to difficulty. The frontier in Figure~\ref{fig:frontera} is the operational formulation of that idea.
+
+Read together, the three studies delimit where adaptivity appears in this family: the oracle sweep (Section~\ref{sec:modA}) shows that the optimal budget varies per instance; that \textit{upfront} prediction does not beat the base rate shows that this variation is not readable from a static representation of the prompt; and the exploration of the $c$ axis (Section~\ref{sec:modC}) shows that it does not live in the internal density of each step either. What remains is the \emph{number} of steps, decided during reasoning (Section~\ref{sec:modB}), as the axis with exploitable dynamics.
+
+\section*{Limitations}
+
+Several caveats bound our conclusions. First, even with $1319$ test examples, accuracy differences of fractions of a point are within the sampling noise; our accuracy claims are of \emph{parity}, not of improvement. The second and third share a root: our bounded compute budget. Because of it we evaluate a single backbone (GPT-2) and a single task (GSM8k), so we do not know how adaptivity scales to larger models or other reasoning domains; and because of that same constraint the fair from-scratch comparison (Section~\ref{sec:fromscratch}), whose sequential $K{=}12$ loop is particularly costly, is still training at submission time and has no final number. Fourth, as we stated when presenting each study (Section~\ref{sec:setup}), \textit{upfront} prediction was evaluated on training examples with internal validation, whereas adaptive \textit{halting} and the $c$ axis share the GSM8k test set ($1319$ held-out examples): the \textit{upfront} prediction figures are not directly comparable with the others, and the \textit{end-to-end} comparison between predicting $k$ \textit{upfront} and learned \textit{halting} remained pending. Finally, our inference stopping criterion is a deterministic threshold on the accumulated mass, which differs from the Bernoulli sampling of PonderNet's original formulation \citep{banino2021pondernet}; we do not compare the two regimes.
+
+\section{Conclusion}
+
+We studied how to make the latent reasoning budget instance-adaptive, exploring its two axes in three studies. \textit{Upfront} prediction confirmed the premise with an oracle sweep (the optimal step budget exists, varies per instance, and saturates), but left an informative negative result: anticipating that budget from frozen prompt embeddings does not beat the base rate. Adaptive \textit{halting}, the one that does work, decides \emph{during} reasoning: we grafted PonderNet's probabilistic \textit{halting} onto the CODI/SIM-CoT stack and, on the held-out test set, the model matches the fixed-$K$ baseline accuracy ($\approx 39.5\%$ on GSM8k with GPT-2) while cutting nearly half ($\sim 50\%$) of the latent steps, with strong difficulty tracking (Spearman $+0.626$). The $c$-axis study showed that this other axis, vectors per step, has almost no exploitable variance on GSM8k-Aug. The contribution is not higher accuracy but \textbf{compute adaptivity}: the characterization of the accuracy--steps frontier that the implicit-CoT family, tied to a fixed $K$, never reported.
+
+% Custom bibliography entries only
+\bibliography{custom}
+
+\end{document}

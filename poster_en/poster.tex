@@ -1,0 +1,308 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% baposter Portrait Poster
+% Based on the Machine Learning course template (VAE-ECG),
+% adapted for the NLP final project: adaptive latent reasoning.
+%
+% baposter Class Created by:
+% Brian Amberg (baposter@brian-amberg.de)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[portrait,a0paper,fontscale=0.31]{baposter} % Adjust the font scale/size here
+
+\usepackage[absolute,overlay]{textpos} % For absolute positioning
+\usepackage{graphicx} % Required for including images
+\graphicspath{{figures/}} % Directory in which figures are stored
+
+\usepackage{amsmath} % For typesetting math
+\usepackage{amssymb} % Adds new symbols to be used in math mode
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{enumitem} % Used to reduce itemize/enumerate spacing
+\usepackage{booktabs} % Top and bottom rules for tables
+\usepackage{palatino} % Use the Palatino font
+\usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
+
+\usepackage{multicol} % Required for multiple columns
+\setlength{\columnsep}{1.5em} % Slightly increase the space between columns
+\setlength{\columnseprule}{0mm} % No horizontal rule between columns
+
+\usepackage{tikz} % Required for flow chart
+\usetikzlibrary{shapes,arrows,positioning} % Tikz libraries required for the flow chart
+
+\usepackage{pgfplots} % Bars of steps by difficulty
+\pgfplotsset{compat=1.18}
+
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage[english]{babel}
+
+\newcommand{\compresslist}{ % Define a command to reduce spacing within itemize/enumerate environments
+\setlength{\itemsep}{1pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+}
+
+\definecolor{lightblue}{rgb}{0.145,0.6666,1} % Defines the color used for content box headers
+\definecolor{udesa}{RGB}{0, 18, 187}
+
+\begin{document}
+
+\begin{poster}
+{
+headerborder=closed, % Adds a border around the header of content boxes
+colspacing=1em, % Column spacing
+bgColorOne=white, % Background color for the gradient on the left side of the poster
+bgColorTwo=white, % Background color for the gradient on the right side of the poster
+borderColor=udesa, % Border color
+headerColorOne=udesa, % Background color for the header in the content boxes (left side)
+headerColorTwo=udesa, % Background color for the header in the content boxes (right side)
+headerFontColor=white, % Text color for the header text in the content boxes
+boxColorOne=white, % Background color of the content boxes
+textborder=rounded, % Format of the border around content boxes
+eyecatcher=true, % Set to false for ignoring the left logo in the title and move the title left
+headerheight=0.1\textheight, % Height of the header
+headershape=roundedright, % Specify the rounded corner in the content box headers
+headerfont=\Large\bf, % Large, bold and sans serif font in the headers of content boxes
+linewidth=2pt % Width of the border lines around content boxes
+}
+%----------------------------------------------------------------------------------------
+%	Title
+%----------------------------------------------------------------------------------------
+%
+{\includegraphics[height=7em]{figures/UDESA.png}} % First university/lab logo on the left
+{\large{I400 - Natural Language Processing - Universidad de San Andrés - 2026}\vspace{0.3cm}\\\huge\bf{Adaptive latent reasoning: PonderNet-style probabilistic \emph{halting} over implicit chains of thought}\vspace{0.3cm}} % Poster title
+{\normalsize Ana Paula Tissera, Valentino Arbelaiz Alberti, Franco Amato de Lusarreta, Naomi Couriel, Juan Cruz Giner Pulero} % Author names
+{} % Second university/lab logo on the right (empty)
+
+%----------------------------------------------------------------------------------------
+%	Column 0: Introduction / Objectives / Study A / References
+%----------------------------------------------------------------------------------------
+
+\headerbox{Introduction}{name=resumen,column=0,row=0}{
+
+\hspace*{0.5em} \emph{Latent chain-of-thought} models (Coconut, CODI, SIM-CoT) replace text reasoning with continuous vectors, at a much lower cost than explicit CoT. But they fix in advance the number of latent steps $K$ and the number of vectors per step $c$, applying them uniformly to every input: a two-operation problem consumes the same budget as a six-operation one. This work makes that budget \textbf{instance-adaptive}.
+}
+
+\headerbox{Objectives}{name=objetivos,column=0,below=resumen}{
+
+\hspace*{0.5em} Make the reasoning budget \textbf{instance-adaptive}, on three fronts:
+\begin{itemize}[left=0.45em, rightmargin=0.6em]\compresslist
+  \item Show that the optimal budget \textbf{depends on the instance} and see whether it is predictable \emph{upfront} from the prompt.
+  \item Make the number of \textbf{steps $K$} adaptive with PonderNet-style \emph{halting}, and characterize the accuracy--compute frontier that a fixed $K$ does not capture \textbf{(main contribution)}.
+  \item Explore the other budget axis: the \textbf{vectors per step $c$}.
+\end{itemize}
+}
+
+\headerbox{How much reasoning?}{name=opciona,column=0,below=objetivos}{
+
+\hspace*{0.5em} We run CODI varying $k \in \{1,\dots,8\}$ over $n{=}7473$ examples and measure $k^*$ (the smallest $k$ that reaches the best accuracy for each instance).
+
+
+\vspace{-0.5em}
+\begin{center}
+\includegraphics[width=0.48\linewidth]{paperfigures/k_sweep_kstar.png}\hfill
+\includegraphics[width=0.48\linewidth]{paperfigures/k_sweep_accuracy.png}
+\end{center}
+\vspace{-0.5em}
+
+\hspace*{0.5em} Accuracy rises 23 points up to $k\approx5$--$6$ and then stabilizes. But the optimal $k^*$ is very \textbf{imbalanced} ($66$\,\% of instances solve with $k^*{=}1$): \textbf{there is room to adapt the budget per instance}.
+
+\vspace{0.1em}
+\hspace*{0.5em}
+A classifier trained to predict $k^*$ from frozen \emph{embeddings} (MiniLM) does not beat the majority class (RF: $0.661$; LR: $0.210$). Difficulty \textbf{cannot be read \emph{upfront}}: one must decide \emph{during} reasoning.
+}
+
+\headerbox{References}{name=ref,column=0,below=opciona}{
+
+\renewcommand{\section}[2]{\vskip 0.05em} % Get rid of the default "References" section title
+
+\footnotesize
+\begin{thebibliography}{9}
+\setlength{\itemsep}{3pt}
+\setlength{\parskip}{0pt}
+
+\bibitem{hao2024coconut}
+Hao et al.
+\textit{Training Large Language Models to Reason in a Continuous Latent Space} (Coconut), 2024.
+
+\bibitem{shen2025codi}
+Shen et al.
+\textit{CODI: Compressing Chain-of-Thought into Continuous Space via Self-Distillation}, 2025.
+
+\bibitem{wei2025simcot}
+Wei et al.
+\textit{SIM-CoT: Supervised Implicit Chain-of-Thought}, 2025.
+
+\bibitem{banino2021pondernet}
+Banino, Balaguer and Blundell.
+\textit{PonderNet: Learning to Ponder}, 2021.
+
+\end{thebibliography}
+}
+
+%----------------------------------------------------------------------------------------
+%	Column 1: Method
+%----------------------------------------------------------------------------------------
+
+\headerbox{Method: adaptive \emph{halting}}{name=metodo,column=1}{
+
+\hspace*{0.5em} The model feeds its last hidden state back as the next input ($z_k$, ``continuous thoughts''). A single linear halting head decides, at each step, whether the accumulated reasoning is already enough to answer:
+\vspace{-0.2em}
+\begin{center}
+\includegraphics[width=\linewidth]{paperfigures/latent_reasoning_schematic.png}
+\end{center}
+\vspace{-0.1em}
+
+\hspace*{0.5em} At each step, the model predicts a conditional stopping probability and a candidate answer is decoded for each prefix $k=1,\dots,K$, forming PonderNet's stopping distribution (with an absorbing boundary at $K$):
+\vspace{-0.2cm}
+
+\vspace{-0.17cm}
+\[
+  \lambda_k = \sigma\!\left(\texttt{halt\_head}(h_k)\right)
+\]
+\vspace{-0.6cm}
+\[
+  p_k = \big(\textstyle\prod_{j<k}(1-\lambda_j)\big)\,\lambda_k .
+\]
+\vspace{-0.5cm}
+
+\hspace*{0.5em} The objective combines terms from the three methods: PonderNet (expected loss + KL regularization), SIM-CoT (per-step supervision), and CODI (distillation losses):
+
+
+\vspace{-0.4cm}
+\[
+  \mathcal{L} = \underbrace{\textstyle\sum_k p_k\,\mathcal{L}_{\text{ans}}^{(k)}}_{\mathcal{L}_{\text{ponder}}}
+  + \beta\,\mathcal{L}_{\text{step}}
+  + \gamma\,\mathrm{KL}_{\text{geom}}
+  + \mathcal{L}_{\text{distill}}
+  + \mathcal{L}_{\text{ref}} .
+\]
+\vspace{-0.6cm}
+
+\begin{itemize}[left=0.45em, rightmargin=0.6em]\compresslist
+  \item The weight $\gamma$ \textbf{controls the compute}: it regulates the influence of the geometric prior and, with it, how much the reasoning chain is shortened.
+  \item At inference, reasoning stops when the accumulated stopping mass exceeds a threshold (by default $0.5$); $K_{\max}$ sets the upper limit.
+\end{itemize}
+}
+
+
+
+\headerbox{Per-instance geometric prior}{name=prior,column=1,below=metodo}{
+
+\hspace*{0.5em} Instead of using a global geometric prior, we make the expected budget depend on each instance. To do so, we parametrize it as an affine function of the number of operations $n_i$:
+
+\vspace{-0.65cm}
+\[
+  \texttt{geom\_mean}_i = \mathrm{clamp}\big(\alpha\, n_i + \beta,\; \beta,\; K_{\max}\big).
+\]
+\vspace{-0.85cm}
+
+\begin{center}
+\includegraphics[width=0.7\textwidth]{paperfigures/step_distribution.png}
+\end{center}
+\vspace{-0.35cm}
+{\footnotesize \textbf{Figure.} Distribution of $n_i$ in GSM8k-Aug ($\mu{=}1.59$).}
+}
+
+%----------------------------------------------------------------------------------------
+%	Column 2: Setup / Study B / Conclusions / Placeholder
+%----------------------------------------------------------------------------------------
+
+\headerbox{Experimental setup}{name=setup,column=2}{
+
+\begin{itemize}[left=0.45em, rightmargin=0.6em]\compresslist
+  \item \textbf{Data:} GSM8k-Aug (step-by-step reasoning, Deng et al.; $\sim$385k \emph{train} examples). The training size \textbf{varies by experiment} (from the full \emph{train} set to small subsets); the models in the results band use 100k examples.
+  \item \textbf{Model:} GPT-2 (124M), initialized from SIM-CoT's CODI checkpoint (\emph{warm-start}). We fine-tune the \textbf{full network} (not just adapters) together with the halting head, with a cap of $K_{\max}{=}12$ latent steps.
+  \item \textbf{Evaluation:} \emph{greedy} accuracy, single pass, and \texttt{batch\_size}$=1$, on the \textbf{1319-example test set} never seen in training. The epoch and halt threshold were chosen on a separate validation set (500 examples).
+  \item \textbf{Baseline (fixed $K=6$): 39.50\,\%.}
+\end{itemize}
+}
+
+\headerbox{The other axis: vectors per step ($c$)}{name=opcionb,column=2,below=setup}{
+
+\hspace*{0.5em} Each step is built with up to $M$ sub-vectors; an MLP distills the decoder's reconstruction loss ($\hat{\mathcal{L}} = \mathrm{MLP}(h)$) and survives inference: the step ends when $\hat{\mathcal{L}}$ converges.
+
+\vspace{0.3em}
+\begin{center}
+\small
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Init $\times$ granularity} & $c{=}1$ & $c{=}2$ & $c{=}3$ & $\Delta_{2\rightarrow3}$ \\
+\midrule
+warm $+$ atomic & 27.5 & 39.4 & 39.9 & $+0.5$ \\
+warm $+$ coarse & 25.5 & 36.6 & \textbf{40.3} & $+3.7$ \\
+\emph{cold} $+$ coarse & 5.3 & 5.5 & 5.5 & n/a \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.2em}
+
+\hspace*{0.5em} With atomic steps (one operation per step), accuracy \textbf{saturates at $c=2$}: adaptive stopping does not improve over random. With coarse steps (variable density), the improvement reappears (adaptive $>$ random by $2.7\sigma$), though it is small.
+
+\textbf{The variability seems to lie in the number of steps, rather than in the complexity of each step.}
+}
+
+\headerbox{Conclusions}{name=conclu,column=2,below=opcionb}{
+\vspace{0.1cm}
+\begin{itemize}[left=0.45em, rightmargin=0.6em]\compresslist
+    \item Learned \emph{halting} \textbf{matches the fixed-$K$ baseline} ($\approx 39.5$\,\% on test) while cutting \textbf{nearly half of the latent steps} ($3.01$ vs.\ $6$).
+    \item Strong difficulty tracking: \textbf{Spearman $+0.626$} between operations and steps used (M2, test).
+    \item Two informative negative results: difficulty is not readable \emph{upfront}; the $c$ axis has no headroom on GSM8k-Aug.
+    \item Future work: a fair comparison training GPT-2 \textbf{from scratch} (without \emph{warm-start}, with the full train set and 40 epochs; in progress), other backbones and tasks.
+\end{itemize}
+}
+
+%----------------------------------------------------------------------------------------
+%	Results (bottom band, columns 0-2, anchored to the foot)
+%----------------------------------------------------------------------------------------
+
+\headerbox{Main result: adaptive \emph{halting} on test ($n{=}1319$): half the compute, without losing accuracy}{name=resultados,column=0,span=3,above=bottom}{
+
+\begin{minipage}[c]{0.30\textwidth}
+\begin{center}
+{\normalsize\textbf{Accuracy vs.\ compute}}\\[0.3em]
+\includegraphics[width=\textwidth]{paperfigures/poster_frontier_crop.png}
+\end{center}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.37\textwidth}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Threshold} & \textbf{M0} & \textbf{M1} & \textbf{M2} \\
+                & $\alpha1.0,\gamma.05$ & $\alpha1.0,\gamma.10$ & $\alpha0.6,\gamma.10$ \\
+\midrule
+0.3 & 39.1 @ 3.34 & 39.1 @ 2.60 & 38.4 @ \textbf{2.10} \\
+0.4 & 39.6 @ 3.86 & 39.4 @ 3.16 & 39.4 @ \textbf{2.52} \\
+0.5 & 40.0 @ 4.46 & 39.4 @ 3.73 & \textbf{39.9 @ 3.01} \\
+0.8 & 40.2 @ 6.97 & 39.7 @ 6.39 & 40.0 @ 4.98 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+\small \emph{Accuracy (\%) @ average latent steps}. M0/M1/M2 are the same adaptive model with different regularizer intensity $\gamma$ and prior slope $\alpha$; fixed-$K$ baseline: $39.5$ @ $6.0$.
+\end{center}
+
+\vspace{0.6em}
+\hspace*{0.5em} All configurations reach similar accuracy ($\sim$39--40\,\%). M2 with threshold $0.5$ achieves $39.9$\,\% using only $3.01$ steps: \textbf{half} the compute of the fixed-$K$ baseline.
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\begin{center}
+\includegraphics[width=\textwidth]{paperfigures/joint_matrix_ap.png}
+
+\vspace{0.2em}
+\small Steps used vs.\ difficulty (M2, threshold $0.5$, test): the mass follows the diagonal. \textbf{Spearman $= +0.626$}: compute is allocated by difficulty, not uniformly.
+\end{center}
+\end{minipage}
+}
+\end{poster}
+
+\end{document}
