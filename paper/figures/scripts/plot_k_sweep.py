@@ -5,9 +5,9 @@ Figuras del barrido oráculo de k sobre CODI (Módulo A, Sección~\\ref{sec:kswe
 Genera dos figuras a partir de los resultados de Option-A/scripts/run_k_sweep.py
 (backend CODI, GSM8k train, k_max=8, max_new_tokens=128):
 
-  1. k_sweep_accuracy.png  — accuracy agregada forzando k pasos latentes para
+  1. k_sweep_accuracy.png  - accuracy agregada forzando k pasos latentes para
      todas las instancias (train completo n=7473 + submuestra piloto n=200).
-  2. k_sweep_kstar.png     — distribución del presupuesto mínimo óptimo k* por
+  2. k_sweep_kstar.png     - distribución del presupuesto mínimo óptimo k* por
      instancia (train completo n=7473).
 
 Los valores están volcados de las corridas en la máquina remota (simcot-t4):

@@ -41,7 +41,7 @@ def plot(d, out_path):
 
     fig, ax = plt.subplots(figsize=(8.6, 5.6))
 
-    # banda de paridad (exactitud esencialmente plana) — muy tenue, sin linea
+    # banda de paridad (exactitud esencialmente plana) - muy tenue, sin linea
     ax.axhspan(base_a - 0.55, base_a + 0.65, color=PURPLE, alpha=0.06, zorder=0)
 
     # protagonista: la frontera adaptativa (M2), linea continua sin marcadores

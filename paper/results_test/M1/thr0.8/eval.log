@@ -6982,7 +6982,7 @@ Latent steps used: 6/12
 Prediction=12.0; Groundtruth=12.0
 
 Question 996 Starts...
-Q: Four children are playing together—Akbar, Alessandro, Helene, and Wilfred. Helene is twice as old as the average age of the group, and the total age of the children is 20. If Akbar is 3 years old and Alessandro is 4 years old, calculate the age of Wilfred.
+Q: Four children are playing together-Akbar, Alessandro, Helene, and Wilfred. Helene is twice as old as the average age of the group, and the total age of the children is 20. If Akbar is 3 years old and Alessandro is 4 years old, calculate the age of Wilfred.
 The answer is: 9
 Question 996 Ends
 Latent steps used: 9/12

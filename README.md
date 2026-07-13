@@ -1,41 +1,33 @@
-# Paper: Adaptive latent reasoning
+# report-src
 
-This branch holds the written report of the project (ACL format, in Spanish):
-*"Razonamiento latente adaptativo: halting probabilistico tipo PonderNet sobre
-cadenas de pensamiento implicitas"*.
+LaTeX sources for the **written report and poster** of the
+`adaptive-latent-reasoning` project (UdeSA NLP final project).
 
-```
-paper/
-├── main.tex         # The report (ACL format, final mode) — named main.tex so
-                     #   Overleaf picks it up as the main document automatically
-├── paper.md         # Internal editorial notes (not part of the report)
-├── custom.bib       # Bibliography
-├── acl.sty          # ACL style, vendored so the branch compiles standalone
-├── acl_natbib.bst   # ACL bibliography style
-├── figures/         # Figures (step-count distribution)
-└── results_test/    # Held-out test eval artifacts backing the numbers
-                     #   (M0/M1/M2 adaptive operating points + fixed-K baseline)
-```
+The compiled PDFs and the rendered poster live on the `main` branch under
+[`report/`](https://github.com/famatodlr/adaptive-latent-reasoning/tree/main/report).
+This branch holds the editable sources; the code lives on `main` and the
+`option-*` branches.
 
-The report covers the three project directions: the upfront k* classifier (Option A),
-the PonderNet halting method (Option C, the core contribution), and the adaptive
-vectors-per-step c-axis (Option B). All Option C metrics are reported on the held-out
-test split (n=1319); the three adaptive operating points M0/M1/M2 are the same model at
-three gamma / prior-shape settings (see `results_test/frontier_test.md`).
+## Layout
 
-For the current integrated state of the project, see the `main` branch; for the final
-state of each approach, see `option-a-k-classifier`, `option-b-adaptive-vectors`, and
-`option-c-pondernet`.
+| Folder | What |
+|--------|------|
+| `paper_en/`  | Report, **English** (ACL format) - build `main.tex` |
+| `paper/`     | Report, original **Spanish** |
+| `poster_en/` | A0 poster, **English** - build `poster.tex` |
+| `poster/`    | A0 poster, original **Spanish** |
 
-## Building
+Each English / Spanish pair shares the same figures and results. The figure
+generation scripts live under `paper*/figures/scripts/` (a shared `figstyle.py`
+plus one script per figure); the raw eval artifacts they read from are under
+`paper*/results_test/`.
 
-The ACL style files are vendored in `paper/`, so the branch compiles with a standard
-TeX installation. On Overleaf: upload the contents of `paper/` (or the whole folder) to
-a project; since the report is named `main.tex`, Overleaf sets it as the main document
-automatically, no manual configuration needed. The figure uses `pgfplots`/`tikz`,
-already included in a full TeX distribution.
+## Build
 
 ```bash
-cd paper
-pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
+# report (English)
+cd paper_en && pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
+
+# poster (English)
+cd poster_en && pdflatex poster.tex && pdflatex poster.tex
 ```
