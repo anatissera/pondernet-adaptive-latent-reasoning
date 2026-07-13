@@ -21,14 +21,14 @@
 
 🌈 **SIM-CoT (Supervised Implicit Chain-of-Thought)** is a training framework for implicit reasoning that makes latent (implicit) CoT **stable, scalable, and interpretable.**
 
-While implicit CoT can greatly reduce inference-time token cost compared to explicit chain-of-thought, prior approaches often suffer from **latent instability** when scaling the number of implicit tokens—leading to **semantic homogenization, operator information loss, and even training collapse**.
+While implicit CoT can greatly reduce inference-time token cost compared to explicit chain-of-thought, prior approaches often suffer from **latent instability** when scaling the number of implicit tokens-leading to **semantic homogenization, operator information loss, and even training collapse**.
 
 SIM-CoT addresses this by introducing **step-level supervision for implicit latents**. During training, we attach a lightweight **auxiliary decoder** to align each implicit latent token with a corresponding reasoning step, enforcing structured semantics in the latent space and improving optimization stability. Importantly, the auxiliary decoder is **removed at inference time**, so SIM-CoT **preserves the efficiency advantages of implicit reasoning** without adding any extra inference overhead.
 
 
 ## 💡 Highlights
 
-- 🔥 **Latent Instability in Implicit CoT:** We systematically analyze the limitations of implicit Chain-of-Thought methods and reveal a **latent instability issue**—as the number of implicit tokens increases, models tend to collapse into homogeneous latent states that lose operator semantics.  
+- 🔥 **Latent Instability in Implicit CoT:** We systematically analyze the limitations of implicit Chain-of-Thought methods and reveal a **latent instability issue**-as the number of implicit tokens increases, models tend to collapse into homogeneous latent states that lose operator semantics.  
 
 - 🔥 **Step-Level Supervision with SIM-CoT:** We propose **S**upervised **IM**plicit-CoT (**SIM-CoT**), a plug-and-play module that introduces **step-level supervision** via an auxiliary decoder. This stabilizes optimization, prevents collapse, and ensures that latent tokens capture meaningful reasoning steps.
 

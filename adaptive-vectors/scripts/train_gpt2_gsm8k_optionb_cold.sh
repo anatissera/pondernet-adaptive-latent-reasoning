@@ -10,7 +10,7 @@ set -euo pipefail
 
 SAVE_DIR="${SAVE_DIR:-../models/checkpoints/optionb-cold-coarse}"
 LOG_DIR="${LOG_DIR:-../outputs/optionb-cold-coarse}"
-GPT2_PATH="${GPT2_PATH:-gpt2}"          # plain GPT-2 — NO SIM-CoT checkpoint
+GPT2_PATH="${GPT2_PATH:-gpt2}"          # plain GPT-2 - NO SIM-CoT checkpoint
 DATA_PATH="${DATA_PATH:-../data/gsm8k_aug/train15k.jsonl}"
 
 K="${K:-3}"; M="${M:-3}"                 # K coarse steps, up to M sub-vectors each

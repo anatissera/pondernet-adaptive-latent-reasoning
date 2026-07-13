@@ -21,7 +21,7 @@ K       = 6
 WARMUP  = 3
 MEASURE = 10
 
-# Physical GPU id (nvidia-smi index) — the 3090 is at index 0 (PCI bus 06:00.0)
+# Physical GPU id (nvidia-smi index) - the 3090 is at index 0 (PCI bus 06:00.0)
 # as of 2026-06-17; verify with nvidia-smi if the hardware layout changes.
 PHYS_GPU_ID = os.environ.get("PHYS_GPU_ID", "0")
 

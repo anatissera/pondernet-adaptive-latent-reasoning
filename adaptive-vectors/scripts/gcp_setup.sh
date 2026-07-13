@@ -2,7 +2,7 @@
 # Provision a GCP L4 VM and stage the repo to run the adaptive-K / warm-start factorial
 # (scripts/sweep_k_recipe.sh) off-box, so the local 3090 stays free.
 #
-# IMPORTANT — GPU/arch note: the local RTX 5070 is Blackwell (sm_120) and the pinned
+# IMPORTANT - GPU/arch note: the local RTX 5070 is Blackwell (sm_120) and the pinned
 # torch in this repo has NO kernels for it ("no kernel image is available"). The L4 is
 # Ada (sm_89) and IS supported by that torch, which is exactly why L4 is the cloud pick.
 # Do NOT switch to an even newer card (e.g. an sm_120 instance) without rebuilding torch.

@@ -12,7 +12,7 @@ GPT2_PATH="${GPT2_PATH:-gpt2}"
 SIMCOT_CKPT="${SIMCOT_CKPT-../models/pretrained/simcot-gpt2-codi/model-00001-of-00001.safetensors}"
 DECODER_PATH="${DECODER_PATH:-../models/pretrained/simcot-gpt2-decoder}"
 K="${K:-4}"; M="${M:-4}"; BS="${BS:-8}"; ACCUM="${ACCUM:-4}"
-# warmup: 10 ep (mitigation for gate-fail — 3 ep was insufficient for NL→arithmetic transfer)
+# warmup: 10 ep (mitigation for gate-fail - 3 ep was insufficient for NL→arithmetic transfer)
 # main: 3 ep (full-depth mix, warm-started from warmup ckpt)
 EPOCHS="${EPOCHS:-3}"; MAXSAMPLES="${MAXSAMPLES:-15000}"; LR="${LR:-2e-5}"
 export HALT_HEAD_LR="${HALT_HEAD_LR:-1e-3}"; export UV_NO_SYNC=1

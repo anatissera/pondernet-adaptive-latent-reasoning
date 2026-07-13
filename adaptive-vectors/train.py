@@ -309,7 +309,7 @@ def train():
         if scope == "full":
             for name, p in model.named_parameters():
                 # Train everything except the auxiliary decoder (discarded at inference) and its
-                # projection adapters — those keep their warm-started / identity init.
+                # projection adapters - those keep their warm-started / identity init.
                 if not (name.startswith("decoder.") or name.startswith("pj_in")
                         or name.startswith("pj_out")):
                     p.requires_grad = True

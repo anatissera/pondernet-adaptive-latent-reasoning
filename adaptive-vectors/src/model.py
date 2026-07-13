@@ -65,7 +65,7 @@ class ModelArguments:
         metadata={"help": "Path to a SIM-CoT CODI .safetensors to warm-start the full CODI model "
                           "(backbone+LoRA+decoder+prj) from. Loaded via load_state_dict(strict=False) "
                           "AFTER the model is assembled; only the PonderNet halt head stays newly-initialized. "
-                          "Do NOT point model_name_or_path at this file — it is a CODI wrapper, not a plain GPT-2."},
+                          "Do NOT point model_name_or_path at this file - it is a CODI wrapper, not a plain GPT-2."},
     )
 
 @dataclass
@@ -141,7 +141,7 @@ class TrainingArguments(transformers.TrainingArguments):
     pondernet_gamma: float = field(default=0.01, metadata={"help": "Weight of KL-geometric regularizer in PonderNet mode."})
     pondernet_geom_mean: float = field(default=3.0, metadata={"help": "Mean number of steps for the geometric prior used in KL_geom (controls compute pressure)."})
     pondernet_inf_threshold: float = field(default=0.5, metadata={"help": "Cumulative halting probability threshold for inference early-stopping. Stop when sum_k p_k > threshold."})
-    pondernet_train_scope: str = field(default="lora", metadata={"help": "Which params train in PonderNet mode: 'lora' (lora_* + halt_head, the warm-started default), 'lora_prj' (also unfreeze prj.* — required for a cold backbone where prj is randomly initialized), or 'full' (whole codi backbone + prj + halt_head)."})
+    pondernet_train_scope: str = field(default="lora", metadata={"help": "Which params train in PonderNet mode: 'lora' (lora_* + halt_head, the warm-started default), 'lora_prj' (also unfreeze prj.* - required for a cold backbone where prj is randomly initialized), or 'full' (whole codi backbone + prj + halt_head)."})
     fixed_k_eval: bool = field(default=False, metadata={"help": "Diagnostic eval mode: ignore the halting head and force-decode the answer at every prefix k=1..max_latent_steps, reporting accuracy@k. Measures how answer-ready each latent step is, independent of the halting decision."})
 
     # --- Option-B: adaptive vectors-per-step (c) via distilled L_step predictor ---
@@ -608,7 +608,7 @@ class CODI(torch.nn.Module):
         p_prior = torch.cat([ones_col, torch.cumprod(one_minus[:, :-1], dim=1)], dim=1)  # (B, K)
 
         # p_k = lambda_k * p_prior_k for k < K; p_K = p_prior_K (absorbing)
-        p = lambdas * p_prior                       # (B, K) — first K-1 entries correct
+        p = lambdas * p_prior                       # (B, K) - first K-1 entries correct
         p = torch.cat([p[:, :-1], p_prior[:, -1:]], dim=1)  # last entry = p_prior_K
 
         # clamp negatives from fp error, renorm for exact sum-1
@@ -621,7 +621,7 @@ class CODI(torch.nn.Module):
 
         p_k: (B, K) halting distribution (rows sum to 1).
         g = 1 / geom_mean; q_k = (1-g)^{k-1} * g for k<K, q_K = (1-g)^{K-1}.
-        Returns scalar — mean over batch.
+        Returns scalar - mean over batch.
         """
         K = p_k.size(1)
         g = 1.0 / self.pondernet_geom_mean
@@ -932,7 +932,7 @@ class CODI(torch.nn.Module):
         with torch.no_grad():
             M = self.ob_subvectors_per_step
             K = self.max_latent_steps
-            # per-step target token ids — identical construction to the main path (gpt2)
+            # per-step target token ids - identical construction to the main path (gpt2)
             seg_fn = get_steps_coarse if getattr(self, "ob_coarse_steps", False) else get_steps
             steps_list = seg_fn(ref_input_ids, K + 1, start_ids=(16791, 9959), end_id=4211,
                                 eot_id=self.tokenizer.eos_token_id, pad_id=self.tokenizer.pad_token_id,
@@ -1321,7 +1321,7 @@ class CODI(torch.nn.Module):
             step_losses_tensor = torch.stack(pondernet_step_losses, dim=1)  # (B, K) in-graph
             l_pondernet = (pondernet_p * step_losses_tensor).sum(dim=1).mean()
 
-            # KL_geom regularizer — penalises distributions far from geometric prior
+            # KL_geom regularizer - penalises distributions far from geometric prior
             kl_geom = self._kl_geom(pondernet_p)
 
             # Assemble total loss:
