@@ -24,7 +24,7 @@ flowchart TD
 
 ## 1. Acquire artifacts
 
-### Pretrained models — `models/pretrained/` (gitignored)
+### Pretrained models - `models/pretrained/` (gitignored)
 
 | Path | Source | Notes |
 |------|--------|-------|
@@ -34,7 +34,7 @@ flowchart TD
 | `models/pretrained/simcot-gpt2-decoder/` | Extracted from `simcot-gpt2-codi` | Standalone GPT-2 decoder for decoder-only warm-start |
 
 The directory is gitignored; team members share these files directly on the
-filesystem. The full CODI checkpoint has no fetch script — download
+filesystem. The full CODI checkpoint has no fetch script - download
 `internlm/SIM_COT-GPT2-CODI` manually if it is missing.
 
 ### Fetch the decoder checkpoint
@@ -49,7 +49,7 @@ python scripts/fetch_simcot_decoder.py --out ../models/pretrained/simcot-gpt2-de
 This downloads `internlm/SIM_COT-GPT2-CODI`, strips the `decoder.*` prefix from
 its keys, and saves a clean `GPT2LMHeadModel` to the output path.
 
-### Training data — `data/gsm8k_aug/` (gitignored)
+### Training data - `data/gsm8k_aug/` (gitignored)
 
 Training data comes from HuggingFace dataset `zen-E/GSM8k-Aug`. The training
 script is pinned by default to the local subset:
@@ -66,7 +66,7 @@ line. When no `--data_path` is given, the script falls back to loading
 `--data_path` to the local **validation** split `data/gsm8k_aug/validation.jsonl`
 (500 ex). Previously `eval_gpt2_gsm8k_pondernet.sh` defaulted to `test.jsonl` and
 `eval_gpt2_gsm8k_fixedk.sh` passed no `--data_path` (so it silently used the HF
-`gsm8k` **test** split) — so every experiment 01–07 metric reported before that
+`gsm8k` **test** split) - so every experiment 01–07 metric reported before that
 date was computed, and its hyperparameters (γ / epoch / threshold) selected, on
 the test set. The held-out `test.jsonl` (1319 ex) is now reserved for a single
 final report after model selection. See
@@ -129,7 +129,7 @@ Common overrides:
 | Fast ablation | append `--max_train_samples 1000` |
 
 Checkpoints are saved per epoch (up to 2 kept) under `SAVE_DIR`. Everything for a
-run lands in its `LOG_DIR` folder — no need to redirect stdout yourself:
+run lands in its `LOG_DIR` folder - no need to redirect stdout yourself:
 
 | File in `LOG_DIR` | What it is |
 |-------------------|------------|
@@ -173,13 +173,13 @@ RESULTS_DIR=../results/$EXP/$RUN/thr0.9 THRESHOLD=0.9 bash scripts/eval_gpt2_gsm
 ```
 
 The script uses `--greedy True` by default, giving deterministic single-pass
-evaluation. The eval script **self-logs** into `RESULTS_DIR` — no manual `tee`:
-- `command.sh` — the exact resolved eval invocation (git SHA, host, threshold)
-- `eval.log` — full stdout+stderr (accuracy + avg latent-steps)
-- `summary.json` — machine-readable metrics (`accuracy_pct`, `avg_steps_used`,
+evaluation. The eval script **self-logs** into `RESULTS_DIR` - no manual `tee`:
+- `command.sh` - the exact resolved eval invocation (git SHA, host, threshold)
+- `eval.log` - full stdout+stderr (accuracy + avg latent-steps)
+- `summary.json` - machine-readable metrics (`accuracy_pct`, `avg_steps_used`,
   `threshold`, `ckpt`, …); read when recording the run
-- `gsm8k.json` — predictions for every eval instance
-- `gsm8k_pondernet_detail.json` — per-instance step count and correct flag
+- `gsm8k.json` - predictions for every eval instance
+- `gsm8k_pondernet_detail.json` - per-instance step count and correct flag
 
 ### Fixed-K baseline
 
@@ -197,7 +197,7 @@ pinning the model to exactly that many latent steps. Also uses `--greedy True`.
 
 Both eval scripts default `--data_path` to the local **validation** split
 `data/gsm8k_aug/validation.jsonl` (500 ex). Override with `DATA_PATH=` to point at
-another split — e.g. `DATA_PATH=../data/gsm8k_aug/test.jsonl` for the final,
+another split - e.g. `DATA_PATH=../data/gsm8k_aug/test.jsonl` for the final,
 post-selection test report. The training data is not touched during eval. See the
 [Eval split / leakage note](#training-data--datagsm8k_aug-gitignored) above.
 
@@ -221,9 +221,9 @@ the first run of a new investigation, create the experiment folder under
 
 ## See also
 
-- [`parameters.md`](parameters.md) — complete CLI flag reference, warm-start
+- [`parameters.md`](parameters.md) - complete CLI flag reference, warm-start
   recipes, module/loss glossary
-- [`experiments.md`](experiments.md) — experiment index, per-experiment narrative,
+- [`experiments.md`](experiments.md) - experiment index, per-experiment narrative,
   per-run detail, artifact layout
 
 ## Future: MLflow

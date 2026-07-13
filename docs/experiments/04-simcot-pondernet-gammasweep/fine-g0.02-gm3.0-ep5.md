@@ -1,6 +1,6 @@
 # fine-g0.02-gm3.0-ep5
 
-> ⚠️ **Biased metric — test set, not reconcilable.** The numbers on this page were computed on the GSM8K **test** split (not the held-out validation set), and the checkpoint no longer exists, so they cannot be re-evaluated on validation. Treat them as historical/biased. See the [eval-split & leakage note](../../experiments.md#eval-split-and-leakage-note).
+> ⚠️ **Biased metric - test set, not reconcilable.** The numbers on this page were computed on the GSM8K **test** split (not the held-out validation set), and the checkpoint no longer exists, so they cannot be re-evaluated on validation. Treat them as historical/biased. See the [eval-split & leakage note](../../experiments.md#eval-split-and-leakage-note).
 
 **Experiment:** [04-simcot-pondernet-gammasweep](runs.md)  **Date:** 2026-06-16  **Status:** ⚠ trained, eval not tabulated
 
@@ -18,7 +18,7 @@ A finer γ=0.02 point between the control (γ=0) and the sweet spot (γ=0.05). T
 ## Results
 | checkpoint | threshold | accuracy | avg steps | n_samples |
 |-----------|-----------|----------|-----------|-----------|
-| — | — | not collated | — | — |
+| - | - | not collated | - | - |
 
 ## Artifacts
 - checkpoint: `models/checkpoints/04-simcot-pondernet-gammasweep/fine-g0.02-gm3.0-ep5/`

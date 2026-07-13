@@ -63,7 +63,7 @@ def main():
                  xytext=(8, 2), fontsize=10, color=INK, fontweight="bold")
     ax1.set_ylim(0, 45)
     ax1.set_ylabel("accuracy on GSM8K test (%)", fontsize=10, color=INK)
-    ax1.set_title(f"exp-10 from-scratch (GPT-2, Run-C recipe) — epoch {eps[-1]} of 40",
+    ax1.set_title(f"exp-10 from-scratch (GPT-2, Run-C recipe) - epoch {eps[-1]} of 40",
                   fontsize=12, color=INK, loc="left", pad=12)
 
     ax2.plot(eps, steps, color=BLUE, lw=2, marker="o", ms=5,

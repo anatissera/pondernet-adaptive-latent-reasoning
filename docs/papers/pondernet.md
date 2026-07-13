@@ -8,7 +8,7 @@ DeepMind, London, UK
 *contributed equally  
 © 2021 Andrea Banino, Jan Balaguer, Charles Blundell
 
-**arXiv:** 2107.05407v2 [cs.LG] — 2 Sep 2021  
+**arXiv:** 2107.05407v2 [cs.LG] - 2 Sep 2021  
 **Venue:** 8th ICML Workshop on Automated Machine Learning (2021)
 
 ---

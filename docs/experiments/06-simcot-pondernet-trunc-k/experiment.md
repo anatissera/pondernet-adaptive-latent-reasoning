@@ -1,6 +1,6 @@
 # 06: per-instance truncated-K training (breaking the K=6 warm-start bias)
 
-> ⚠️ **Biased metric — test set, not reconcilable.** The numbers on this page were computed on the GSM8K **test** split (not the held-out validation set), and the checkpoint no longer exists, so they cannot be re-evaluated on validation. Treat them as historical/biased. See the [eval-split & leakage note](../../experiments.md#eval-split-and-leakage-note).
+> ⚠️ **Biased metric - test set, not reconcilable.** The numbers on this page were computed on the GSM8K **test** split (not the held-out validation set), and the checkpoint no longer exists, so they cannot be re-evaluated on validation. Treat them as historical/biased. See the [eval-split & leakage note](../../experiments.md#eval-split-and-leakage-note).
 
 **Status:** complete   **Dates:** 2026-06-20 → 2026-06-23
 
@@ -16,7 +16,7 @@ whether K_max=8, 10, or 12, because z_7+ are structurally OOD.
 **Fix:** truncate the forward pass at K_i = max(1, n_i) per example during training.
 For a 2-step example, the latent loop runs for exactly 2 steps; L_step, L_ans, and L_kl
 are computed only over k=1…K_i. The backbone receives a direct gradient signal saying
-"you must answer this problem correctly from {z_1, z_2} — there is no z_3 to fall back on."
+"you must answer this problem correctly from {z_1, z_2} - there is no z_3 to fall back on."
 Over training the backbone learns to pack complete reasoning into each example's natural
 step count, giving the halting head genuine per-instance variation to learn from.
 
@@ -24,7 +24,7 @@ step count, giving the halting head genuine per-instance variation to learn from
 
 **What's held fixed:** warm-start (full SIM-CoT CODI), train100k.jsonl, eff. batch 128,
 lr 2e-5, 5 epochs, γ=0.05, adaptive prior β=1.5 α=1.0 (exp-05 recipe), seed 42,
-full training scope (decoder unfrozen, RecipeC — decoder must adapt to variable-length
+full training scope (decoder unfrozen, RecipeC - decoder must adapt to variable-length
 latent contexts).
 
 ## Setup
@@ -38,7 +38,7 @@ latent contexts).
   batched with no dynamic graph branching.
 - **Halting supervision:** L_pondernet = Σ_{k=1}^{K_i} p_k · L_ans^(k) per example
   (masked sum). L_kl uses the per-instance adaptive prior from exp-05
-  (`geom_mean_i = α·n_i + β`, clamped to [β, K_max]) — now doubly motivated: it both
+  (`geom_mean_i = α·n_i + β`, clamped to [β, K_max]) - now doubly motivated: it both
   provides a soft halting target and matches the truncation boundary.
 - **Training scope:** full (backbone LoRA + decoder + prj + halt head), same as RecipeC.
 - **Baseline:** `05/perinstance-g0.05-b1.5-ep5` (40.49% @ 5.26 avg_steps, thr=0.8);
@@ -71,7 +71,7 @@ bash scripts/train_gpt2_gsm8k_pondernet.sh --max_latent_steps 8 \
 
 ## Findings
 
-**Run:** `trunc-ki-fullscope-g0.05-b1.5-ep5` — completed 2026-06-21, trained on RTX 3090 (5 epochs / 5185 steps, bs=24 ga=4 eff-batch=96, ~2.0 s/it). Eval on RTX 3060, bs=16, thresholds 0.5/0.8/0.9.
+**Run:** `trunc-ki-fullscope-g0.05-b1.5-ep5` - completed 2026-06-21, trained on RTX 3090 (5 epochs / 5185 steps, bs=24 ga=4 eff-batch=96, ~2.0 s/it). Eval on RTX 3060, bs=16, thresholds 0.5/0.8/0.9.
 
 Note: effective batch was 96 (not the planned 128) due to OOM at bs=32 and bs=32-resume; cold-start at bs=24 cleared the OOM. Steps per epoch = 1037 (not 778 for eff-batch 128).
 
@@ -85,7 +85,7 @@ Note: effective batch was 96 (not the planned 128) due to OOM at bs=32 and bs=32
 | 4 | 4148 | 36.24% | 36.24% | 3.669 |
 | **5** | **5185** | **36.39%** | **36.32%** | **3.660** |
 
-**Winner: epoch 5** (step 5185; accuracy still rising — did not peak within 5 epochs).
+**Winner: epoch 5** (step 5185; accuracy still rising - did not peak within 5 epochs).
 
 ### vs baseline (`05/perinstance-g0.05-b1.5-ep5`)
 
@@ -129,13 +129,13 @@ However, accuracy regressed ~4pp. Two confounds make attribution uncertain:
 
 ### ep10 run update (2026-06-23)
 
-`trunc-ki-fullscope-g0.05-b1.5-ep10` — 8 real training epochs (OOM at ep3 forced bs=16/accum=8 resume from ep2 checkpoint; see [run log](trunc-ki-fullscope-g0.05-b1.5-ep10.md) for full timeline). Best at ep8 (step 3890): **36.54% @ thr0.5, 35.94% @ thr0.8**, Spearman 0.592 (thr0.5). Accuracy barely improved over the ep5 run (ep8 thr0.8 = 35.94% vs ep5 thr0.8 = 36.32%) and remains ~4.5pp below exp-05. The avg_steps plateau (~3.76 @ thr0.5 from ep3 onward) confirms the halting head converged fast but the backbone is still learning. The per-n_expr step signal (2.1 → 6.0 steps across n_expr 1–8, Spearman 0.592) is the sharpest adaptive signal measured so far.
+`trunc-ki-fullscope-g0.05-b1.5-ep10` - 8 real training epochs (OOM at ep3 forced bs=16/accum=8 resume from ep2 checkpoint; see [run log](trunc-ki-fullscope-g0.05-b1.5-ep10.md) for full timeline). Best at ep8 (step 3890): **36.54% @ thr0.5, 35.94% @ thr0.8**, Spearman 0.592 (thr0.5). Accuracy barely improved over the ep5 run (ep8 thr0.8 = 35.94% vs ep5 thr0.8 = 36.32%) and remains ~4.5pp below exp-05. The avg_steps plateau (~3.76 @ thr0.5 from ep3 onward) confirms the halting head converged fast but the backbone is still learning. The per-n_expr step signal (2.1 → 6.0 steps across n_expr 1–8, Spearman 0.592) is the sharpest adaptive signal measured so far.
 
 **Conclusion:** Trunc-K successfully teaches the model *when* to stop per difficulty, but the accuracy cost remains ~4pp and does not recover within 8–10 epochs. Root causes are likely (a) the cosine LR schedule is misaligned with the OOM+resume trajectory, (b) K_i = n_i may be too aggressive (no breathing room for hard examples), and (c) full-scope training needs more epochs to converge.
 
 ## Next steps
 
-**Informed by the k-recipe sweep (teammate, `feat/adaptive-k-from-scratch`):** The sweep crossed warm-start recipe × K_max and found that Recipe C (full backbone unfreeze, `scope=full`) with K_max=12 achieves 40.33% @ 3.21 avg steps — the best result in the project. Exp-06 already uses `scope=full` (same as Recipe C), so the training recipe is not the gap. Two specific findings translate directly:
+**Informed by the k-recipe sweep (teammate, `feat/adaptive-k-from-scratch`):** The sweep crossed warm-start recipe × K_max and found that Recipe C (full backbone unfreeze, `scope=full`) with K_max=12 achieves 40.33% @ 3.21 avg steps - the best result in the project. Exp-06 already uses `scope=full` (same as Recipe C), so the training recipe is not the gap. Two specific findings translate directly:
 
 **1. Increase K_max to 12.**
 The teammate's sweep shows C-k12 (40.33%) > C-k8 (40.03%) > C-k6 (39.88%) even though all three halt at ~3.2 steps. The mechanism: a larger K_max widens the geometric KL prior's pressure over more steps during training, which calibrates the early halting probabilities more sharply and gives hard examples (n_expr ≥ 6) real inference headroom. Exp-06 used K_max=8; switching to 12 keeps the same training setup but may reduce the accuracy regression.

@@ -32,7 +32,7 @@ while true; do
   pending=""
   # Extract the step, THEN sort numerically. `sort -t- -k2 -n` on the full gs:// URL is wrong:
   # the bucket name (alr-exp10-ckpts-…) contains hyphens, so field 2 is "exp10" on every line,
-  # every key ties, and sort falls back to lexicographic — putting checkpoint-11996 before
+  # every key ties, and sort falls back to lexicographic - putting checkpoint-11996 before
   # checkpoint-2999. Everything still got evaluated, but epochs came out of order.
   for step in $(gcloud storage ls "$BUCKET/ckpt/*/.ready" 2>/dev/null \
                   | sed -nE 's#.*/checkpoint-([0-9]+)/\.ready$#\1#p' | sort -n); do
@@ -75,7 +75,7 @@ print(f\"[eval] epoch $epoch  acc={d['accuracy_pct']}%  avg_steps={d['avg_steps_
       # seeing this epoch as pending and retry it forever, and the VM would never power off.
       fails=$(( $(cat "$WORK/.fail-$step" 2>/dev/null || echo 0) + 1 ))
       echo "$fails" > "$WORK/.fail-$step"
-      echo "[$(date -Is)] epoch $epoch: EVAL FAILED (${dt}s, attempt $fails) — see $wlog"
+      echo "[$(date -Is)] epoch $epoch: EVAL FAILED (${dt}s, attempt $fails) - see $wlog"
       tail -5 "$wlog"
       gcloud storage cp "$wlog" "$BUCKET/results/$(epdir "$epoch")/FAILED.log" --quiet
       if [ "$fails" -ge 2 ]; then
@@ -90,6 +90,6 @@ done
 
 echo "[$(date -Is)] drained $drained checkpoint(s); nothing pending"
 if [ "$NO_POWEROFF" != 1 ]; then
-  echo "[$(date -Is)] powering off — billing stops once GCE reports TERMINATED"
+  echo "[$(date -Is)] powering off - billing stops once GCE reports TERMINATED"
   sudo poweroff
 fi

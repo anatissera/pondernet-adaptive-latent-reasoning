@@ -17,7 +17,7 @@
 #           transformers' _load_optimizer_and_scheduler() only restores state when BOTH
 #           optimizer.pt AND scheduler.pt exist; otherwise it returns silently. So a
 #           weights-only "resume" would zero Adam's moments AND rewind the LR scheduler to
-#           step 0 — re-running a 2-epoch warmup back up to peak 1e-3, then decaying over a
+#           step 0 - re-running a 2-epoch warmup back up to peak 1e-3, then decaying over a
 #           40-epoch horizon while only 28 epochs of steps remain, ending at 2.27e-4 instead
 #           of ~0. Instead of pretending to resume, this mode warm-starts the weights via
 #           --simcot_ckpt (a plain load_state_dict) and runs a deliberate, self-consistent
@@ -85,7 +85,7 @@ fi
 # --- recipe: identical to the wrapper's defaults except where the resume mode forces a change
 # BS*ACCUM must stay 128 (the effective batch of exp-08 Run C). BS=64 ACCUM=2 is the ceiling,
 # measured on the actual RTX PRO 6000: it peaks at 62.8/95.6 GB and runs 1.21 s/step, while
-# BS=128 ACCUM=1 OOMs (needs ~116 GB of activations — the K_max=12 latent loop keeps a
+# BS=128 ACCUM=1 OOMs (needs ~116 GB of activations - the K_max=12 latent loop keeps a
 # separate answer-decode graph per step, so activations, not weights, dominate memory).
 COMMON=(EXP="$EXP" RUN="$RUN" SAVE_DIR="$SAVE_DIR"
         LOG_DIR=$CKPT_DIR/outputs/$EXP/$RUN
@@ -93,9 +93,9 @@ COMMON=(EXP="$EXP" RUN="$RUN" SAVE_DIR="$SAVE_DIR"
 
 case "$RESUME_MODE" in
   scratch)
-    # Cold GPT-2, one continuous 40-epoch cosine — exactly what CODI/SIM-CoT do. No checkpoint,
+    # Cold GPT-2, one continuous 40-epoch cosine - exactly what CODI/SIM-CoT do. No checkpoint,
     # no inherited optimizer state, nothing to caveat in the writeup. At 1.01 h/epoch this costs
-    # ~40.4 h, versus 13.5 days on the L4 — which is the only reason resuming was ever worth it.
+    # ~40.4 h, versus 13.5 days on the L4 - which is the only reason resuming was ever worth it.
     RECIPE=("${COMMON[@]}" EPOCHS=40)   # LR/WARMUP: wrapper defaults (1e-3 / 0.05); SIMCOT_CKPT="" is set by the wrapper
     ;;
   exact)
@@ -117,7 +117,7 @@ esac
 # fully-resumable epoch checkpoint that OUR run wrote (CKPT_KEEP_FULL=2 keeps them complete).
 sudo tee /etc/systemd/system/alr-train.service >/dev/null <<UNIT
 [Unit]
-Description=exp-10 from-scratch GPT-2 (PonderNet) — epochs 12..40
+Description=exp-10 from-scratch GPT-2 (PonderNet) - epochs 12..40
 After=network-online.target
 RequiresMountsFor=$CKPT_DIR
 

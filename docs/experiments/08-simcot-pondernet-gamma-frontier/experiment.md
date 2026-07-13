@@ -1,4 +1,4 @@
-# 08: γ↑ + prior reshaping — pushing the accuracy–steps frontier left
+# 08: γ↑ + prior reshaping - pushing the accuracy–steps frontier left
 
 **Status:** complete   **Dates:** 2026-06-24 → 2026-06-25
 
@@ -7,7 +7,7 @@
 **Goal:** keep ~baseline accuracy (40.80% greedy validation) at **fewer average latent
 steps** than the current best operating points.
 
-**Motivating finding — threshold-only frontier (no retrain).** A faithful `batch_size=1`
+**Motivating finding - threshold-only frontier (no retrain).** A faithful `batch_size=1`
 threshold sweep on exp-07's ep5 checkpoint (`checkpoint-3890`, validation n=500, greedy)
 maps how far the operating point alone can be pushed:
 
@@ -16,7 +16,7 @@ maps how far the operating point alone can be pushed:
 | 0.3 | 39.2% | **3.27** | −52% steps, −1.8pp |
 | 0.4 | 40.4% | **3.78** | −44% steps, −0.6pp |
 | 0.5 | 40.8% | 4.34 | −36% steps, −0.2pp |
-| 0.8 (exp-07 op point) | 41.0% | 6.80 | — |
+| 0.8 (exp-07 op point) | 41.0% | 6.80 | - |
 | 0.9 | 40.0% | 8.19 | +20% steps, −1.0pp |
 
 The threshold-only frontier **knees at ~3.8 steps (thr0.4)**: above it the extra steps are
@@ -34,10 +34,10 @@ onto its target. Raising γ tightens halting toward the per-instance mean; resha
 
 ## Setup
 
-- **Base recipe:** exp-07 ep5 — GPT-2, full warm-start from SIM-CoT CODI, `scope=full`
+- **Base recipe:** exp-07 ep5 - GPT-2, full warm-start from SIM-CoT CODI, `scope=full`
   (backbone + halt_head trainable; decoder + adapters frozen), adaptive per-instance prior,
   K_max=12, train100k.jsonl, lr 2e-5, 5 epochs, seed 42, no trunc-K.
-- **Batch:** eff. batch **128 (bs=16, accum=8)** — same as exp-07 (proven-clean batch sequence).
+- **Batch:** eff. batch **128 (bs=16, accum=8)** - same as exp-07 (proven-clean batch sequence).
   bs=24 was attempted first but cascaded into OOMs after Run A crashed; bs=16 is the safe known-good.
 - **Held fixed across the grid:** everything above + **γ=0.10** (2× exp-07's 0.05).
 - **Varied (3-run γ/α grid):**
@@ -49,7 +49,7 @@ onto its target. Raising γ tightens halting toward the per-instance mean; resha
   | `fullscope-adaptive-g0.10-a0.6-b1.5-k12-ep5` | 0.10 | 0.6 | 1.5 | clamp(0.6·n_i+1.5, 1.5, 12) | cap hard-tail budget (lower Spearman expected) |
 
 - **GPU:** RTX 3090, `CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1` (index 1 = 3090;
-  the newly-installed RTX 5070 is sm_120, unsupported by this PyTorch — must pin PCI order).
+  the newly-installed RTX 5070 is sm_120, unsupported by this PyTorch - must pin PCI order).
 - **Eval:** validation split, greedy, **bs=1** (faithful), thresholds 0.3/0.4/0.5/0.8.
 
 ## Launch
@@ -71,7 +71,7 @@ bash scripts/train_gpt2_gsm8k_pondernet.sh \
 Both valid runs (B and C) beat the exp-07 threshold-only baseline on every threshold.
 Full per-epoch results in [runs.md](runs.md).
 
-### Summary — best epoch (ep5), validation bs=1 n=500 greedy
+### Summary - best epoch (ep5), validation bs=1 n=500 greedy
 
 | threshold | exp-07 baseline | Run B (γ=0.10, α=1.0, β=1.5) | Run C (γ=0.10, α=0.6, β=1.5) |
 |----------:|:---------------:|:-----------------------------:|:-----------------------------:|
@@ -83,19 +83,19 @@ Full per-epoch results in [runs.md](runs.md).
 ### Key conclusions
 
 1. **γ=0.10 pulls the frontier left uniformly.** Run B ep5 beats the exp-07 baseline at every
-   threshold — more accurate *and* fewer steps — confirming the hypothesis that γ=0.05 was too
+   threshold - more accurate *and* fewer steps - confirming the hypothesis that γ=0.05 was too
    weak to make the KL-geom prior bind.
 
 2. **α=0.6 (Run C) reduces steps ~20% further vs Run B**, but costs 0.4–0.8pp accuracy.
-   At thr0.5 the tradeoff is nearly neutral: 40.6% @ 2.93 (C) vs 41.0% @ 3.64 (B) — 0.4pp
+   At thr0.5 the tradeoff is nearly neutral: 40.6% @ 2.93 (C) vs 41.0% @ 3.64 (B) - 0.4pp
    for 0.71 fewer steps per question.
 
 3. **Recommended operating points:**
-   - High accuracy: **Run B ep5, thr0.5** — 41.0% @ 3.64 steps (+0.2pp, −16% steps vs baseline)
-   - Min steps: **Run C ep5, thr0.5** — 40.6% @ 2.93 steps (−0.2pp, −32% steps vs baseline)
-   - Sweet spot: **Run B ep5, thr0.4** — 40.6% @ 3.10 steps (+0.2pp, −18% steps vs baseline)
+   - High accuracy: **Run B ep5, thr0.5** - 41.0% @ 3.64 steps (+0.2pp, −16% steps vs baseline)
+   - Min steps: **Run C ep5, thr0.5** - 40.6% @ 2.93 steps (−0.2pp, −32% steps vs baseline)
+   - Sweet spot: **Run B ep5, thr0.4** - 40.6% @ 3.10 steps (+0.2pp, −18% steps vs baseline)
 
-4. **Run A (β=1.0) invalid** — degenerate prior for n_i=0 examples; crashes epoch 2.
+4. **Run A (β=1.0) invalid** - degenerate prior for n_i=0 examples; crashes epoch 2.
    See runs.md for details.
 
 See [runs.md](runs.md) for the full run table · artifacts under `<dir>/08-simcot-pondernet-gamma-frontier/`.

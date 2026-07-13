@@ -376,7 +376,7 @@ def train():
         freeze_model(model)
         if scope in ("full", "full_dec"):
             # full:     whole codi backbone + prj + halt_head trainable; decoder frozen
-            #           (the warm-start recipe — the decoder is reused from SIM-CoT).
+            #           (the warm-start recipe - the decoder is reused from SIM-CoT).
             # full_dec: additionally unfreeze the auxiliary decoder, for a from-scratch
             #           SIM-CoT-faithful run where the decoder is vanilla GPT-2 and must
             #           itself learn the step-level supervision (paper Eq. 5-6).

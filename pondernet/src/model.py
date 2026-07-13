@@ -65,7 +65,7 @@ class ModelArguments:
         metadata={"help": "Path to a SIM-CoT CODI .safetensors to warm-start the full CODI model "
                           "(backbone+LoRA+decoder+prj) from. Loaded via load_state_dict(strict=False) "
                           "AFTER the model is assembled; only the PonderNet halt head stays newly-initialized. "
-                          "Do NOT point model_name_or_path at this file — it is a CODI wrapper, not a plain GPT-2."},
+                          "Do NOT point model_name_or_path at this file - it is a CODI wrapper, not a plain GPT-2."},
     )
 
 @dataclass
@@ -145,7 +145,7 @@ class TrainingArguments(transformers.TrainingArguments):
     pondernet_prior_offset: float = field(default=1.5, metadata={"help": "Adaptive prior offset beta in geom_mean_i = alpha*n_i + beta. Must be >1 to avoid the degenerate g=1 point-mass prior; doubles as the z0/answer latent overhead."})
     pondernet_inf_threshold: float = field(default=0.5, metadata={"help": "Cumulative halting probability threshold for inference early-stopping. Stop when sum_k p_k > threshold."})
     pondernet_trunc_k: bool = field(default=False, metadata={"help": "Per-instance truncated-K training (exp-06): stop the latent loop at K_i = max(1, n_i) steps per example instead of always running max_latent_steps. Requires pondernet=True and use_decoder=True."})
-    pondernet_train_scope: str = field(default="lora", metadata={"help": "Which params train in PonderNet mode: 'lora' (lora_* + halt_head, the warm-started default), 'lora_prj' (also unfreeze prj.* — required for a cold backbone where prj is randomly initialized), 'full' (whole codi backbone + prj + halt_head; decoder frozen), or 'full_dec' (full + the auxiliary decoder too — for a from-scratch SIM-CoT run where the decoder is vanilla GPT-2 and must learn step supervision)."})
+    pondernet_train_scope: str = field(default="lora", metadata={"help": "Which params train in PonderNet mode: 'lora' (lora_* + halt_head, the warm-started default), 'lora_prj' (also unfreeze prj.* - required for a cold backbone where prj is randomly initialized), 'full' (whole codi backbone + prj + halt_head; decoder frozen), or 'full_dec' (full + the auxiliary decoder too - for a from-scratch SIM-CoT run where the decoder is vanilla GPT-2 and must learn step supervision)."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -339,7 +339,7 @@ def build_active_mask(K_i_list, K_batch_max, device=None):
     """Boolean mask (B, K_batch_max) where active[i, k] = (k < K_i_list[i]).
 
     K_i_list: list (B,) of per-example step counts (clamped to [1, max_latent_steps]).
-    K_batch_max: int, max(K_i_list) — the loop iteration count for this batch.
+    K_batch_max: int, max(K_i_list) - the loop iteration count for this batch.
     """
     k_idx = torch.arange(K_batch_max, device=device).unsqueeze(0)   # (1, K)
     Ki_t = torch.tensor(K_i_list, device=device).unsqueeze(1)        # (B, 1)
@@ -566,7 +566,7 @@ class CODI(torch.nn.Module):
         p_prior = torch.cat([ones_col, torch.cumprod(one_minus[:, :-1], dim=1)], dim=1)  # (B, K)
 
         # p_k = lambda_k * p_prior_k for k < K; p_K = p_prior_K (absorbing)
-        p = lambdas * p_prior                       # (B, K) — first K-1 entries correct
+        p = lambdas * p_prior                       # (B, K) - first K-1 entries correct
         p = torch.cat([p[:, :-1], p_prior[:, -1:]], dim=1)  # last entry = p_prior_K
 
         # clamp negatives from fp error, renorm for exact sum-1
@@ -766,7 +766,7 @@ class CODI(torch.nn.Module):
       
         max_latent_steps = self.max_latent_steps
 
-        # Exp-06: per-instance truncated-K — shorten the loop per batch
+        # Exp-06: per-instance truncated-K - shorten the loop per batch
         active_mask = None
         if self.pondernet and getattr(self, "pondernet_trunc_k", False) and self.model_args.use_decoder:
             n_real = count_real_steps(steps_list, self.tokenizer.pad_token_id)
@@ -944,12 +944,12 @@ class CODI(torch.nn.Module):
 
         if self.pondernet and len(pondernet_lambdas) > 0:
             # --- Phase 4: PonderNet objective ---
-            pondernet_p = self._halting_distribution(pondernet_lambdas)  # (B, K) — FP32
+            pondernet_p = self._halting_distribution(pondernet_lambdas)  # (B, K) - FP32
 
             # L_pondernet = E_p[L_ans^(k)] = sum_k p_k * L_ans^(k), averaged over batch
-            step_losses_tensor = torch.stack(pondernet_step_losses, dim=1)  # (B, K) — FP32
+            step_losses_tensor = torch.stack(pondernet_step_losses, dim=1)  # (B, K) - FP32
 
-            # Exp-06: per-instance mask — zero out halting mass and step losses beyond K_i
+            # Exp-06: per-instance mask - zero out halting mass and step losses beyond K_i
             if active_mask is not None:
                 pondernet_p = pondernet_p * active_mask.float()
                 pondernet_p = pondernet_p / pondernet_p.sum(dim=1, keepdim=True).clamp_min(1e-8)
@@ -957,7 +957,7 @@ class CODI(torch.nn.Module):
 
             l_pondernet = (pondernet_p * step_losses_tensor).sum(dim=1).mean()
 
-            # KL_geom regularizer — penalises distributions far from geometric prior.
+            # KL_geom regularizer - penalises distributions far from geometric prior.
             # Adaptive prior (exp 05): per-example mean = affine remap of the example's real
             # reasoning-step count, geom_mean_i = alpha*n_i + beta clamped to [beta, K]; the
             # offset keeps the prior off the degenerate g=1 point mass. Else global scalar.

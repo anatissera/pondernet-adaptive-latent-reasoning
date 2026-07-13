@@ -40,7 +40,7 @@ def run(results_dir: Path) -> None:
 
     valid = [(s, c) for s, c in zip(steps, cot_vals) if c is not None]
     if not valid:
-        print(f"[postprocess] no cot_steps in {ir_path} — skipping", flush=True)
+        print(f"[postprocess] no cot_steps in {ir_path} - skipping", flush=True)
         return
 
     vs, vc = zip(*valid)
@@ -111,7 +111,7 @@ def run(results_dir: Path) -> None:
     ax.set_yticklabels(all_cot_steps)
     ax.set_xlabel("Latent steps used", fontsize=10)
     ax.set_ylabel("CoT steps  n_i  (dataset)", fontsize=10)
-    ax.set_title("P(latent steps | CoT steps)  — row-normalised", fontsize=9)
+    ax.set_title("P(latent steps | CoT steps)  - row-normalised", fontsize=9)
     plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 
     ns         = [b["n"] for b in by_cot_steps]

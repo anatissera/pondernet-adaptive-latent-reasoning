@@ -1,4 +1,4 @@
-# 03-simcot-pondernet-gcfix — Runs
+# 03-simcot-pondernet-gcfix - Runs
 
 See [experiment.md](experiment.md) for what's being tested (incl. the Root Cause writeup).
 

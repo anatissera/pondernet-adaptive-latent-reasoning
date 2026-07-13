@@ -7,7 +7,7 @@ halting probability at each step and can stop early.
 
 > **Layout note**: `train.py` and `test.py` live at the root of `pondernet/` (not in `src/`) because they are CLI entry points invoked directly by the shell scripts in `scripts/`. `src/model.py` is the library they import. Run everything from the `pondernet/` directory.
 
-Enabled via the `--pondernet True` flag (default `False` — the original
+Enabled via the `--pondernet True` flag (default `False` - the original
 fixed-K SIM-CoT/CODI training path is unaffected when this is off).
 
 ## Hyperparameters
@@ -18,10 +18,10 @@ All flags below live in `src/model.py` (`TrainingArguments`) and are set in
 | Flag | Current value | Meaning |
 |---|---|---|
 | `--max_latent_steps` | `6` | Hard upper bound on latent reasoning steps (`K_max`). The model can take at most this many steps even if it never decides to halt. |
-| `--pondernet_halt_bias_init` | `-2.0` | Initial bias of the halting head (`halt_head`, a linear layer producing `λ_k`). A negative bias makes `sigmoid(logit)` start low, so the model begins by *not* wanting to halt early — gives the latent loop room to "warm up" before learning when to stop. |
+| `--pondernet_halt_bias_init` | `-2.0` | Initial bias of the halting head (`halt_head`, a linear layer producing `λ_k`). A negative bias makes `sigmoid(logit)` start low, so the model begins by *not* wanting to halt early - gives the latent loop room to "warm up" before learning when to stop. |
 | `--pondernet_beta` | `1.0` | Weight on the auxiliary decoder loss `L_step` (the per-step reconstruction loss CODI already uses) in the total loss. |
 | `--pondernet_gamma` | `0.01` | Weight on `KL_geom`, the KL-divergence regularizer that pulls the learned halting distribution `p_k` toward a geometric prior. Keeps the model from either always running to `K_max` or halting too aggressively. |
-| `--pondernet_geom_mean` | `3.0` | Mean of the geometric prior distribution used by `KL_geom`. This is *the* PonderNet hyperparameter that encodes "how many latent steps we expect the model to need on average" — it shapes (but does not hard-cap) the number of steps the model converges to using. |
+| `--pondernet_geom_mean` | `3.0` | Mean of the geometric prior distribution used by `KL_geom`. This is *the* PonderNet hyperparameter that encodes "how many latent steps we expect the model to need on average" - it shapes (but does not hard-cap) the number of steps the model converges to using. |
 | `--pondernet_inf_threshold` | `0.5` | Inference-time stopping threshold: the model halts as soon as its accumulated halting probability crosses this value (default `0.5`, i.e. "more likely halted than not"). Only used at inference (`test.py`), not during training. |
 
 ## Loss
@@ -47,7 +47,7 @@ EXP=04-simcot-pondernet-gammasweep RUN=g0.05-gm3.0-ep5 \
 ```
 
 Training auto-resumes from the last checkpoint found in `output_dir` if the
-run is interrupted (see `train.py`) — just re-run the same command. Explicit
+run is interrupted (see `train.py`) - just re-run the same command. Explicit
 `SAVE_DIR`/`LOG_DIR` still override the `EXP`/`RUN` derivation (back-compat).
 
 ### Warm-starting the auxiliary decoder from SIM-CoT
@@ -57,7 +57,7 @@ it has trained for a while (the "cold start" problem), so it is warm-started fro
 SIM-CoT-trained decoder checkpoint.
 
 That decoder lives at `models/pretrained/simcot-gpt2-decoder/` (gitignored, like all
-model artifacts), so it is obtained on demand via the fetch script below — no copy is
+model artifacts), so it is obtained on demand via the fetch script below - no copy is
 committed to the repo. The training script defaults `DECODER_PATH` to
 `../models/pretrained/simcot-gpt2-decoder` and passes `--decoder_path`, which `model.py`
 loads as a drop-in replacement for the vanilla decoder (verified compatible: identical
@@ -78,7 +78,7 @@ full-model recipes are selected.
 
 There are **two warm-start recipes**, both wired into `train.py` and the training
 script, selected by which checkpoint variables you set. `GPT2_PATH`
-(`model_name_or_path`) always stays a plain GPT-2 — it is only the backbone
+(`model_name_or_path`) always stays a plain GPT-2 - it is only the backbone
 scaffold, **never** the SIM-CoT CODI checkpoint (pointing it there loads the wrapper
 as a bare GPT-2 and silently random-inits the backbone).
 
@@ -87,13 +87,13 @@ as a bare GPT-2 and silently random-inits the backbone).
 | **decoder-only** | cold (vanilla GPT-2 + fresh LoRA) | warm | `--decoder_path` (loaded in `CODI.__init__`) |
 | **full-model** | warm | warm (comes with the checkpoint) | `--simcot_ckpt` (`load_state_dict` after assembly) |
 
-The SIM-CoT CODI checkpoint holds three namespaces — `codi.*` (245 tensors,
-backbone + LoRA), `decoder.*` (149), `prj.*` (6) = 400 total — and
+The SIM-CoT CODI checkpoint holds three namespaces - `codi.*` (245 tensors,
+backbone + LoRA), `decoder.*` (149), `prj.*` (6) = 400 total - and
 `fetch_simcot_decoder.py` extracts a standalone copy of exactly the `decoder.*`
 subset for the decoder-only path. So **a full-model warm-start already includes the
 decoder**: when `--simcot_ckpt` is set, the `--decoder_path` load in `__init__` is
-overwritten by the same `decoder.*` weights and is therefore redundant (harmless —
-identical tensors — just wasted compute).
+overwritten by the same `decoder.*` weights and is therefore redundant (harmless -
+identical tensors - just wasted compute).
 
 **Selecting a recipe.** The script passes *both* flags. `SIMCOT_CKPT` defaults to the
 SIM-CoT CODI checkpoint, so out of the box you get the **full-model** recipe; set
@@ -108,7 +108,7 @@ SIMCOT_CKPT="" bash scripts/train_gpt2_gsm8k_pondernet.sh
 ```
 
 Like the decoder, the **full CODI checkpoint**
-(`models/pretrained/simcot-gpt2-codi/`, ~730 MB) is **gitignored and not in the repo** — repo
+(`models/pretrained/simcot-gpt2-codi/`, ~730 MB) is **gitignored and not in the repo** - repo
 owners share it on the same filesystem. There is no fetch script for it; a fresh
 environment without that path present must either provide it (download
 `internlm/SIM_COT-GPT2-CODI`) or run decoder-only via `SIMCOT_CKPT=""`. (The script
@@ -118,7 +118,7 @@ In both cases `--pondernet` freezes the backbone and trains the LoRA adapters pl
 the freshly-initialized `halt_head` (the only params not covered by a warm-start).
 The `--simcot_ckpt` load is **sentinel-checked**: it raises if any checkpoint tensor
 fails to map onto the model, or if a core weight (e.g. `decoder.lm_head.weight`) is
-missing — guarding against the namespace-mismatch failure that once trained a model
+missing - guarding against the namespace-mismatch failure that once trained a model
 to garbage. Note: never pass the CODI checkpoint as `model_name_or_path`; that is the
 exact mistake `--simcot_ckpt` exists to avoid.
 
@@ -144,6 +144,6 @@ and an accuracy-vs-budget table (plus a per-instance JSON dump for offline plott
 
 ## Documentation
 
-- [`../docs/pipeline.md`](../docs/pipeline.md) — end-to-end workflow: acquire artifacts, choose a warm-start recipe, train, evaluate, and record results in the run manifest (includes a Mermaid flow diagram).
-- [`../docs/parameters.md`](../docs/parameters.md) — complete CLI flag reference, both warm-start recipes and the `model_name_or_path` trap, and the module/loss-term glossary.
-- [`../docs/experiments.md`](../docs/experiments.md) — experiment index → per-experiment `experiment.md`/`runs.md` → per-run `<run-id>.md`: artifact layout, hparams, and accuracy results. Launch runs with `EXP`/`RUN`; record them by following the existing run entries' format.
+- [`../docs/pipeline.md`](../docs/pipeline.md) - end-to-end workflow: acquire artifacts, choose a warm-start recipe, train, evaluate, and record results in the run manifest (includes a Mermaid flow diagram).
+- [`../docs/parameters.md`](../docs/parameters.md) - complete CLI flag reference, both warm-start recipes and the `model_name_or_path` trap, and the module/loss-term glossary.
+- [`../docs/experiments.md`](../docs/experiments.md) - experiment index → per-experiment `experiment.md`/`runs.md` → per-run `<run-id>.md`: artifact layout, hparams, and accuracy results. Launch runs with `EXP`/`RUN`; record them by following the existing run entries' format.

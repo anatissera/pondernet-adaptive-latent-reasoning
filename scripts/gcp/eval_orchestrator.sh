@@ -39,20 +39,20 @@ while true; do
   # Drain when a full batch has accumulated, or when training is over and stragglers remain.
   if [ "$n" -ge "$BATCH" ] || { [ "$train_up" != active ] && [ "$n" -gt 0 ]; }; then
     if [ "$st" = TERMINATED ]; then
-      echo "[$(date -Is)] $n checkpoint(s) pending (batch=$BATCH, train=$train_up) — starting $EVAL_VM"
+      echo "[$(date -Is)] $n checkpoint(s) pending (batch=$BATCH, train=$train_up) - starting $EVAL_VM"
       if ev start --quiet 2>&1; then
         echo "[$(date -Is)] $EVAL_VM started; it drains and powers itself off"
       else
         echo "[$(date -Is)] start failed (capacity?); retrying next cycle"
       fi
     else
-      echo "[$(date -Is)] $n pending, $EVAL_VM already $st — letting it finish"
+      echo "[$(date -Is)] $n pending, $EVAL_VM already $st - letting it finish"
     fi
   fi
 
   # Everything scored and the trainer is gone: nothing left to orchestrate.
   if [ "$train_up" != active ] && [ "$n" -le 0 ] && [ "$st" = TERMINATED ]; then
-    echo "[$(date -Is)] training finished and all checkpoints evaluated — exiting"
+    echo "[$(date -Is)] training finished and all checkpoints evaluated - exiting"
     exit 0
   fi
   sleep 300

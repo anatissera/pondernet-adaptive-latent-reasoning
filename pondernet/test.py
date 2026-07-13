@@ -78,7 +78,7 @@ def _slice_past_key_values(past_key_values, idx):
     `idx` is a 1-D LongTensor of batch indices (on the cache's device). Handles both
     the legacy tuple-of-tuples layout and transformers' Cache objects (via the legacy
     round-trip). Each kept tensor is `index_select`-ed on the batch dim, so the result
-    is an independent copy — decoding from it does not mutate the caller's cache.
+    is an independent copy - decoding from it does not mutate the caller's cache.
 
     Used by PonderNet eval to decode each example's answer from the KV prefix at *its
     own* halt step instead of the batch's shared termination prefix.
@@ -484,7 +484,7 @@ def evaluation(model_args, data_args, training_args):
             acc_k = 100.0 * sum(step_correct[k]) / n
             print(f"{k:>6} | {n:>6} | {acc_k:>7.1f}%")
 
-        # instance_results.json — one object per datapoint
+        # instance_results.json - one object per datapoint
         per_example_path = os.path.join(data_args.results_dir, "instance_results.json")
         write_json([
             {
@@ -498,7 +498,7 @@ def evaluation(model_args, data_args, training_args):
         ], per_example_path)
         print(f"[PonderNet] Instance results saved to {per_example_path}")
 
-        # summary.json — run-level metrics + breakdowns
+        # summary.json - run-level metrics + breakdowns
         by_steps = [
             {"steps_used": k, "n": len(v), "accuracy_pct": round(100.0 * sum(v) / len(v), 2)}
             for k, v in sorted(step_correct.items())
@@ -594,7 +594,7 @@ if __name__ == "__main__":
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    # Greedy decoding is deterministic, so multi-pass averaging is redundant — run once.
+    # Greedy decoding is deterministic, so multi-pass averaging is redundant - run once.
     num_passes = 1 if training_args.greedy else training_args.inf_num_iterations
     accu_list = []
     for i in range(num_passes):

@@ -8,7 +8,7 @@
 
 🔗 Code: https://github.com/zhenyi4/codi
 
-**arXiv:** 2502.21074v3 [cs.CL] — 23 Sep 2025
+**arXiv:** 2502.21074v3 [cs.CL] - 23 Sep 2025
 
 ---
 
@@ -22,7 +22,7 @@ Chain-of-Thought (CoT) reasoning enhances Large Language Models (LLMs) by encour
 
 Large Language Models (LLMs) have exhibited remarkable reasoning capabilities (OpenAI, 2024; Anthropic, 2024; Google, 2024), with Chain-of-Thought (CoT) (Wei et al., 2022) emerging as a key technique for enabling step-by-step reasoning. The success of CoT can be explained as it allows human-like deliberate thinking when computing a sequence of reasoning tokens before deriving the final answer (Kahneman, 2011).
 
-However, conventional CoT-based methods only rely on natural language tokens as the medium for reasoning. While prior work on prompt learning (Lester et al., 2021) has demonstrated that transforming discrete prompts into continuous representations can lead to efficient yet effective reasoning (Li and Liang, 2021), this motivates us to investigate if CoT reasoning can similarly benefit from continuous representations. Compared to natural language, reasoning in continuous space offers the following advantages. First, verbalizing the reasoning process can be inefficient, as many tokens are devoted to communication rather than computation (Li et al., 2024b). Second, learning annotated CoTs token-by-token may cause models to overfit on superficial linguistic cues (Lin et al., 2025). While continuous representations—without the need to mimic explicit CoT targets—introduce a softer prior, which may lead to improved robustness.
+However, conventional CoT-based methods only rely on natural language tokens as the medium for reasoning. While prior work on prompt learning (Lester et al., 2021) has demonstrated that transforming discrete prompts into continuous representations can lead to efficient yet effective reasoning (Li and Liang, 2021), this motivates us to investigate if CoT reasoning can similarly benefit from continuous representations. Compared to natural language, reasoning in continuous space offers the following advantages. First, verbalizing the reasoning process can be inefficient, as many tokens are devoted to communication rather than computation (Li et al., 2024b). Second, learning annotated CoTs token-by-token may cause models to overfit on superficial linguistic cues (Lin et al., 2025). While continuous representations-without the need to mimic explicit CoT targets-introduce a softer prior, which may lead to improved robustness.
 
 An implicit CoT algorithm replaces natural language tokens with continuous representations for reasoning. To effectively learn these representations, the state-of-the-art method, Coconut (Hao et al., 2024) adopts a curriculum learning strategy (Deng et al., 2024) that gradually replaces the initial CoT tokens with continuous thoughts. This strategy encourages continuous thoughts to behave like the removed CoT tokens. Although Coconut has greatly improved upon earlier implicit CoT methods in terms of performance (Goyal et al., 2024; Deng et al., 2024), it lags behind CoT-SFT by a large margin. We hypothesize that this performance gap is due to forgetting across stages in the curriculum learning process (Rao Vijjini et al., 2021). This prompts us to ask: **Can implicit CoT methods achieve the reasoning capability comparable to CoT-SFT while maintaining their efficiency advantages?**
 
@@ -45,7 +45,7 @@ To address this, we propose a novel training framework: **CODI (Continuous Chain
 
 ## 3 CODI: Continuous Chain-of-Thought via Self Distillation
 
-Unlike traditional CoT reasoning, CODI bypasses autoregression in the vocabulary space, and directly connects the last hidden representation to the subsequent input. The key challenge in training a model with continuous thoughts lies in designing an appropriate training objective. Conventional reasoning learning in explicit CoT fine-tuning relies on a cross-entropy loss over annotated CoT tokens, which inevitably leads to discrete CoT token generation—contradicting the definition of implicit CoT.
+Unlike traditional CoT reasoning, CODI bypasses autoregression in the vocabulary space, and directly connects the last hidden representation to the subsequent input. The key challenge in training a model with continuous thoughts lies in designing an appropriate training objective. Conventional reasoning learning in explicit CoT fine-tuning relies on a cross-entropy loss over annotated CoT tokens, which inevitably leads to discrete CoT token generation-contradicting the definition of implicit CoT.
 
 ### 3.1 Overview
 
@@ -101,7 +101,7 @@ where M indicates the number of layers in the LLM, sg denotes the stop-gradient 
 
 For the distillation task, we adopt the same model for both the teacher and student roles for two primary reasons. (1) **Reference Learning:** The model must first learn to perform explicit CoT reasoning before it can effectively compress and transfer this capability into continuous space as implicit CoT. (2) **Training Efficiency:** Maintaining two distinct models during training doubles memory consumption.
 
-For training data, we exclude the final CoT step—the step responsible for generating the final answer—because including this step could allow the teacher's hidden activations to take a shortcut. Specifically, the model might directly copy the result from the last CoT step to the token responsible for generating the exact answer token, bypassing the reasoning process.
+For training data, we exclude the final CoT step-the step responsible for generating the final answer-because including this step could allow the teacher's hidden activations to take a shortcut. Specifically, the model might directly copy the result from the last CoT step to the token responsible for generating the exact answer token, bypassing the reasoning process.
 
 **Inference.** The inference process in CODI mirrors the student task during training (Figure 2, left). The model autoregressively decodes n continuous thoughts following the question and the `<bot>` token. Once the reasoning process is complete, the `<eot>` token is manually inserted to terminate continuous reasoning and switch the model to language generation mode, decoding the final answer.
 
@@ -113,7 +113,7 @@ We demonstrate CODI's effectiveness in continuous space reasoning through experi
 
 ### 4.1 Experimental Setup
 
-**Training Data.** We utilize three datasets to train our models—GSM8k-Aug, GSM8k-Aug-NL, and CommonsenseQA-CoT.
+**Training Data.** We utilize three datasets to train our models-GSM8k-Aug, GSM8k-Aug-NL, and CommonsenseQA-CoT.
 
 **(1) GSM8k-Aug** (Deng et al., 2023): the dataset proven effective for training implicit CoT methods (Deng et al., 2024; Hao et al., 2024). This dataset extends the original GSM8k training set (Cobbe et al., 2021) to 385k samples by prompting GPT-4. To facilitate implicit CoT training, all natural language interleaving within the CoT is removed, leaving only structured mathematical expressions such as `<< 10÷5=2 >><<2×2=4>><<6×4=24>>`.
 
@@ -138,7 +138,7 @@ Two base models are considered: GPT-2 (Radford et al., 2019) and LLaMA3.2-1b-Ins
 
 **Compress More Verbose CoTs.** To evaluate CODI's generalizability, we extend our analysis to a more complex CoT dataset, GSM8k-Aug-NL. Figure 3 (2nd column) shows that both GPT-2 and LLaMA-1b perform worse on it compared to GSM8k-Aug. This decrease in performance stems from the additional natural language tokens, which add noise and make imitation learning more difficult. Surprisingly, CODI surpasses CoT-SFT when using GPT-2 and achieves a higher relative score improvement on LLaMA1b compared to models trained on GSM8k-Aug. Moreover, CODI surpasses all other implicit CoT methods especially at the size of LLaMA-1b. With the average CoT length increased to 65.5 (Figure 4), CODI achieves a compression ratio of 8.2, suggesting that the optimal compression ratio is dataset-dependent.
 
-**Commonsense Reasoning.** As shown in Figure 3 (rightmost column), CoT-SFT largely outperforms No-CoT-SFT for GPT-2, which performs nearly random guessing (five choices per question). This indicates that training on CoT benefits GPT-2. Interestingly, CODI surpasses even CoT-SFT. We attribute this to GPT-2's limited capacity for generating coherent natural language CoTs—CoT-SFT struggles to replicate the quality of the training CoTs, whereas CODI faces less burden by reasoning in a continuous space with fewer tokens. Interestingly, CODI outperforms CoT-SFT by a large margin and achieves accuracy comparable to No-CoT-SFT. This shows that our latent reasoning model could better capture intermediate thought processes in continuous spaces.
+**Commonsense Reasoning.** As shown in Figure 3 (rightmost column), CoT-SFT largely outperforms No-CoT-SFT for GPT-2, which performs nearly random guessing (five choices per question). This indicates that training on CoT benefits GPT-2. Interestingly, CODI surpasses even CoT-SFT. We attribute this to GPT-2's limited capacity for generating coherent natural language CoTs-CoT-SFT struggles to replicate the quality of the training CoTs, whereas CODI faces less burden by reasoning in a continuous space with fewer tokens. Interestingly, CODI outperforms CoT-SFT by a large margin and achieves accuracy comparable to No-CoT-SFT. This shows that our latent reasoning model could better capture intermediate thought processes in continuous spaces.
 
 **Efficiency.** CODI utilizes a fixed set of **six** continuous thoughts, enclosed by two special tokens, resulting in a total of **eight** "tokens" for reasoning. As shown in Figure 4, CODI achieves substantial efficiency gains, with a speedup of approximately **2.7× (3.1× CoT compression)** for compact CoTs trained on GSM8k-Aug and **5.9× (8.2× CoT compression)** for verbose CoTs trained on GSM8k-Aug-NL.
 
@@ -146,7 +146,7 @@ Two base models are considered: GPT-2 (Radford et al., 2019) and LLaMA3.2-1b-Ins
 
 ### 4.3 Out-of-Distribution (OOD) Evaluation
 
-To assess robustness, we evaluate CODI—trained on GSM8k-Aug—on OOD datasets. Remarkably, CODI consistently outperforms all the other implicit CoT baselines and even CoT-SFT across all three OOD benchmarks with GPT-2 (Table 1). Using LLaMA-1b, CODI also performs better compared to iCoT and Coconut. It also demonstrates stronger performance relative to its in-domain results. We attribute CODI's robustness to its reduced tendency to overfit. Unlike CoT-SFT, which is trained to mimic exact natural language CoT annotations, CODI generates continuous thoughts without direct imitation targets. This lack of rigid supervision likely prevents memorization and promotes greater adaptability to unfamiliar inputs.
+To assess robustness, we evaluate CODI-trained on GSM8k-Aug-on OOD datasets. Remarkably, CODI consistently outperforms all the other implicit CoT baselines and even CoT-SFT across all three OOD benchmarks with GPT-2 (Table 1). Using LLaMA-1b, CODI also performs better compared to iCoT and Coconut. It also demonstrates stronger performance relative to its in-domain results. We attribute CODI's robustness to its reduced tendency to overfit. Unlike CoT-SFT, which is trained to mimic exact natural language CoT annotations, CODI generates continuous thoughts without direct imitation targets. This lack of rigid supervision likely prevents memorization and promotes greater adaptability to unfamiliar inputs.
 
 ### 4.4 Ablation Studies
 
@@ -164,7 +164,7 @@ We observe that CODI's continuous thoughts exhibit a degree of interpretability.
 
 ### 5.1 Interpretability Analysis
 
-Interpreting CODI's continuous thoughts is inherently challenging because these representations lack explicit imitation targets. However, CODI exhibits an ability to produce observable intermediate results (Figure 6) within its continuous thoughts by projecting its last hidden state into vocabulary space via the model's word embeddings – treating it in the same way as a standard token. Additionally, the corresponding operands contributing to these intermediate results can often be among the **top-ranked attended tokens** of the latent representation. For example, the second latent thought, z₂, attends to both "1" and "7" to produce the decoded token "7". While the operator itself (e.g., ×) is not explicitly visible in the attention mechanism—since operators are in the context—it is reasonable to infer that the transformer layers *implicitly* perform this operation.
+Interpreting CODI's continuous thoughts is inherently challenging because these representations lack explicit imitation targets. However, CODI exhibits an ability to produce observable intermediate results (Figure 6) within its continuous thoughts by projecting its last hidden state into vocabulary space via the model's word embeddings – treating it in the same way as a standard token. Additionally, the corresponding operands contributing to these intermediate results can often be among the **top-ranked attended tokens** of the latent representation. For example, the second latent thought, z₂, attends to both "1" and "7" to produce the decoded token "7". While the operator itself (e.g., ×) is not explicitly visible in the attention mechanism-since operators are in the context-it is reasonable to infer that the transformer layers *implicitly* perform this operation.
 
 Beyond the case study, we aim to establish that CODI's interpretability is a general pattern by an accuracy metric. We extract all correctly predicted answers, decode the corresponding intermediate results, and compare them against the reference intermediate solutions. Table 3 reveals that when there is only one intermediate result, CODI correctly matches the reference 97.1% of the time. For CoT sequences with lengths up to 3, CODI consistently achieves over 75% accuracy in decoding valid intermediate results.
 
@@ -202,7 +202,7 @@ For LLaMA-3.2-1b, we use a learning rate of 8e-4 and set γ to 20, as we observe
 
 In a typical CoT training dataset, the input usually consists of four components: the question Q, the rationale R, the prompt for the answer P (e.g., "The answer is:"), and the final answer A.
 
-We analyze the attention activation of the last prompt token, q—in this case, ":"—at the l-th transformer layer. The additional term W_V R(W_K R)^T q represents the contribution of the CoT rationale R to the hidden activation value, emphasizing its role as an additive factor in the latent representation. This shift can be effectively captured and learned using a distance metric.
+We analyze the attention activation of the last prompt token, q-in this case, ":"-at the l-th transformer layer. The additional term W_V R(W_K R)^T q represents the contribution of the CoT rationale R to the hidden activation value, emphasizing its role as an additive factor in the latent representation. This shift can be effectively captured and learned using a distance metric.
 
 ### C Datasets
 

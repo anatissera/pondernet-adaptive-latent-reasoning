@@ -38,7 +38,7 @@ by checkpoint convention.
 | `--data_name` | `None` | HuggingFace dataset name / local path identifier for training data. |
 | `--debug_data` | `False` | Enable a tiny debug dataset to quickly verify the training pipeline end-to-end. |
 | `--batch_size` | `1` | Batch size for inference (not the trainer batch size; see `--per_device_train_batch_size`). |
-| `--data_path` | `""` | Local path to a training/eval JSON file. If empty, data is loaded from HuggingFace. The eval scripts (`eval_gpt2_gsm8k_{pondernet,fixedk}.sh`) default this to the **validation** split `data/gsm8k_aug/validation.jsonl`; the test split is reserved for a single final report after model selection (see [pipeline.md eval-split note](pipeline.md) — prior to 2026-06-23 eval defaulted to the test set, biasing 01–07). |
+| `--data_path` | `""` | Local path to a training/eval JSON file. If empty, data is loaded from HuggingFace. The eval scripts (`eval_gpt2_gsm8k_{pondernet,fixedk}.sh`) default this to the **validation** split `data/gsm8k_aug/validation.jsonl`; the test split is reserved for a single final report after model selection (see [pipeline.md eval-split note](pipeline.md) - prior to 2026-06-23 eval defaulted to the test set, biasing 01–07). |
 | `--results_dir` | `"../results"` | Directory for evaluation output JSON files (relative to repo root, outside the module). |
 | `--max_train_samples` | `None` | If set, truncate the training set to this many samples (useful for fast ablations). |
 
@@ -109,7 +109,7 @@ missing, unexpected = model.load_state_dict(sd, strict=False)
 
 This loads the entire SIM-CoT checkpoint into the already-assembled module. The
 **only** parameters left newly-initialised are the PonderNet halt head (`halt_head.*`).
-Everything else — backbone weights, LoRA adapters, decoder, projection — comes from
+Everything else - backbone weights, LoRA adapters, decoder, projection - comes from
 the checkpoint.
 
 ### Decoder-only warm-start
@@ -132,7 +132,7 @@ SIM-CoT `CODI` wrapper.
 A SIM-CoT checkpoint stores its backbone weights under keys like
 `codi.base_model.model.transformer.*`. When HuggingFace's `AutoModelForCausalLM`
 loads it as a bare `GPT2LMHeadModel`, it cannot match those namespaced keys and
-**silently random-initialises the entire backbone** — producing a model that trains
+**silently random-initialises the entire backbone** - producing a model that trains
 from scratch while appearing to warm-start. This is exactly the failure mode that
 caused `simcot_joint_ep40` to train to garbage (see `memory/project_simcot_warmstart_fix.md`).
 
@@ -141,13 +141,13 @@ caused `simcot_joint_ep40` to train to garbage (see `memory/project_simcot_warms
 After the `load_state_dict` call, `train.py` enforces three invariants and raises
 `RuntimeError` if any is violated:
 
-1. **No unexpected keys** — every tensor in the checkpoint must map onto a model
+1. **No unexpected keys** - every tensor in the checkpoint must map onto a model
    parameter. A non-empty `unexpected` list means a namespace mismatch (the same
    failure mode as the silent random-init trap described above).
-2. **Only `halt_head.*` missing** — the only parameters allowed to be absent from
+2. **Only `halt_head.*` missing** - the only parameters allowed to be absent from
    the checkpoint (i.e. newly-initialised) are those whose name starts with
    `halt_head`. Any other missing key triggers an error.
-3. **Core sentinels present** — explicitly checks that
+3. **Core sentinels present** - explicitly checks that
    `codi.base_model.model.transformer.wte.weight`, `decoder.lm_head.weight`, and
    `prj.1.weight` were all loaded (i.e., are not in `missing`), confirming that
    the backbone, decoder, and projector weights actually landed.
@@ -157,7 +157,7 @@ halt-head parameters.
 
 ---
 
-## (c) Glossary — names kept as-is (checkpoint-bound)
+## (c) Glossary - names kept as-is (checkpoint-bound)
 
 The following `nn.Module` attribute names appear directly in saved `state_dict` keys.
 They are deliberately not renamed so that existing checkpoints remain loadable.
@@ -165,7 +165,7 @@ They are deliberately not renamed so that existing checkpoints remain loadable.
 | Name | `state_dict` prefix | What it is |
 |------|---------------------|------------|
 | `codi` | `codi.*` | The LoRA-wrapped backbone module that runs the latent recurrence loop. At each step it consumes the current latent embedding and produces the next one. Its keys include both the frozen base-model weights (`codi.base_model.model.*`) and the trainable LoRA adapter weights (`codi.base_model.model.*.lora_A.*`, etc.). |
-| `decoder` | `decoder.*` | Auxiliary GPT-2 that receives each latent embedding concatenated with a CoT step and is trained to reconstruct that step via cross-entropy — the `explain_loss` / L_step signal. Only present when `--use_decoder` is set. |
+| `decoder` | `decoder.*` | Auxiliary GPT-2 that receives each latent embedding concatenated with a CoT step and is trained to reconstruct that step via cross-entropy - the `explain_loss` / L_step signal. Only present when `--use_decoder` is set. |
 | `prj` | `prj.*` | Optional projection module applied to the latent embedding after each backbone pass before feeding it back in. Architecture: `Dropout → Linear(dim, prj_dim) → GELU → Linear(prj_dim, dim) → LayerNorm`. Enabled with `--use_prj`. |
 | `halt_head` | `halt_head.*` | `nn.Linear(hidden_dim, 1)` that maps each latent hidden state h_k to a scalar halting logit; `sigmoid` of this logit gives the conditional halting probability λ_k at step k. This is the **only** component that is freshly initialised during a full-model warm-start. Its bias is initialised to `--pondernet_halt_bias_init` (default −2.0). |
 | `pj_in` | `pj_in.*` | Input projection that projects the auxiliary decoder's input token embeddings (in hidden-size space) from backbone hidden size to decoder hidden size. When sizes match it is an `nn.Identity`; otherwise it is `nn.Linear(backbone_hidden, decoder_hidden)`. Only present when `--decoder_path` is set. |
@@ -191,7 +191,7 @@ variables so every run lands under the experiment-scoped layout:
 | `EXP` | Experiment dir name (`<NN-exp>`) | must match `^[0-9]{2}-[a-z0-9.-]+$` (e.g. `04-simcot-pondernet-gammasweep`); the `simcot`/`simcot-pondernet` prefix lives here, not in `RUN` |
 | `RUN` | Run id within the experiment | the distinguishing part only (e.g. `g0.05-gm3.0-ep5`) |
 
-Derivation (only when the explicit dir var is unset — explicit
+Derivation (only when the explicit dir var is unset - explicit
 `SAVE_DIR`/`LOG_DIR`/`RESULTS_DIR` always win, for back-compat):
 
 ```

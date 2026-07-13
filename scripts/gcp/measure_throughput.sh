@@ -2,7 +2,7 @@
 # Measure real training throughput for a BS/ACCUM candidate. Run ON the VM, from /opt/alr.
 #
 # Do NOT trust scripts/profile_batch_size.py for this decision: it profiles SEQ_LEN=256,
-# K=6, WITH gradient checkpointing — none of which match this run (512, K=12, grad-ckpt
+# K=6, WITH gradient checkpointing - none of which match this run (512, K=12, grad-ckpt
 # False). This script instead launches the actual wrapper into a throwaway dir, lets it
 # run STEPS optimizer steps, reads the pace off the tqdm line, and kills it.
 #
@@ -33,12 +33,12 @@ PID=$!
 trap 'kill -9 $PID 2>/dev/null; rm -rf "$PROBE_DIR"' EXIT
 
 # tqdm writes "N/M [MM:SS<..., X.XXs/it]" (or it/s). Wait for STEPS steps, then report.
-# The first ~10 steps are warmup (allocator growth, cudnn autotune) — pace is read from
+# The first ~10 steps are warmup (allocator growth, cudnn autotune) - pace is read from
 # the tqdm average at step STEPS, which amortizes that.
-echo "==> BS=$BS ACCUM=$ACCUM — waiting for $STEPS optimizer steps..."
+echo "==> BS=$BS ACCUM=$ACCUM - waiting for $STEPS optimizer steps..."
 for _ in $(seq 1 240); do
   sleep 15
-  kill -0 $PID 2>/dev/null || { echo "training died — last log lines:"; tail -20 "$LOG"; exit 1; }
+  kill -0 $PID 2>/dev/null || { echo "training died - last log lines:"; tail -20 "$LOG"; exit 1; }
   line=$(grep -oE "$STEPS/[0-9]+ \[[^]]*\]" "$LOG" | tail -1) || true
   if [ -n "${line:-}" ]; then
     echo "==> tqdm at step $STEPS:  $line"

@@ -7,7 +7,7 @@
 
 🔗 Code: https://github.com/facebookresearch/coconut
 
-**arXiv:** 2412.06769v3 [cs.CL] — 3 Nov 2025  
+**arXiv:** 2412.06769v3 [cs.CL] - 3 Nov 2025  
 **Last updated:** November 4, 2025
 
 ---
@@ -92,7 +92,7 @@ We define the predicted probability of a concept following continuous thoughts a
 
 ### 4.4 Why is Latent Space Better for Planning?
 
-Building upon the tree search perspective, we further examine why latent reasoning benefits planning tasks—specifically, why maintaining multiple candidate paths and postponing deterministic decisions enhances reasoning performance. Our hypothesis is that nodes explored in the early reasoning stages are inherently more challenging to evaluate accurately because they are farther from the final target nodes. In contrast, nodes positioned closer to potential targets, having fewer subsequent exploration possibilities, can be assessed accurately with higher confidence.
+Building upon the tree search perspective, we further examine why latent reasoning benefits planning tasks-specifically, why maintaining multiple candidate paths and postponing deterministic decisions enhances reasoning performance. Our hypothesis is that nodes explored in the early reasoning stages are inherently more challenging to evaluate accurately because they are farther from the final target nodes. In contrast, nodes positioned closer to potential targets, having fewer subsequent exploration possibilities, can be assessed accurately with higher confidence.
 
 To systematically test this, we define the height of a node as its shortest distance to any leaf node and analyze the relationship between node height and the model's estimated value. Empirical results across the test set (Figure 7) support our hypothesis: nodes with lower heights consistently receive more accurate and definitive probability evaluations. Conversely, nodes with greater heights exhibit more ambiguous evaluations, reflecting increased uncertainty.
 

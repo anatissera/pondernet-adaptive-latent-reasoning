@@ -73,7 +73,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # and max_grad_norm 2.0 (our main script defaults 384 / 1.0). LoRA (r128/α32/dropout0.1/
 # c_attn,c_proj,c_fc/init), lr 3e-3, 40 ep, eff. batch 128, wd 0.1, warmup 0.03, cosine,
 # prj_dim 768, distill_loss_div_std all already match. Deliberate deviations from the CODI
-# base: K_max=12 (vs fixed num_latent=6 — the whole point is adaptive halting) and seed 42
+# base: K_max=12 (vs fixed num_latent=6 - the whole point is adaptive halting) and seed 42
 # (our experiment convention vs upstream 11).
 exec bash "$SCRIPT_DIR/train_gpt2_gsm8k_pondernet.sh" \
   --pondernet_train_scope full_dec \

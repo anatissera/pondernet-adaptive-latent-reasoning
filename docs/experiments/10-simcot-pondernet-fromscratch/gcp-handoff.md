@@ -1,12 +1,12 @@
-# exp-10 — GCP: the full 40-epoch from-scratch run on a Spot RTX PRO 6000
+# exp-10 - GCP: the full 40-epoch from-scratch run on a Spot RTX PRO 6000
 
 **Status (2026-07-11): complete.** 40/40 epochs trained and evaluated. Final accuracy
-**18.88%** on the GSM8K test set (vs. 39.5% SIM-CoT warm-start baseline) — see § Results below
+**18.88%** on the GSM8K test set (vs. 39.5% SIM-CoT warm-start baseline) - see § Results below
 for the full curve and what it means. Both VMs are stopped.
 
 The plan changed once the hardware was measured. Resuming from the epoch-12 hand-off checkpoint
 was only ever attractive because 28 epochs on the L4 meant 13.5 days. At the measured
-1.01 h/epoch, the *entire* 40-epoch run costs 40.4 h — so we pay 12 extra hours and get a run
+1.01 h/epoch, the *entire* 40-epoch run costs 40.4 h - so we pay 12 extra hours and get a run
 with no inherited optimizer state, no rewound LR schedule, and nothing to caveat: exactly the
 "40 epochs, one continuous cosine" that CODI/SIM-CoT report. The resume analysis below is kept
 because it explains why that trade is worth taking.
@@ -34,7 +34,7 @@ number is kept alongside the measurement, because the size of the error is the l
 
 The A100 quota requests are still sitting at `grantedValue: 0` (both
 `NVIDIA-A100-80GB-GPUS` and the committed variant). Spot quota is a **separate queue** from
-on-demand — `GPUS_ALL_REGIONS` only caps on-demand GPUs — and the Spot RTX PRO 6000 request
+on-demand - `GPUS_ALL_REGIONS` only caps on-demand GPUs - and the Spot RTX PRO 6000 request
 was granted **instantly**:
 
 | quota (us-central1) | requested | granted |
@@ -62,7 +62,7 @@ Two platform constraints found the hard way:
 ## The Blackwell trap (fixed, and verified on the card)
 
 The RTX PRO 6000 is compute capability **sm_120**. `torch==2.7.1` from PyPI is built against
-CUDA 12.6, whose wheels ship **no kernels for sm_120** — every CUDA op dies with
+CUDA 12.6, whose wheels ship **no kernels for sm_120** - every CUDA op dies with
 `no kernel image is available for execution on the device`. The L4 (sm_89) never showed this.
 
 Fixed by pinning the cu128 index in `pyproject.toml` (`uv.lock` regenerated →
@@ -91,7 +91,7 @@ separate answer-decode graphs per example. **Activations dominate, not weights.*
 | **64 × 2** | **62.8 / 95.6 GB** | ✅ **1.21 s/step**, GPU util 51% |
 
 `BS=64 ACCUM=2` is the ceiling and is now the default. The effective batch stays 128, matching
-exp-08 Run C. The 96 GB card is *not* oversized for this run — it is what makes `BS=64` possible
+exp-08 Run C. The 96 GB card is *not* oversized for this run - it is what makes `BS=64` possible
 at all (the L4 was stuck at `BS=16 ACCUM=8`, i.e. 8 accumulation passes, each serializing the
 12-step latent loop).
 
@@ -99,7 +99,7 @@ GPU utilisation sits at 51%: the serial latent loop, not the dataloader, is the 
 (`--dataloader_num_workers` was raised 4→16 to rule the loader out).
 
 > **`profile_batch_size.py` is misleading for this run.** It profiles `SEQ_LEN=256`, `K=6`,
-> *with* gradient checkpointing. This run is 512 / K=12 / grad-ckpt **False** (mandatory — see
+> *with* gradient checkpointing. This run is 512 / K=12 / grad-ckpt **False** (mandatory - see
 > the KV-cache gotcha in `AGENTS.md`). Use `scripts/gcp/measure_throughput.sh`, which drives
 > the real wrapper.
 
@@ -122,7 +122,7 @@ At 2,999 steps/epoch:
 | L4 | 11.53 | 323 h (13.5 d) | 2.1 |
 
 An earlier estimate in this conversation put the RTX PRO 6000 at 1.5–3.5 s/step. The true
-number is 1.21 s/step. The estimate was ~2× pessimistic — and the L4 baseline it was implicitly
+number is 1.21 s/step. The estimate was ~2× pessimistic - and the L4 baseline it was implicitly
 calibrated against was off by 4–9×. **Do not plan from FLOPs; run `measure_throughput.sh`.**
 
 Spot preemption costs at most one epoch (~1 h), since checkpoints are per-epoch.
@@ -148,7 +148,7 @@ Numerically, with 2,999 steps/epoch, 119,960 total steps and a 5,998-step (≈2 
 | LR at ep40 | ~0 | **2.265e-4** |
 | cosine traversed | 100% | 70% |
 
-The two faults partially cancel — the accidental re-warmup shields the cold Adam start — but
+The two faults partially cancel - the accidental re-warmup shields the cold Adam start - but
 two harms remain. The model is driven back to peak LR on partly-converged weights, in exactly
 the regime where this recipe already diverged once (`grad_norm` 20 → 2.5e11 at 3e-3). And it
 **never anneals to zero**, forfeiting the final low-LR polish that the CODI/SIM-CoT baseline
@@ -160,11 +160,11 @@ checkpoint"*; do not trade it for *"your LR schedule was not the one you reporte
 `models/checkpoints/10-simcot-pondernet-fromscratch/` holds 6 checkpoints, all with full
 optimizer + scheduler state. **None is usable as a starting point:**
 
-- `probe-lr1e-3-wu0.05-ep4/checkpoint-{2999,5998,8997,11996}` — from a **4-epoch cosine**
+- `probe-lr1e-3-wu0.05-ep4/checkpoint-{2999,5998,8997,11996}` - from a **4-epoch cosine**
   (`max_steps=11996`), already annealed to LR ≈ 1e-9. Their weights are not on the 40-epoch
   trajectory. Resuming one inside a 40-epoch run jumps LR from ~0 back to ~1e-3, undoing the
   anneal.
-- `fromscratch-runC-.../checkpoint-{2999,5998}` — from the **LR=3e-3 run that diverged**.
+- `fromscratch-runC-.../checkpoint-{2999,5998}` - from the **LR=3e-3 run that diverged**.
 
 The old `exp10-l4` VM disk was mounted and searched: it holds the same 6 checkpoints and no
 `checkpoint-35988`. **The epoch-12 checkpoint exists only in the hand-off tar.** The probe's
@@ -172,13 +172,13 @@ value was validating the LR recipe, and it did that.
 
 ### Two modes in `vm_bootstrap.sh`
 
-- **`RESUME_MODE=exact`** (default) — needs the 1.2 GB checkpoint. Drops it into `SAVE_DIR`;
+- **`RESUME_MODE=exact`** (default) - needs the 1.2 GB checkpoint. Drops it into `SAVE_DIR`;
   `get_last_checkpoint()` finds it and HF restores weights, moments, scheduler, RNG and
   `global_step`. 40 epochs total, original cosine. It **fails loudly** if `optimizer.pt` is
   absent, so you cannot silently get the broken resume.
-- **`RESUME_MODE=weights`** — fallback. Does *not* pretend to resume: warm-starts via
+- **`RESUME_MODE=weights`** - fallback. Does *not* pretend to resume: warm-starts via
   `--simcot_ckpt` (a plain `load_state_dict`) and runs a deliberate, self-consistent 28-epoch
-  schedule — peak LR **8.386e-4** (what the original cosine held at ep12), short warmup to
+  schedule - peak LR **8.386e-4** (what the original cosine held at ep12), short warmup to
   rebuild Adam's second moments, cosine to ~0 at ep40. **An approximation of the tail, not the
   tail.** If you use it, say so in this document.
 
@@ -197,7 +197,7 @@ bash scripts/gcp/launch_spot.sh
 # 2. push the repo (already done; it lives on the boot disk)
 gcloud compute scp --zone=us-central1-b --recurse . alr-exp10-spot:/opt/alr --compress
 
-# 3a. setup only — venv + CUDA assertion + data  (already done)
+# 3a. setup only - venv + CUDA assertion + data  (already done)
 gcloud compute ssh --zone=us-central1-b alr-exp10-spot -- \
   'SETUP_ONLY=1 CKPT_DIR=/opt/alr/ckpt bash /opt/alr/scripts/gcp/vm_bootstrap.sh'
 
@@ -250,18 +250,18 @@ Two ordering hazards, both handled: a `.ready` marker is written *after* the wei
 single-object writes atomic, never multi-object ones), and the uploader waits for the file size
 to settle because HF creates the checkpoint directory before finishing the write.
 
-### Results — run complete (40/40 epochs, 2026-07-11)
+### Results - run complete (40/40 epochs, 2026-07-11)
 
 Training ran 38h 59m on the Spot RTX PRO 6000 (predicted 40.4h; no preemptions occurred, so
 the difference is measurement noise around the 1.01h/epoch estimate, not lost time). Every
 epoch was scored on the full 1319-example GSM8K test set at batch_size=1, K_max=12.
 
-**Headline: 18.88% final accuracy, vs. the 39.5% SIM-CoT warm-start baseline — the model
+**Headline: 18.88% final accuracy, vs. the 39.5% SIM-CoT warm-start baseline - the model
 converged to a plateau, it did not run out of epochs before converging.** Accuracy rose
 6.22% → ~19% over epochs 1-11, then held inside **17-19.8%** for all 30 remaining epochs
 (11-40), including the low-LR tail (36-40: 18.65/18.95/18.88/18.88%) where a late convergence
 push would show up if one were coming. None appeared. `avg_steps_used` stayed flat at ~2.2 of
-a K_max=12 budget for the entire run — the halting head is not spending more compute to buy
+a K_max=12 budget for the entire run - the halting head is not spending more compute to buy
 the accuracy the warm-start run gets, so the ~20.6pp gap is attributable to what the SIM-CoT
 checkpoint's own ~40 epochs of pretraining contributed, which is exactly the confound exp-10
 was designed to isolate.
@@ -293,11 +293,11 @@ Full per-epoch table (accuracy_pct, avg_steps_used from each epoch's `summary.js
 
 Full curve: `results-curve.png`. Raw `summary.json`/`eval.log` per epoch, the full `train.log`,
 and the TensorBoard events are archived locally under `models/checkpoints/10-.../`,
-`outputs/10-.../`, `results/10-.../` (gitignored — not in this repo). The final checkpoint
-(`checkpoint-119960`, epoch 40, full with optimizer/scheduler/rng — 1.2 GB) was pulled to the
+`outputs/10-.../`, `results/10-.../` (gitignored - not in this repo). The final checkpoint
+(`checkpoint-119960`, epoch 40, full with optimizer/scheduler/rng - 1.2 GB) was pulled to the
 same `models/checkpoints/` path before the VMs were stopped.
 
-Both cloud VMs (`alr-exp10-spot`, `alr-eval-l4`) are **STOPPED**, not deleted — their disks
+Both cloud VMs (`alr-exp10-spot`, `alr-eval-l4`) are **STOPPED**, not deleted - their disks
 persist. Total eval cost: 40 epochs × ~234s ≈ 2.6h of on-demand L4 ≈ $2. Training cost: ~39h
 of Spot RTX PRO 6000.
 

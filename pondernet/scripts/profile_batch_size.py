@@ -21,7 +21,7 @@ K       = 6
 WARMUP  = 3
 MEASURE = 10
 
-# Physical GPU id (nvidia-smi index) — change if your 3090 is at index 0.
+# Physical GPU id (nvidia-smi index) - change if your 3090 is at index 0.
 PHYS_GPU_ID = os.environ.get("PHYS_GPU_ID", "1")
 
 # ── GPU poller ────────────────────────────────────────────────────────────────
