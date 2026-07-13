@@ -7,7 +7,7 @@
 📧 xlwei24@m.fudan.edu.cn · zangyuhang@pjlab.org.cn  
 🔗 GitHub: https://github.com/InternLM/SIM-CoT
 
-**arXiv:** 2509.20317v2 [cs.CL] — 25 Sep 2025
+**arXiv:** 2509.20317v2 [cs.CL] - 25 Sep 2025
 
 ---
 
@@ -19,7 +19,7 @@ Implicit Chain-of-Thought (CoT) methods offer a token-efficient alternative to e
 
 ## 1 Introduction
 
-*"Measure what is measurable, and make measurable what is not so."* — Galileo Galilei
+*"Measure what is measurable, and make measurable what is not so."* - Galileo Galilei
 
 The strong reasoning capabilities of Large Language Models (LLMs) (OpenAI, 2024; Google, 2024; Anthropic, 2024) are often unlocked through explicit Chain-of-Thought (CoT) prompting (Wei et al., 2022). The explicit CoT approach enables LLMs to solve complex problems in a step-by-step manner, yielding high performance in domains like mathematics and programming (Guo et al., 2025; Muennighoff et al., 2025). Despite its advantages, explicit CoT also faces several limitations. Explicit CoT approaches must verbalize intermediate thoughts from a fixed vocabulary, thereby precluding the exploration of alternative solution paths (Li et al., 2025; Zhang et al., 2025b). Additionally, the generation of extensive intermediate sequences significantly increases inference cost and can result in redundant over-thinking steps or unnecessary verbosity (Chen et al., 2024b).
 
@@ -155,7 +155,7 @@ Gradients from L_{step} propagate through the decoder into the latent representa
 4. **Coconut** (Hao et al., 2025): A curriculum learning approach that gradually replaces explicit reasoning steps with implicit tokens until the reasoning process becomes fully implicit. This method has shown strong empirical performance and serves as a primary baseline in our experiments.
 5. **CODI** (Shen et al., 2025b): A distillation-based method where explicit CoT acts as the teacher and implicit CoT as the student. By aligning the last hidden states of the full reasoning trajectory, CODI effectively internalizes knowledge and alleviates catastrophic forgetting.
 
-**In-Domain Math Benchmark Results.** Table 1 (first column) reports GPT-2 results on GSM8k-Aug. SIM-CoT outperforms SFT-CoT and is the first training-based approach where implicit CoT surpasses explicit CoT. With GPT-2 using Coconut as the backbone, it achieves a +2.1 point improvement over SFT-CoT. It also exceeds other training-based implicit reasoning models; for example, on Coconut, it improves by +8.2 points, a relative gain of 22.4%. Moreover, when applied on top of CODI—the current SOTA implicit reasoning method—SIM-CoT yields an additional +0.6 point improvement.
+**In-Domain Math Benchmark Results.** Table 1 (first column) reports GPT-2 results on GSM8k-Aug. SIM-CoT outperforms SFT-CoT and is the first training-based approach where implicit CoT surpasses explicit CoT. With GPT-2 using Coconut as the backbone, it achieves a +2.1 point improvement over SFT-CoT. It also exceeds other training-based implicit reasoning models; for example, on Coconut, it improves by +8.2 points, a relative gain of 22.4%. Moreover, when applied on top of CODI-the current SOTA implicit reasoning method-SIM-CoT yields an additional +0.6 point improvement.
 
 Table 2 (first column) shows the results when CODI is used as the backbone. In this setting, our method achieves a substantial +3.4 point improvement. Furthermore, we are the first to achieve performance comparable to SFT-CoT on LLaMA-1B, reaching 96% of its accuracy.
 

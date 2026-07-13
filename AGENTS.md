@@ -4,11 +4,11 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 
 ## Repo Structure
 
-- `baselines/` — upstream reference implementations; treat as read-only unless actively extending
-  - `Coconut/` — Coconut latent CoT (GSM8K, ProntoQA tasks)
-  - `CODI/` — CODI implicit CoT; Subgroup 1's active working area (PonderNet extensions)
-- `docs/methods-comparison.md` — cross-paper comparison table and chain-of-influence narrative; read this for method context
-- `docs/papers/` — full paper content (raw); only read if you need deeper detail beyond the comparison doc
+- `baselines/` - upstream reference implementations; treat as read-only unless actively extending
+  - `Coconut/` - Coconut latent CoT (GSM8K, ProntoQA tasks)
+  - `CODI/` - CODI implicit CoT; Subgroup 1's active working area (PonderNet extensions)
+- `docs/methods-comparison.md` - cross-paper comparison table and chain-of-influence narrative; read this for method context
+- `docs/papers/` - full paper content (raw); only read if you need deeper detail beyond the comparison doc
 
 ## Two Subgroups
 
@@ -23,7 +23,7 @@ NLP final project (5-person team, 2 subgroups). Goal: make the number of latent 
 # Coconut (from baselines/Coconut/)
 python run.py args/gsm_coconut.yaml
 
-# CODI — PonderNet variant (from baselines/CODI/)
+# CODI - PonderNet variant (from baselines/CODI/)
 bash scripts/train_gpt2_gsm8k_pondernet.sh
 ```
 
