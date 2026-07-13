@@ -33,7 +33,7 @@ that summarizes the whole project is below (click it for the
 </p>
 
 > The LaTeX sources for both documents (English and the original Spanish versions)
-> live on the `paper` branch, under `paper_en/`, `paper/`, `poster_en/`, and
+> live on the `report-src` branch, under `paper_en/`, `paper/`, `poster_en/`, and
 > `poster/`.
 
 ## Headline results
@@ -79,7 +79,7 @@ models/, outputs/, results/, data/   # Run artifacts (gitignored, shared on disk
 - `main`: everything integrated; the reference state of the project.
 - `option-a-k-classifier`, `option-b-adaptive-vectors`, `option-c-pondernet`: the
   final state of each approach, each with its own README and results.
-- `paper`: LaTeX sources of the report and poster, in English (`paper_en/`,
+- `report-src`: LaTeX sources of the report and poster, in English (`paper_en/`,
   `poster_en/`) and the original Spanish (`paper/`, `poster/`). The compiled English
   PDFs are also committed to `main` under [`report/`](report/).
 
