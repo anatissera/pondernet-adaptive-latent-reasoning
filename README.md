@@ -17,7 +17,24 @@ axis of the latent budget:
 | **C** | A PonderNet halting head learns, from the task signal, when to stop reasoning | number of steps, decided on the fly | `option-c-pondernet` | [`pondernet/`](pondernet/README.md) |
 
 Option C is the primary line of work (experiments 01-11); Options A and B are complete
-studies with their own findings. The written report lives on the `paper` branch.
+studies with their own findings.
+
+## Report & poster
+
+The full write-up is available right here - **you can read the paper at
+[`report/paper.pdf`](report/paper.pdf)** (ACL format, English). The one-page poster
+that summarizes the whole project is below (click it for the
+[PDF](report/poster.pdf)):
+
+<p align="center">
+  <a href="report/poster.pdf">
+    <img src="report/poster.png" alt="Poster - Adaptive latent reasoning: PonderNet-style probabilistic halting over implicit chains of thought" width="720">
+  </a>
+</p>
+
+> The LaTeX sources for both documents (English and the original Spanish versions)
+> live on the `paper` branch, under `paper_en/`, `paper/`, `poster_en/`, and
+> `poster/`.
 
 ## Headline results
 
@@ -49,6 +66,7 @@ pondernet/           # Option C codebase: train.py, test.py, src/model.py, scrip
 k-classifier/            # Option A pipeline: k sweeps, labels, classifiers
 adaptive-vectors/            # Option B codebase and study (gated by --option_b)
 baselines/           # Reference implementations (Coconut, CODI, SIM-CoT), read-only
+report/              # Compiled paper.pdf and poster.pdf/.png (English)
 docs/experiments.md  # Experiment index (01-11) -> per-experiment -> per-run docs
 docs/pipeline.md     # End-to-end workflow: artifacts -> train -> eval -> record
 docs/parameters.md   # CLI flag reference and warm-start recipes
@@ -61,7 +79,9 @@ models/, outputs/, results/, data/   # Run artifacts (gitignored, shared on disk
 - `main`: everything integrated; the reference state of the project.
 - `option-a-k-classifier`, `option-b-adaptive-vectors`, `option-c-pondernet`: the
   final state of each approach, each with its own README and results.
-- `paper`: the written report (ACL format, in Spanish).
+- `paper`: LaTeX sources of the report and poster, in English (`paper_en/`,
+  `poster_en/`) and the original Spanish (`paper/`, `poster/`). The compiled English
+  PDFs are also committed to `main` under [`report/`](report/).
 
 ## Setup
 
