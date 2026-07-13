@@ -1,0 +1,79 @@
+\begin{thebibliography}{10}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Banino et~al.(2021)Banino, Balaguer, and
+  Blundell}]{banino2021pondernet}
+Andrea Banino, Jan Balaguer, and Charles Blundell. 2021.
+\newblock \href {https://arxiv.org/abs/2107.05407} {{PonderNet}: Learning to
+  ponder}.
+\newblock In \emph{8th ICML Workshop on Automated Machine Learning (AutoML)}.
+
+\bibitem[{Cobbe et~al.(2021)Cobbe, Kosaraju, Bavarian, Chen, Jun, Kaiser,
+  Plappert, Tworek, Hilton, Nakano, Hesse, and Schulman}]{cobbe2021gsm8k}
+Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz
+  Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano,
+  Christopher Hesse, and John Schulman. 2021.
+\newblock \href {https://arxiv.org/abs/2110.14168} {Training verifiers to solve
+  math word problems}.
+\newblock \emph{arXiv preprint arXiv:2110.14168}.
+
+\bibitem[{Deng et~al.(2024)Deng, Choi, and Shieber}]{deng2024icot}
+Yuntian Deng, Yejin Choi, and Stuart Shieber. 2024.
+\newblock \href {https://arxiv.org/abs/2405.14838} {From explicit {CoT} to
+  implicit {CoT}: Learning to internalize {CoT} step by step}.
+\newblock \emph{arXiv preprint arXiv:2405.14838}.
+
+\bibitem[{Graves(2016)}]{graves2016act}
+Alex Graves. 2016.
+\newblock \href {https://arxiv.org/abs/1603.08983} {Adaptive computation time
+  for recurrent neural networks}.
+\newblock \emph{arXiv preprint arXiv:1603.08983}.
+
+\bibitem[{Hao et~al.(2024)Hao, Sukhbaatar, Su, Li, Hu, Weston, and
+  Tian}]{hao2024coconut}
+Shibo Hao, Sainbayar Sukhbaatar, DiJia Su, Xian Li, Zhiting Hu, Jason Weston,
+  and Yuandong Tian. 2024.
+\newblock \href {https://arxiv.org/abs/2412.06769} {Training large language
+  models to reason in a continuous latent space}.
+\newblock \emph{arXiv preprint arXiv:2412.06769}.
+
+\bibitem[{Radford et~al.(2019)Radford, Wu, Child, Luan, Amodei, and
+  Sutskever}]{radford2019gpt2}
+Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, and Ilya
+  Sutskever. 2019.
+\newblock \href
+  {https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf}
+  {Language models are unsupervised multitask learners}.
+\newblock \emph{OpenAI Technical Report}.
+
+\bibitem[{Reimers and Gurevych(2019)}]{reimers2019sbert}
+Nils Reimers and Iryna Gurevych. 2019.
+\newblock \href {https://arxiv.org/abs/1908.10084} {Sentence-{BERT}: Sentence
+  embeddings using siamese {BERT}-networks}.
+\newblock In \emph{Proceedings of the 2019 Conference on Empirical Methods in
+  Natural Language Processing (EMNLP)}.
+
+\bibitem[{Shen et~al.(2025)Shen, Yan, Zhang, Hu, Du, and He}]{shen2025codi}
+Zhenyi Shen, Hanqi Yan, Linhai Zhang, Zhanghao Hu, Yali Du, and Yulan He. 2025.
+\newblock \href {https://arxiv.org/abs/2502.21074} {{CODI}: Compressing
+  chain-of-thought into continuous space via self-distillation}.
+\newblock \emph{arXiv preprint arXiv:2502.21074}.
+
+\bibitem[{Wei et~al.(2022)Wei, Wang, Schuurmans, Bosma, Ichter, Xia, Chi, Le,
+  and Zhou}]{wei2022cot}
+Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia,
+  Ed~Chi, Quoc~V. Le, and Denny Zhou. 2022.
+\newblock \href {https://arxiv.org/abs/2201.11903} {Chain-of-thought prompting
+  elicits reasoning in large language models}.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}.
+
+\bibitem[{Wei et~al.(2025)Wei, Liu, Zang, Dong, Cao, Wang, Qiu, and
+  Lin}]{wei2025simcot}
+Xilin Wei, Xiaoran Liu, Yuhang Zang, Xiaoyi Dong, Yuhang Cao, Jiaqi Wang,
+  Xipeng Qiu, and Dahua Lin. 2025.
+\newblock \href {https://arxiv.org/abs/2509.20317} {{SIM-CoT}: Supervised
+  implicit chain-of-thought}.
+\newblock \emph{arXiv preprint arXiv:2509.20317}.
+
+\end{thebibliography}
