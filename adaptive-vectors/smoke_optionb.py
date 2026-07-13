@@ -141,7 +141,7 @@ def main():
     print(f"[{'PASS' if c4 else 'FAIL'}] step_losses shape ({B},{K}) & finite: got {tuple(sl.shape)}")
     ok &= c4
 
-    p = last["pondernet_p"]  # (B, K) — in-graph
+    p = last["pondernet_p"]  # (B, K) - in-graph
 
     c5 = tuple(p.shape) == (B, K)
     print(f"[{'PASS' if c5 else 'FAIL'}] p_k shape == ({B},{K}): got {tuple(p.shape)}")

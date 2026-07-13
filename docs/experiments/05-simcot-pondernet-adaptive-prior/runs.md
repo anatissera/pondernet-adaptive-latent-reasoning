@@ -1,4 +1,4 @@
-# 05-simcot-pondernet-adaptive-prior — Runs
+# 05-simcot-pondernet-adaptive-prior - Runs
 
 See [experiment.md](experiment.md) for what's being tested.
 

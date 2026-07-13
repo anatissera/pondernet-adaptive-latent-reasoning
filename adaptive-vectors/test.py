@@ -77,7 +77,7 @@ def _slice_past_key_values(past_key_values, idx):
     `idx` is a 1-D LongTensor of batch indices (on the cache's device). Handles both
     the legacy tuple-of-tuples layout and transformers' Cache objects (via the legacy
     round-trip). Each kept tensor is `index_select`-ed on the batch dim, so the result
-    is an independent copy — decoding from it does not mutate the caller's cache.
+    is an independent copy - decoding from it does not mutate the caller's cache.
 
     Used by PonderNet eval to decode each example's answer from the KV prefix at *its
     own* halt step instead of the batch's shared termination prefix.
@@ -667,7 +667,7 @@ if __name__ == "__main__":
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    # Greedy decoding is deterministic, so multi-pass averaging is redundant — run once.
+    # Greedy decoding is deterministic, so multi-pass averaging is redundant - run once.
     num_passes = 1 if training_args.greedy else training_args.inf_num_iterations
     accu_list = []
     for i in range(num_passes):

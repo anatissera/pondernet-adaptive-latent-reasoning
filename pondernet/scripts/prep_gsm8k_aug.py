@@ -13,7 +13,7 @@ Schema written per line: {"question": str, "cot": str, "answer": str}
 (This is what train.py's `icot` loader reads; --data_name icot.)
 
 Eval data: test.jsonl (1319 ex, this experiment's ONLY eval set) is TRACKED IN GIT
-at data/gsm8k_aug/test.jsonl — a fresh clone already has it. It is the GSM8k-Aug
+at data/gsm8k_aug/test.jsonl - a fresh clone already has it. It is the GSM8k-Aug
 HF test split, so `--split test` can regenerate it if needed.
 
 There is NO validation.jsonl for this experiment (do not fetch or add one): the

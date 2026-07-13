@@ -62,7 +62,7 @@ SWEEP_DIR="../results/${SWEEP_TAG}"
 # under the same SWEEP_TAG (so run-ids/checkpoint dirs stay consistent); merge later.
 SUMMARY="${SUMMARY_FILE:-${SWEEP_DIR}/summary.tsv}"
 mkdir -p "$SWEEP_DIR" "$(dirname "$SUMMARY")"
-# Only write the header if the file is new — avoids one parallel stream wiping another's rows.
+# Only write the header if the file is new - avoids one parallel stream wiping another's rows.
 [[ -f "$SUMMARY" ]] || printf 'recipe\tk_max\tcheckpoint\tthreshold\taccuracy_pct\tavg_steps\trun_id\n' > "$SUMMARY"
 
 echo "[ksweep] recipes=[$RECIPES] kmaxes=[$KMAXES] gamma=$GAMMA geom_mean=$GEOM_MEAN epochs=$EPOCHS lr=$LR"

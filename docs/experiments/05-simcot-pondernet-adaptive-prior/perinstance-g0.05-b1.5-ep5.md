@@ -7,10 +7,10 @@
 ## Summary
 
 Per-instance affine halting prior (α=1, β=1.5, γ=0.05). Re-validated, accuracy is at the 40.80%
-greedy validation baseline (ep4 40.80% @ thr0.5, ep5 41.00% @ thr0.5; n=500) — no clear accuracy
-win — but the run is strongly **step-efficient and difficulty-tracking**: easy problems (0–1
+greedy validation baseline (ep4 40.80% @ thr0.5, ep5 41.00% @ thr0.5; n=500) - no clear accuracy
+win - but the run is strongly **step-efficient and difficulty-tracking**: easy problems (0–1
 expr) halt at ~2.0–2.7 avg steps while hard ones saturate near K=6, with **Spearman +0.662**
-(ep4, thr0.5) — the best difficulty tracking of the K=6 runs. Epoch 4 is the kept `_best_epoch`;
+(ep4, thr0.5) - the best difficulty tracking of the K=6 runs. Epoch 4 is the kept `_best_epoch`;
 ep5 also survived. Earlier epochs (ep1–ep3) were deleted and cannot be re-validated.
 
 ## Hyperparameters
@@ -23,19 +23,19 @@ ep5 also survived. Earlier epochs (ep1–ep3) were deleted and cannot be re-vali
 | prior | affine: geom_mean_i = 1·n_i + 1.5  (n_i = #expr − 1, clamped to [1.5, 6]) |
 | warm-start · seed · data | full-model SIM-CoT CODI · 42 · train100k.jsonl |
 
-## Results — epoch sweep (thr=0.8)
+## Results - epoch sweep (thr=0.8)
 
 Only ep4 and ep5 survived re-validation; ep1–ep3 checkpoints were deleted.
 
 | epoch | step | acc | avg_steps | source |
 |-------|------|-----|-----------|--------|
-| 1 | 778 | 39.50% | 5.407 | test, biased — ckpt deleted |
-| 2 | 1556 | 39.80% | 5.303 | test, biased — ckpt deleted |
-| 3 | 2334 | 39.80% | 5.254 | test, biased — ckpt deleted |
+| 1 | 778 | 39.50% | 5.407 | test, biased - ckpt deleted |
+| 2 | 1556 | 39.80% | 5.303 | test, biased - ckpt deleted |
+| 3 | 2334 | 39.80% | 5.254 | test, biased - ckpt deleted |
 | **4** | **3112** | **39.80% (val)** | **5.232** | re-validated, n=500 (prior test 40.49%) |
 | 5 | 3890 | 40.60% (val) | 5.244 | re-validated, n=500 (prior test 40.11%) |
 
-## Results — re-validated (validation split, n=500, greedy)
+## Results - re-validated (validation split, n=500, greedy)
 
 | checkpoint | thr 0.5 | thr 0.8 | thr 0.9 |
 |-----------|---------|---------|---------|
@@ -44,21 +44,21 @@ Only ep4 and ep5 survived re-validation; ep1–ep3 checkpoints were deleted.
 
 (acc% / avg_steps; n=500 validation; prior numbers were on GSM8K test, 1319 ex, biased.)
 
-**Difficulty tracking** — Spearman(steps_used, #expr), validation:
+**Difficulty tracking** - Spearman(steps_used, #expr), validation:
 - ep4: thr0.5 = **+0.662**, thr0.8 = +0.598, thr0.9 = +0.505
 - ep5: thr0.5 = **+0.663**, thr0.8 = +0.598, thr0.9 = +0.505
 
 **vs baseline (`04/g0.05-gm3.0-ep5`, re-validated):**
-- acc @ thr0.5: 40.80% (ep4) vs 40.80% (baseline) — flat (no accuracy win on validation)
+- acc @ thr0.5: 40.80% (ep4) vs 40.80% (baseline) - flat (no accuracy win on validation)
 - avg_steps @ thr0.5: 4.276 (ep4) vs 4.060 (baseline)
-- Spearman @ thr0.5: **+0.662** (ep4) vs +0.553 (baseline) — clear difficulty-tracking gain ✓
+- Spearman @ thr0.5: **+0.662** (ep4) vs +0.553 (baseline) - clear difficulty-tracking gain ✓
 
 **Prior test-set numbers (biased):** ep4 thr0.8 40.49% (was the reported winner), Spearman thr0.5 0.650.
 
 ## Steps vs difficulty (ep4, thr=0.5, validation)
 
 avg_steps by n_expr bin (ep4, thr0.5): n0 = 2.00, n1 = 2.65, n2 = 3.03, n3 = 4.55, n4 = 5.30,
-n5+ = 5.72 — monotone, a clear adaptive signal. Spearman r = +0.662 (validation, n=500).
+n5+ = 5.72 - monotone, a clear adaptive signal. Spearman r = +0.662 (validation, n=500).
 
 ## Artifacts
 
@@ -70,7 +70,7 @@ n5+ = 5.72 — monotone, a clear adaptive signal. Spearman r = +0.662 (validatio
 ## Notes
 
 On validation the per-instance prior shows **no accuracy advantage** over the global-prior
-baseline (both ~40.8% @ thr0.5) — the prior test-set "+0.29pp" win does not survive de-biasing.
+baseline (both ~40.8% @ thr0.5) - the prior test-set "+0.29pp" win does not survive de-biasing.
 What is robust and consistent is the **step-efficiency and difficulty-tracking**: Spearman rises
 from +0.553 (baseline) to +0.662 (ep4) on validation, and avg_steps tracks n_expr monotonically.
 

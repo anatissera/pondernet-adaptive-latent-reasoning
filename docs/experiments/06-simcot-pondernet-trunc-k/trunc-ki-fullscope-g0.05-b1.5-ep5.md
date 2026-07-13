@@ -1,6 +1,6 @@
 # trunc-ki-fullscope-g0.05-b1.5-ep5
 
-> ⚠️ **Biased metric — test set, not reconcilable.** The numbers on this page were computed on the GSM8K **test** split (not the held-out validation set), and the checkpoint no longer exists, so they cannot be re-evaluated on validation. Treat them as historical/biased. See the [eval-split & leakage note](../../experiments.md#eval-split-and-leakage-note).
+> ⚠️ **Biased metric - test set, not reconcilable.** The numbers on this page were computed on the GSM8K **test** split (not the held-out validation set), and the checkpoint no longer exists, so they cannot be re-evaluated on validation. Treat them as historical/biased. See the [eval-split & leakage note](../../experiments.md#eval-split-and-leakage-note).
 
 **Experiment:** [06-simcot-pondernet-trunc-k](runs.md)  **Date:** 2026-06-20 → 2026-06-21  **Status:** ✅ done
 
@@ -20,7 +20,7 @@ Per-instance truncated-K training (K_i = max(1, n_i)) with full-scope training (
 | training scope | full (backbone LoRA + prj + halt_head; decoder frozen) |
 | warm-start · seed · data | full-model SIM-CoT CODI · 42 · train100k.jsonl |
 
-## Results — epoch sweep
+## Results - epoch sweep
 
 | epoch | step | acc (thr0.5) | acc (thr0.8) | avg_steps (thr0.5) |
 |-------|------|-------------|-------------|-------------------|
@@ -30,7 +30,7 @@ Per-instance truncated-K training (K_i = max(1, n_i)) with full-scope training (
 | 4 | 4148 | 36.24% | 36.24% | 3.669 |
 | **5** | **5185** | **36.39%** | **36.32%** | **3.660** |
 
-## Results — winner (ep5 / checkpoint-5185)
+## Results - winner (ep5 / checkpoint-5185)
 
 | threshold | accuracy | avg_steps | n_samples |
 |-----------|----------|-----------|-----------|
@@ -72,4 +72,4 @@ OOM history: bs=32 cold-start OOMed at ep3/step460 (22.96 GB allocated); bs=24 r
 
 Effective batch was 96 (bs=24 × ga=4) instead of the intended 128. This changes the convergence speed; a fair comparison against exp-05 would use eff-batch=128.
 
-Accuracy still monotonically rising at ep5 — the model had not converged. Planned follow-ups: (a) continue from ep5 checkpoint for more epochs; (b) relax truncation to K_i = n_i + 2.
+Accuracy still monotonically rising at ep5 - the model had not converged. Planned follow-ups: (a) continue from ep5 checkpoint for more epochs; (b) relax truncation to K_i = n_i + 2.

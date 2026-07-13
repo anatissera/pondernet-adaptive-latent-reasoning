@@ -19,7 +19,7 @@ else
 fi
 THRESHOLD="${THRESHOLD:-0.5}"
 # Default to the augmented VALIDATION set (carries the 'cot' field needed for cot_steps).
-# NOTE: was test.jsonl until 2026-06-23 — every 01–07 metric reported before then was
+# NOTE: was test.jsonl until 2026-06-23 - every 01–07 metric reported before then was
 # computed (and hyperparameters selected) on the test set. See docs/experiments.md
 # "Eval split / leakage note". The held-out test set is reserved for a single final report.
 DATA_PATH="${DATA_PATH:-../data/gsm8k_aug/validation.jsonl}"

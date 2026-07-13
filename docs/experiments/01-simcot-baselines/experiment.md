@@ -22,9 +22,9 @@ re-train). Held fixed: K=6, greedy decoding.
 
 ## Findings
 - **40.80%** (`baseline-k6`, validation, n=500, greedy single-pass) is the reference accuracy at
-  a fixed 6 steps — directly comparable to the greedy PonderNet runs. (Prior: 39.50% test,
+  a fixed 6 steps - directly comparable to the greedy PonderNet runs. (Prior: 39.50% test,
   avg-5-sample; biased by test-set leakage.)
-- The low-LR re-train (`fixedk-k6-lr1e4`) collapses to 17.82% — an early symptom of the
+- The low-LR re-train (`fixedk-k6-lr1e4`) collapses to 17.82% - an early symptom of the
   KV-cache training bug later root-caused in [03](../03-simcot-pondernet-gcfix/experiment.md).
 
 See [runs.md](runs.md) for the run table · artifacts under `<dir>/01-simcot-baselines/`.

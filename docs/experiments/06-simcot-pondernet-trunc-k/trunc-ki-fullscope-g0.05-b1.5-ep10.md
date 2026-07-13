@@ -1,6 +1,6 @@
 # trunc-ki-fullscope-g0.05-b1.5-ep10
 
-> ⚠️ **Biased metric — test set, not reconcilable.** The numbers on this page were computed on the GSM8K **test** split (not the held-out validation set), and the checkpoint no longer exists, so they cannot be re-evaluated on validation. Treat them as historical/biased. See the [eval-split & leakage note](../../experiments.md#eval-split-and-leakage-note).
+> ⚠️ **Biased metric - test set, not reconcilable.** The numbers on this page were computed on the GSM8K **test** split (not the held-out validation set), and the checkpoint no longer exists, so they cannot be re-evaluated on validation. Treat them as historical/biased. See the [eval-split & leakage note](../../experiments.md#eval-split-and-leakage-note).
 
 **Experiment:** [06-simcot-pondernet-trunc-k](runs.md)  **Date:** 2026-06-22 → 2026-06-23  **Status:** ✅ done
 
@@ -35,7 +35,7 @@
 | avg_steps @ thr0.5 | ~4.4 | 4.365 | 3.660 | **3.766** |
 | avg_steps @ thr0.8 | 5.380 | 5.262 | 5.066 | **5.194** |
 | Spearman @ thr0.5 | 0.580 | 0.650 | 0.596 | **0.592** |
-| Spearman @ thr0.8 | — | 0.586 | 0.501 | **0.492** |
+| Spearman @ thr0.8 | - | 0.586 | 0.501 | **0.492** |
 
 ### Steps vs difficulty (thr=0.5, ep8)
 
@@ -76,11 +76,11 @@ Accuracy is still slowly improving at ep8; avg_steps plateaued around ep5 (3.76)
 
 ## Notes
 
-**Training timeline:** Launched 2026-06-22 with per_device=32, accum=4 (eff-batch 128). OOM'd at epoch 3 step 460 — GPU 1 (RTX 3090, 24 GB) was using 22.78 GB and needed 596 MB more. Resumed from checkpoint-1556 (end of ep2) with per_device=16, accum=8 (same eff-batch 128, ~7 GB of VRAM headroom freed). The HF Trainer recomputed steps-per-epoch as 389 (vs 778 at batch 32 — reason unclear, possibly a fast-forward artifact in the progress bar). The epoch numbering in the watcher TSV is mislabeled for ep3+; actual epoch-to-step mapping is in the table above.
+**Training timeline:** Launched 2026-06-22 with per_device=32, accum=4 (eff-batch 128). OOM'd at epoch 3 step 460 - GPU 1 (RTX 3090, 24 GB) was using 22.78 GB and needed 596 MB more. Resumed from checkpoint-1556 (end of ep2) with per_device=16, accum=8 (same eff-batch 128, ~7 GB of VRAM headroom freed). The HF Trainer recomputed steps-per-epoch as 389 (vs 778 at batch 32 - reason unclear, possibly a fast-forward artifact in the progress bar). The epoch numbering in the watcher TSV is mislabeled for ep3+; actual epoch-to-step mapping is in the table above.
 
-**Accuracy did not recover.** After 8 real epochs, accuracy plateaued in the mid-36% range at thr0.5 and mid-35% at thr0.8 — substantially below the exp-05 best of 40.49% and essentially where the ep5 run ended. Two remaining confounds: (1) the OOM + resume introduced a batch-size change mid-run, which may have disrupted the LR schedule (cosine with warmup, baked in at launch) and (2) the effective epoch count from the resumed trainer's perspective may have been wrong (it appears to have run only 6 more epochs, not 8 from scratch).
+**Accuracy did not recover.** After 8 real epochs, accuracy plateaued in the mid-36% range at thr0.5 and mid-35% at thr0.8 - substantially below the exp-05 best of 40.49% and essentially where the ep5 run ended. Two remaining confounds: (1) the OOM + resume introduced a batch-size change mid-run, which may have disrupted the LR schedule (cosine with warmup, baked in at launch) and (2) the effective epoch count from the resumed trainer's perspective may have been wrong (it appears to have run only 6 more epochs, not 8 from scratch).
 
-**Avg_steps saturated quickly.** The halting head learned its target avg_steps by ep3 (~3.77 at thr0.5) and did not change thereafter. This decoupling of avg_steps (stable) from accuracy (still slowly improving) suggests the halt head converged but the backbone is still learning to use the allocated steps effectively — more epochs would likely help accuracy without changing the adaptive compute behavior.
+**Avg_steps saturated quickly.** The halting head learned its target avg_steps by ep3 (~3.77 at thr0.5) and did not change thereafter. This decoupling of avg_steps (stable) from accuracy (still slowly improving) suggests the halt head converged but the backbone is still learning to use the allocated steps effectively - more epochs would likely help accuracy without changing the adaptive compute behavior.
 
 **Adaptive signal is strong and preserved.** Despite the accuracy regression, the per-n_expr step distribution is wide and monotonic: 2.1→6.0 steps across n_expr 1→8. Spearman 0.592 is between the baseline (0.580) and exp-05 (0.650), confirming trunc-K contributes adaptive signal beyond the geometric prior alone.
 

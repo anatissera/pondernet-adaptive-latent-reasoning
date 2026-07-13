@@ -52,7 +52,7 @@ superpowers/
 mlruns/
 
 # Eval split tracked in git so the A100 hand-off is self-contained. validation.jsonl
-# is deliberately NOT excepted here — this experiment trains on the entire train set,
+# is deliberately NOT excepted here - this experiment trains on the entire train set,
 # so the team's validation.jsonl (sampled from train) would be contaminated for it.
 # See docs/experiments/10-simcot-pondernet-fromscratch/experiment.md -> "Evaluation
 # protocol" before adding it back.

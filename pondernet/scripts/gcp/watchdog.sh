@@ -3,7 +3,7 @@
 #
 # A preemption with --instance-termination-action=STOP leaves the instance in TERMINATED
 # state with its disks intact. Nothing in GCE brings it back on its own (Spot VMs cannot use
-# automatic restart — that flag only covers host errors), so something outside has to press
+# automatic restart - that flag only covers host errors), so something outside has to press
 # start. This loop is that something. Once the VM boots, the enabled alr-train.service picks
 # training back up from the last epoch checkpoint.
 #
@@ -29,7 +29,7 @@ while true; do
       sleep "$POLL"
       ;;
     TERMINATED|SUSPENDED)
-      echo "[$(date -Is)] $VM is $status (preempted) — restarting"
+      echo "[$(date -Is)] $VM is $status (preempted) - restarting"
       if gcloud compute instances start "$VM" --project="$PROJECT" --zone="$ZONE" 2>&1; then
         echo "[$(date -Is)] restarted; training resumes from the last epoch checkpoint"
         backoff=$POLL
@@ -42,7 +42,7 @@ while true; do
       sleep "$POLL"
       ;;
     MISSING)
-      echo "[$(date -Is)] $VM does not exist in $ZONE — nothing to watch"; exit 1
+      echo "[$(date -Is)] $VM does not exist in $ZONE - nothing to watch"; exit 1
       ;;
     *)  # PROVISIONING, STAGING, STOPPING...
       sleep "$POLL"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Option-B Step 3 — re-measure the UNBIASED (cold + coarse) model and compare to the
+# Option-B Step 3 - re-measure the UNBIASED (cold + coarse) model and compare to the
 # warm+atomic baseline (c1=27.52% c2=39.42% c3=39.88%, adaptive~=random).
 #
 # Two parts:

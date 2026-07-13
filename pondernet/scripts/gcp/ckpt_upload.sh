@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs ON the training VM (project adaptative-latent-reasoning), detached.
-# Publishes each new epoch checkpoint to GCS so a separate eval VM — on a different GPU, in a
-# different project — can score it without stealing SM time from training.
+# Publishes each new epoch checkpoint to GCS so a separate eval VM - on a different GPU, in a
+# different project - can score it without stealing SM time from training.
 #
 # Only pytorch_model.bin is shipped: test.py loads weights from ckpt_dir but takes the
 # tokenizer from --model_name_or_path (gpt2, off the hub). ~578 MB/epoch, ~23 GB for all 40.
@@ -27,7 +27,7 @@ while true; do
     [ -f "$STATE/$step" ] && continue
     bin="$ck/pytorch_model.bin"
     [ -f "$bin" ] || continue
-    # the dir appears before the weights finish writing — wait for the size to settle
+    # the dir appears before the weights finish writing - wait for the size to settle
     s1=$(stat -c%s "$bin"); sleep 20; s2=$(stat -c%s "$bin")
     [ "$s1" = "$s2" ] && [ "$s1" -gt 100000000 ] || continue
 
